@@ -1,0 +1,242 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { QueryProductDto } from './dto/query-product.dto';
+import { Prisma } from '@prisma/client';
+
+@Injectable()
+export class ProductsService {
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService,
+  ) {}
+
+  private async generateSKU(brandId?: string): Promise<string> {
+    const prefix = brandId ? (await this.prisma.brand.findUnique({ where: { id: brandId } }))?.slug?.substring(0, 3).toUpperCase() ?? 'PRD' : 'PRD';
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}-${random}`;
+  }
+
+  async findAll(query: QueryProductDto) {
+    const page = parseInt(query.page || '1', 10);
+    const limit = parseInt(query.limit || '20', 10);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = { isActive: true };
+
+    if (query.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+        { sku: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (query.category) {
+      where.categories = { some: { category: { slug: query.category } } };
+    }
+
+    if (query.brand) {
+      where.brand = { slug: query.brand };
+    }
+
+    if (query.minPrice || query.maxPrice) {
+      where.price = {};
+      if (query.minPrice) where.price.gte = parseFloat(query.minPrice);
+      if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
+    }
+
+    const orderBy: any = {};
+const sortBy = query.sortBy || 'createdAt';
+const order = query.order === 'asc' ? 'asc' : 'desc';
+orderBy[sortBy] = order;
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          images: true,
+          brand: true,
+          categories: { include: { category: true } },
+          inventory: { include: { warehouse: true } },
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data: products.map((p) => ({
+        ...p,
+        price: p.price.toNumber(),
+        compareAtPrice: p.compareAtPrice?.toNumber(),
+        categories: p.categories.map((pc) => pc.category),
+      })),
+      meta: { page, limit, total },
+    };
+  }
+
+  async findBySlug(slug: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { slug },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        brand: true,
+        categories: { include: { category: true } },
+        inventory: { include: { warehouse: true } },
+        reviews: {
+          where: { isApproved: true },
+          include: { user: { select: { id: true, firstName: true, lastName: true } } },
+        },
+      },
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+
+    return {
+      ...product,
+      price: product.price.toNumber(),
+      compareAtPrice: product.compareAtPrice?.toNumber(),
+      categories: product.categories.map((pc) => pc.category),
+    };
+  }
+
+  async create(dto: CreateProductDto) {
+    if (!dto.sku) {
+      dto.sku = await this.generateSKU(dto.brandId);
+    }
+
+    const existing = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+    if (existing) throw new BadRequestException('SKU already exists');
+
+    const product = await this.prisma.product.create({
+      data: {
+        name: dto.name,
+        slug: dto.slug,
+        description: dto.description,
+        shortDescription: dto.shortDescription,
+        sku: dto.sku,
+        price: dto.price,
+        compareAtPrice: dto.compareAtPrice,
+        costPrice: dto.costPrice,
+        isActive: dto.isActive ?? true,
+        isFeatured: dto.isFeatured ?? false,
+        brandId: dto.brandId,
+        metaTitle: dto.metaTitle,
+        metaDescription: dto.metaDescription,
+        categories: dto.categoryIds
+          ? {
+              create: dto.categoryIds.map((catId) => ({
+                category: { connect: { id: catId } },
+              })),
+            }
+          : undefined,
+      },
+    });
+
+    if (dto.warehouseId && dto.initialQuantity !== undefined) {
+      await this.prisma.inventory.create({
+        data: {
+          productId: product.id,
+          warehouseId: dto.warehouseId,
+          quantity: dto.initialQuantity,
+          lowStockThreshold: dto.lowStockThreshold ?? 5,
+        },
+      });
+    }
+
+    return this.findBySlug(product.slug);
+  }
+
+  async update(id: string, dto: UpdateProductDto) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    if (dto.sku && dto.sku !== product.sku) {
+      const dup = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+      if (dup) throw new BadRequestException('SKU already exists');
+    }
+
+    const data: any = { ...dto };
+    delete data.categoryIds;
+    delete data.warehouseId;
+    delete data.initialQuantity;
+    delete data.lowStockThreshold;
+
+    await this.prisma.product.update({
+      where: { id },
+      data,
+    });
+
+    if (dto.categoryIds) {
+      await this.prisma.productCategory.deleteMany({ where: { productId: id } });
+      await this.prisma.productCategory.createMany({
+        data: dto.categoryIds.map((catId) => ({
+          productId: id,
+          categoryId: catId,
+        })),
+      });
+    }
+
+    if (dto.warehouseId && dto.initialQuantity !== undefined) {
+      await this.prisma.inventory.upsert({
+        where: { productId_warehouseId: { productId: id, warehouseId: dto.warehouseId } },
+        create: {
+          productId: id,
+          warehouseId: dto.warehouseId,
+          quantity: dto.initialQuantity,
+          lowStockThreshold: dto.lowStockThreshold ?? 5,
+        },
+        update: {
+          quantity: dto.initialQuantity,
+          lowStockThreshold: dto.lowStockThreshold ?? 5,
+        },
+      });
+    }
+
+    return this.findBySlug((await this.prisma.product.findUnique({ where: { id } }))!.slug);
+  }
+
+  async remove(id: string) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+    await this.prisma.product.delete({ where: { id } });
+    return { message: 'Product deleted' };
+  }
+
+  async uploadImages(productId: string, files: any[]) {
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    const uploaded = [];
+    for (const file of files) {
+      const result = await this.cloudinary.uploadImage(file);
+      const image = await this.prisma.productImage.create({
+        data: {
+          productId,
+          url: result.secure_url,
+          alt: file.originalname,
+          sortOrder: 0,
+          isPrimary: false,
+        },
+      });
+      uploaded.push(image);
+    }
+    return uploaded;
+  }
+
+  async deleteImage(imageId: string) {
+    const image = await this.prisma.productImage.findUnique({ where: { id: imageId } });
+    if (!image) throw new NotFoundException('Image not found');
+    await this.prisma.productImage.delete({ where: { id: imageId } });
+    return { message: 'Image deleted' };
+  }
+}
