@@ -1,0 +1,101 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { CreateFaqDto } from './dto/create-faq.dto';
+
+@Injectable()
+export class SupportService {
+  constructor(private prisma: PrismaService) {}
+
+  async getFaqs() {
+    return this.prisma.fAQ.findMany({
+      orderBy: { sortOrder: 'asc' },
+      include: { category: true },
+    });
+  }
+
+  async createFaq(dto: CreateFaqDto) {
+    return this.prisma.fAQ.create({ data: dto });
+  }
+
+  async updateFaq(id: string, dto: CreateFaqDto) {
+    return this.prisma.fAQ.update({ where: { id }, data: dto });
+  }
+
+  async deleteFaq(id: string) {
+    await this.prisma.fAQ.delete({ where: { id } });
+    return { message: 'FAQ deleted' };
+  }
+
+  async getMyTickets(userId: string) {
+    return this.prisma.supportTicket.findMany({
+      where: { userId },
+      include: { messages: { orderBy: { createdAt: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createTicket(userId: string, dto: CreateTicketDto) {
+    const ticket = await this.prisma.supportTicket.create({
+      data: {
+        userId,
+        subject: dto.subject,
+        priority: dto.priority || 'MEDIUM',
+        messages: {
+          create: {
+            senderId: userId,
+            message: dto.message,
+            isStaffReply: false,
+          },
+        },
+      },
+      include: { messages: true },
+    });
+
+    return ticket;
+  }
+
+  async getTicket(ticketId: string) {
+    const ticket = await this.prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+      include: {
+        messages: { orderBy: { createdAt: 'asc' }, include: { sender: { select: { firstName: true, lastName: true } } } },
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
+    });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+    return ticket;
+  }
+
+  async addMessage(ticketId: string, senderId: string, isStaff: boolean, dto: CreateMessageDto) {
+    return this.prisma.ticketMessage.create({
+      data: {
+        ticketId,
+        senderId,
+        message: dto.message,
+        isStaffReply: isStaff,
+      },
+    });
+  }
+
+  async getAllTickets(status?: string) {
+    const where: any = {};
+    if (status) where.status = status;
+    return this.prisma.supportTicket.findMany({
+      where,
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        _count: { select: { messages: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateTicketStatus(ticketId: string, status: string) {
+    return this.prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: { status: status as any },
+    });
+  }
+}

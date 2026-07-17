@@ -11,6 +11,12 @@ import { CartModule } from './cart/cart.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PaymentsModule } from './payments/payments.module';
+import { OrdersModule } from './orders/orders.module';
+import { InstallationModule } from './installation/installation.module';
+import { SupportModule } from './support/support.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -33,6 +39,12 @@ import { PaymentsModule } from './payments/payments.module';
     WishlistModule,
     CheckoutModule,
     PaymentsModule,
+    OrdersModule,
+    InstallationModule,
+    SupportModule,
+    ReviewsModule,
+    NotificationsModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}
