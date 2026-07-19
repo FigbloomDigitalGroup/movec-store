@@ -37,4 +37,24 @@ api.interceptors.response.use(
   }
 );
 
+export const getErrorMessage = (error: any): string => {
+  if (!error.response) {
+    return error.message || 'Network error occurred. Please try again.';
+  }
+  const data = error.response.data;
+  if (data) {
+    if (data.error && data.error.message) {
+      return Array.isArray(data.error.message)
+        ? data.error.message.join(', ')
+        : data.error.message;
+    }
+    if (data.message) {
+      return Array.isArray(data.message)
+        ? data.message.join(', ')
+        : data.message;
+    }
+  }
+  return 'An unexpected error occurred.';
+};
+
 export default api;

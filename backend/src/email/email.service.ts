@@ -1,42 +1,58 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private apiInstance: SibApiV3Sdk.TransactionalEmailsApi;
+  private transporter: nodemailer.Transporter;
   private fromEmail: string;
   private fromName: string;
+  private smtpFrom: string;
   private frontendUrl: string;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('BREVO_API_KEY');
     this.fromEmail = this.configService.get<string>('BREVO_FROM_EMAIL', 'noreply@starlinkcctv.co.ke');
     this.fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Starlink CCTV');
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
 
+    // 1. Try to initialize Brevo transactional email client
+    const apiKey = this.configService.get<string>('BREVO_API_KEY');
     if (apiKey) {
       const client = SibApiV3Sdk.ApiClient.instance;
       const apiKeyInstance = client.authentications['api-key'];
       apiKeyInstance.apiKey = apiKey;
       this.apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
     }
+
+    // 2. Try to initialize SMTP transporter
+    const smtpHost = this.configService.get<string>('SMTP_HOST');
+    const smtpPort = this.configService.get<number>('SMTP_PORT');
+    const smtpSecure = this.configService.get<string>('SMTP_SECURE') === 'true';
+    const smtpUser = this.configService.get<string>('SMTP_USER');
+    const smtpPass = this.configService.get<string>('SMTP_PASS');
+    this.smtpFrom = this.configService.get<string>('SMTP_FROM', `"${this.fromName}" <${this.fromEmail}>`);
+
+    if (smtpHost && smtpUser && smtpPass) {
+      this.transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort ? Number(smtpPort) : 587,
+        secure: smtpSecure,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+      this.logger.log(`SMTP Transporter initialized for host ${smtpHost} using user ${smtpUser}`);
+    }
   }
 
   async sendVerificationEmail(toEmail: string, toName: string, token: string) {
-    if (!this.apiInstance) {
-      this.logger.warn('Brevo not configured. Verification token:', token);
-      return;
-    }
-
     const verificationLink = `${this.frontendUrl}/verify-email?token=${token}`;
-
-    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-    sendSmtpEmail.to = [{ email: toEmail, name: toName }];
-    sendSmtpEmail.sender = { email: this.fromEmail, name: this.fromName };
-    sendSmtpEmail.subject = 'Verify your email - Starlink CCTV';
-    sendSmtpEmail.htmlContent = `
+    const subject = 'Verify your email - Starlink CCTV';
+    const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Welcome to Starlink CCTV!</h2>
         <p>Hi ${toName},</p>
@@ -51,27 +67,46 @@ export class EmailService {
       </div>
     `;
 
-    try {
-      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-      this.logger.log(`Verification email sent to ${toEmail}`);
-    } catch (error) {
-      this.logger.error('Failed to send verification email:', error);
+    // Try sending via SMTP first
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: `"${toName}" <${toEmail}>`,
+          subject,
+          html: htmlContent,
+        });
+        this.logger.log(`Verification email sent to ${toEmail} via SMTP`);
+        return;
+      } catch (error) {
+        this.logger.error('Failed to send verification email via SMTP:', error);
+      }
     }
-  }
 
-  async sendPasswordResetEmail(toEmail: string, toName: string, token: string) {
+    // Fallback to Brevo
     if (!this.apiInstance) {
-      this.logger.warn('Brevo not configured. Reset token:', token);
+      this.logger.warn('Neither SMTP nor Brevo is configured. Verification token:', token);
       return;
     }
-
-    const resetLink = `${this.frontendUrl}/reset-password?token=${token}`;
 
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.to = [{ email: toEmail, name: toName }];
     sendSmtpEmail.sender = { email: this.fromEmail, name: this.fromName };
-    sendSmtpEmail.subject = 'Reset your password - Starlink CCTV';
-    sendSmtpEmail.htmlContent = `
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      this.logger.log(`Verification email sent to ${toEmail} via Brevo`);
+    } catch (error) {
+      this.logger.error('Failed to send verification email via Brevo:', error);
+    }
+  }
+
+  async sendPasswordResetEmail(toEmail: string, toName: string, token: string) {
+    const resetLink = `${this.frontendUrl}/reset-password?token=${token}`;
+    const subject = 'Reset your password - Starlink CCTV';
+    const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Password Reset</h2>
         <p>Hi ${toName},</p>
@@ -87,22 +122,45 @@ export class EmailService {
       </div>
     `;
 
-    try {
-      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-      this.logger.log(`Password reset email sent to ${toEmail}`);
-    } catch (error) {
-      this.logger.error('Failed to send password reset email:', error);
+    // Try sending via SMTP first
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: `"${toName}" <${toEmail}>`,
+          subject,
+          html: htmlContent,
+        });
+        this.logger.log(`Password reset email sent to ${toEmail} via SMTP`);
+        return;
+      } catch (error) {
+        this.logger.error('Failed to send password reset email via SMTP:', error);
+      }
     }
-  }
 
-  async sendOrderConfirmation(toEmail: string, toName: string, orderNumber: string, total: number) {
-    if (!this.apiInstance) return;
+    // Fallback to Brevo
+    if (!this.apiInstance) {
+      this.logger.warn('Neither SMTP nor Brevo is configured. Reset token:', token);
+      return;
+    }
 
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.to = [{ email: toEmail, name: toName }];
     sendSmtpEmail.sender = { email: this.fromEmail, name: this.fromName };
-    sendSmtpEmail.subject = `Order Confirmed - ${orderNumber}`;
-    sendSmtpEmail.htmlContent = `
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      this.logger.log(`Password reset email sent to ${toEmail} via Brevo`);
+    } catch (error) {
+      this.logger.error('Failed to send password reset email via Brevo:', error);
+    }
+  }
+
+  async sendOrderConfirmation(toEmail: string, toName: string, orderNumber: string, total: number) {
+    const subject = `Order Confirmed - ${orderNumber}`;
+    const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Order Confirmed!</h2>
         <p>Hi ${toName},</p>
@@ -115,11 +173,39 @@ export class EmailService {
       </div>
     `;
 
+    // Try sending via SMTP first
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: `"${toName}" <${toEmail}>`,
+          subject,
+          html: htmlContent,
+        });
+        this.logger.log(`Order confirmation sent to ${toEmail} via SMTP`);
+        return;
+      } catch (error) {
+        this.logger.error('Failed to send order confirmation via SMTP:', error);
+      }
+    }
+
+    // Fallback to Brevo
+    if (!this.apiInstance) {
+      this.logger.warn('Neither SMTP nor Brevo is configured for order confirmation.');
+      return;
+    }
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: toEmail, name: toName }];
+    sendSmtpEmail.sender = { email: this.fromEmail, name: this.fromName };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
     try {
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-      this.logger.log(`Order confirmation sent to ${toEmail}`);
+      this.logger.log(`Order confirmation sent to ${toEmail} via Brevo`);
     } catch (error) {
-      this.logger.error('Failed to send order confirmation:', error);
+      this.logger.error('Failed to send order confirmation via Brevo:', error);
     }
   }
 }

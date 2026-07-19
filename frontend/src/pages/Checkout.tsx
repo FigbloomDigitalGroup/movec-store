@@ -11,7 +11,7 @@ export default function CheckoutPage() {
   const { isAuthenticated } = useAuthStore();
   const guestCart = useCartStore();
   const [shippingId, setShippingId] = useState('');
-  const [billingId, setBillingId] = useState('');
+  const [billingId] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [notes, setNotes] = useState('');
   const [syncing, setSyncing] = useState(false);
