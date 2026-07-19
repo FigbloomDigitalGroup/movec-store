@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -15,10 +16,13 @@ export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private cloudinary: CloudinaryService,
+    private configService: ConfigService,
   ) {}
 
   private async generateSKU(brandId?: string): Promise<string> {
-    const prefix = brandId ? (await this.prisma.brand.findUnique({ where: { id: brandId } }))?.slug?.substring(0, 3).toUpperCase() ?? 'PRD' : 'PRD';
+    const prefix = brandId
+      ? ((await this.prisma.brand.findUnique({ where: { id: brandId } }))?.slug?.substring(0, 3).toUpperCase() ?? 'PRD')
+      : 'PRD';
     const random = Math.floor(1000 + Math.random() * 9000);
     return `${prefix}-${random}`;
   }
@@ -53,9 +57,9 @@ export class ProductsService {
     }
 
     const orderBy: any = {};
-const sortBy = query.sortBy || 'createdAt';
-const order = query.order === 'asc' ? 'asc' : 'desc';
-orderBy[sortBy] = order;
+    const sortBy = query.sortBy || 'createdAt';
+    const order = query.order === 'asc' ? 'asc' : 'desc';
+    orderBy[sortBy] = order;
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -171,10 +175,7 @@ orderBy[sortBy] = order;
     delete data.initialQuantity;
     delete data.lowStockThreshold;
 
-    await this.prisma.product.update({
-      where: { id },
-      data,
-    });
+    await this.prisma.product.update({ where: { id }, data });
 
     if (dto.categoryIds) {
       await this.prisma.productCategory.deleteMany({ where: { productId: id } });
@@ -216,14 +217,28 @@ orderBy[sortBy] = order;
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
+
     const uploaded = [];
     for (const file of files) {
-      const result = await this.cloudinary.uploadImage(file);
+      let url: string;
+
+      if (cloudName) {
+        try {
+          const result = await this.cloudinary.uploadImage(file);
+          url = result.secure_url;
+        } catch (error) {
+          url = `http://localhost:4000/uploads/${file.filename || Date.now() + '-' + file.originalname}`;
+        }
+      } else {
+        url = `http://localhost:4000/uploads/${file.filename || Date.now() + '-' + file.originalname}`;
+      }
+
       const image = await this.prisma.productImage.create({
         data: {
           productId,
-          url: result.secure_url,
-          alt: file.originalname,
+          url,
+          alt: file.originalname || 'Product image',
           sortOrder: 0,
           isPrimary: false,
         },

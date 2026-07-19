@@ -11,6 +11,9 @@ import {
   UploadedFiles,
   Query,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -19,7 +22,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
-import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -48,7 +50,15 @@ export class AdminProductsController {
   }
 
   @Post(':id/images')
-  @UseInterceptors(FilesInterceptor('files', 10))
+  @UseInterceptors(FilesInterceptor('files', 10, {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
+      },
+    }),
+  }))
   uploadImages(@Param('id') id: string, @UploadedFiles() files: any[]) {
     return this.productsService.uploadImages(id, files);
   }

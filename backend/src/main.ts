@@ -1,13 +1,15 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
+import { resolve } from 'path';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
@@ -16,7 +18,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: false }));
+
+  app.useStaticAssets(resolve(process.cwd(), 'uploads'), { prefix: '/uploads/' });
 
   app.useGlobalFilters(new AllExceptionsFilter());
 

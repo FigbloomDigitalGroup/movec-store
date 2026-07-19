@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RoleName } from '@prisma/client';
@@ -22,6 +23,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -34,6 +36,8 @@ export class AuthService {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+    const autoVerify = this.configService.get<string>('AUTO_VERIFY_EMAIL') === 'true';
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -41,8 +45,9 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         phone: dto.phone,
-        verificationToken,
-        verificationTokenExpires,
+        verificationToken: autoVerify ? null : verificationToken,
+        verificationTokenExpires: autoVerify ? null : verificationTokenExpires,
+        isEmailVerified: autoVerify,
         userRoles: {
           create: {
             role: {
@@ -53,12 +58,16 @@ export class AuthService {
       },
     });
 
-    this.logger.log(`Verification token for ${user.email}: ${verificationToken}`);
+    if (!autoVerify) {
+      await this.emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
+    }
 
     return {
       id: user.id,
       email: user.email,
-      message: 'Registration successful. Please verify your email.',
+      message: autoVerify
+        ? 'Registration successful. You can now log in.'
+        : 'Registration successful. Please verify your email.',
     };
   }
 
@@ -203,7 +212,7 @@ export class AuthService {
       data: { resetToken, resetTokenExpires },
     });
 
-    this.logger.log(`Password reset token for ${user.email}: ${resetToken}`);
+    await this.emailService.sendPasswordResetEmail(user.email, user.firstName, resetToken);
 
     return { message: 'If the email exists, a reset link has been sent.' };
   }

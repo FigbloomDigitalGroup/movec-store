@@ -12,6 +12,7 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     try {
       await register(form);
       setSuccess('Registration successful! Please check your email to verify your account.');

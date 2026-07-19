@@ -1,14 +1,16 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
-import { useState } from 'react';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
+  const [currentImage, setCurrentImage] = useState(0);
 
   const { data: product } = useQuery({
     queryKey: ['product', slug],
@@ -35,20 +37,76 @@ export default function ProductDetail() {
     onSuccess: () => alert('Added to wishlist!'),
   });
 
-  if (!product) return <p>Loading...</p>;
+  if (!product) return <p className="text-white text-center py-16">Loading...</p>;
+
+  const images = product.images || [];
+
+  const goNext = () => {
+    if (images.length > 1) setCurrentImage((prev) => (prev + 1) % images.length);
+  };
+
+  const goPrev = () => {
+    if (images.length > 1) setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-gray-200 h-96 rounded-xl flex items-center justify-center">
-          {product.images?.[0] ? (
-            <img src={product.images[0].url} alt={product.name} className="h-full w-full object-cover rounded-xl" />
-          ) : (
-            <span className="text-gray-400 text-xl">No image</span>
+        <div>
+          <div className="relative bg-gray-900/50 backdrop-blur-sm rounded-2xl h-96 flex items-center justify-center overflow-hidden group">
+            {images.length > 0 ? (
+              <img
+                src={images[currentImage]?.url}
+                alt={product.name}
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <span className="text-gray-400 text-xl">No image available</span>
+            )}
+
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
+                >
+                  <FiChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 transition"
+                >
+                  <FiChevronRight size={24} />
+                </button>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {images.map((_: any, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentImage(i)}
+                      className={`w-3 h-3 rounded-full transition ${i === currentImage ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {images.length > 1 && (
+            <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+              {images.map((img: any, i: number) => (
+                <button
+                  key={img.id}
+                  onClick={() => setCurrentImage(i)}
+                  className={`w-20 h-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition ${i === currentImage ? 'border-blue-500' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                >
+                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
-        <div>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
           <p className="text-sm text-gray-500">{product.brand?.name}</p>
           <h1 className="text-3xl font-bold mt-1">{product.name}</h1>
           <p className="text-sm text-gray-500 mt-1">SKU: {product.sku}</p>
@@ -60,10 +118,10 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <p className="mt-4 text-gray-700">{product.description}</p>
+          <p className="mt-4 text-gray-700 leading-relaxed">{product.description}</p>
 
           {product.categories?.length > 0 && (
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex gap-2 flex-wrap">
               {product.categories.map((cat: any) => (
                 <span key={cat.id} className="bg-gray-200 px-3 py-1 rounded-full text-sm">{cat.name}</span>
               ))}
@@ -72,29 +130,29 @@ export default function ProductDetail() {
 
           <p className="mt-4 text-sm">
             {product.inventory?.reduce((sum: number, i: any) => sum + i.quantity, 0) > 0 ? (
-              <span className="text-green-600">In Stock</span>
+              <span className="text-green-600 font-medium">✓ In Stock</span>
             ) : (
-              <span className="text-red-600">Out of Stock</span>
+              <span className="text-red-600 font-medium">✕ Out of Stock</span>
             )}
           </p>
 
           {isAuthenticated && (
             <div className="mt-6 flex gap-4">
               <div className="flex items-center border rounded-lg">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2">-</button>
-                <span className="px-4 py-2 border-x">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-2">+</button>
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 hover:bg-gray-100">-</button>
+                <span className="px-4 py-2 border-x font-medium">{quantity}</span>
+                <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-2 hover:bg-gray-100">+</button>
               </div>
               <button
                 onClick={() => addToCart.mutate()}
                 disabled={addToCart.isPending}
-                className="bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                className="bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium"
               >
                 {addToCart.isPending ? 'Adding...' : 'Add to Cart'}
               </button>
               <button
                 onClick={() => addToWishlist.mutate()}
-                className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+                className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 transition text-xl"
               >
                 ♡
               </button>
@@ -104,18 +162,20 @@ export default function ProductDetail() {
       </div>
 
       {product.reviews?.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-4">Reviews</h2>
-          {product.reviews.map((review: any) => (
-            <div key={review.id} className="border-b py-4">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{review.user.firstName} {review.user.lastName}</span>
-                <span className="text-yellow-500">{'★'.repeat(review.rating)}</span>
+        <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-2xl p-6">
+          <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+          <div className="space-y-4">
+            {product.reviews.map((review: any) => (
+              <div key={review.id} className="border-b pb-4 last:border-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{review.user.firstName} {review.user.lastName}</span>
+                  <span className="text-yellow-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                </div>
+                {review.title && <p className="font-medium mt-1">{review.title}</p>}
+                {review.body && <p className="text-gray-600 mt-1">{review.body}</p>}
               </div>
-              {review.title && <p className="font-medium mt-1">{review.title}</p>}
-              {review.body && <p className="text-gray-600 mt-1">{review.body}</p>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

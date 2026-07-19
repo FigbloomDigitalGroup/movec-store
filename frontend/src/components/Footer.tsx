@@ -20,7 +20,7 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-semibold mb-3">Contact</h4>
           <p>Nairobi, Kenya</p>
-          <p>+254 700 000 000</p>
+          <p>+254 727572310</p>
           <p>info@starlinkcctv.co.ke</p>
         </div>
       </div>
