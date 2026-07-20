@@ -11,6 +11,10 @@ export class QueryProductDto {
 
   @IsOptional()
   @IsString()
+  module?: string;
+
+  @IsOptional()
+  @IsString()
   brand?: string;
 
   @IsOptional()
@@ -28,6 +32,10 @@ export class QueryProductDto {
   @IsOptional()
   @IsString()
   order?: 'asc' | 'desc';
+
+  @IsOptional()
+  @IsString()
+  featured?: string;
 
   @IsOptional()
   @IsNumberString()

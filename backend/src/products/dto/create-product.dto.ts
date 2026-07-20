@@ -55,6 +55,10 @@ export class CreateProductDto {
   brandId?: string;
 
   @IsOptional()
+  @IsString()
+  moduleId?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   categoryIds?: string[];

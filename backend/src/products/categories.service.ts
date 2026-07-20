@@ -7,16 +7,18 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(moduleSlug?: string) {
     return this.prisma.category.findMany({
-      include: { children: true, parent: true },
+      where: moduleSlug ? { module: { slug: moduleSlug } } : undefined,
+      include: { children: true, parent: true, module: true },
+      orderBy: { name: 'asc' },
     });
   }
 
   async findOne(id: string) {
     const cat = await this.prisma.category.findUnique({
       where: { id },
-      include: { children: true, parent: true },
+      include: { children: true, parent: true, module: true },
     });
     if (!cat) throw new NotFoundException('Category not found');
     return cat;

@@ -21,7 +21,7 @@ export default function InstallationPage() {
       <div className="space-y-4">
         <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="w-full border rounded-lg px-4 py-2">
           <option value="">Select service</option>
-          {services?.map((s: any) => <option key={s.id} value={s.id}>{s.name} - KES {s.basePrice.toLocaleString()}</option>)}
+          {services?.map((s: any) => <option key={s.id} value={s.id}>{s.name} - KES {Number(s.basePrice).toLocaleString()}</option>)}
         </select>
         <input type="datetime-local" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" className="w-full border rounded-lg px-4 py-2" rows={3} />

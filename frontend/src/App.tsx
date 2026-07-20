@@ -20,6 +20,10 @@ import ContactPage from './pages/Contact';
 import VerifyEmailPage from './pages/VerifyEmail';
 import ForgotPasswordPage from './pages/ForgotPassword';
 import ResetPasswordPage from './pages/ResetPassword';
+import ModulesPage from './pages/Modules';
+import ModuleLanding from './pages/ModuleLanding';
+import PaymentPage from './pages/Payment';
+import ProfilePage from './pages/Profile';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
@@ -49,11 +53,16 @@ export default function App() {
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/modules" element={<ModulesPage />} />
+            <Route path="/modules/:moduleSlug" element={<ModuleLanding />} />
+            <Route path="/modules/:moduleSlug/products" element={<ModuleLanding />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:orderNumber" element={<OrderDetailPage />} />
+            <Route path="/payment/:orderNumber" element={<PaymentPage />} />
             <Route path="/installation" element={<InstallationPage />} />
             <Route path="/support/faqs" element={<SupportPage />} />
             <Route path="/contact" element={<ContactPage />} />

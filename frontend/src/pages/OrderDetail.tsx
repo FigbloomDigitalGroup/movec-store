@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 
@@ -32,8 +32,16 @@ export default function OrderDetailPage() {
           {order.discountAmount > 0 && <div className="flex justify-between py-2 text-green-600"><span>Discount</span><span>-KES {order.discountAmount.toLocaleString()}</span></div>}
           <div className="flex justify-between font-bold text-lg pt-4 border-t"><span>Total</span><span>KES {order.total.toLocaleString()}</span></div>
           <div className="mt-4 pt-4 border-t">
-            <p className="font-semibold">Status</p>
+            <p className="font-semibold mb-2">Status</p>
             <span className="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-700">{order.status}</span>
+            {order.status === 'PENDING' && (
+              <Link
+                to={`/payment/${order.orderNumber}`}
+                className="block text-center bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition mt-4 font-semibold text-sm"
+              >
+                Pay Now
+              </Link>
+            )}
           </div>
         </div>
       </div>

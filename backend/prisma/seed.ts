@@ -1,4 +1,4 @@
-import { PrismaClient, RoleName, DiscountType, AddressType } from '@prisma/client';
+import { PrismaClient, RoleName, AddressType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -7,14 +7,14 @@ async function main() {
   const passwordHashAdmin = await bcrypt.hash('Admin123!', 12);
   const passwordHashCustomer = await bcrypt.hash('Customer123!', 12);
 
-  // Warehouses
+  // ─── Warehouses ────────────────────────────────────────────────
   const mainWarehouse = await prisma.warehouse.upsert({
     where: { id: 'main-warehouse' },
     update: {},
     create: { id: 'main-warehouse', name: 'Main Warehouse', location: 'Nairobi, Kenya' },
   });
 
-  // Roles
+  // ─── Roles ─────────────────────────────────────────────────────
   const adminRole = await prisma.role.upsert({
     where: { name: RoleName.ADMIN },
     update: {},
@@ -25,33 +25,22 @@ async function main() {
     update: {},
     create: { name: RoleName.CUSTOMER },
   });
-  const technicianRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { name: RoleName.TECHNICIAN },
     update: {},
     create: { name: RoleName.TECHNICIAN },
   });
-  const staffRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { name: RoleName.STAFF },
     update: {},
     create: { name: RoleName.STAFF },
   });
 
-  // Permissions
+  // ─── Permissions ───────────────────────────────────────────────
   const resources = [
-    'user',
-    'product',
-    'category',
-    'brand',
-    'order',
-    'inventory',
-    'payment',
-    'installation',
-    'ticket',
-    'faq',
-    'review',
-    'coupon',
-    'report',
-    'settings',
+    'user', 'product', 'category', 'brand', 'order',
+    'inventory', 'payment', 'installation', 'ticket',
+    'faq', 'review', 'coupon', 'report', 'settings', 'module',
   ];
   const actions = ['create', 'read', 'update', 'delete'];
 
@@ -65,7 +54,7 @@ async function main() {
     }
   }
 
-  // Assign all permissions to ADMIN role
+  // Assign all permissions to ADMIN
   const allPermissions = await prisma.permission.findMany();
   for (const perm of allPermissions) {
     await prisma.rolePermission.upsert({
@@ -75,7 +64,7 @@ async function main() {
     });
   }
 
-  // Admin user
+  // ─── Users ─────────────────────────────────────────────────────
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@example.com' },
     update: {},
@@ -87,13 +76,10 @@ async function main() {
       phone: '+254700000001',
       isEmailVerified: true,
       isActive: true,
-      userRoles: {
-        create: { roleId: adminRole.id },
-      },
+      userRoles: { create: { roleId: adminRole.id } },
     },
   });
 
-  // Customer user
   const customerUser = await prisma.user.upsert({
     where: { email: 'customer@example.com' },
     update: {},
@@ -105,13 +91,10 @@ async function main() {
       phone: '+254700000002',
       isEmailVerified: true,
       isActive: true,
-      userRoles: {
-        create: { roleId: customerRole.id },
-      },
+      userRoles: { create: { roleId: customerRole.id } },
     },
   });
 
-  // Customer address
   await prisma.address.upsert({
     where: { id: 'customer-default-address' },
     update: {},
@@ -127,58 +110,131 @@ async function main() {
     },
   });
 
-  // Categories
-  const catStarlinkKits = await prisma.category.upsert({
-    where: { slug: 'starlink-kits' },
+  await prisma.address.upsert({
+    where: { id: 'admin-default-address' },
     update: {},
-    create: { name: 'Starlink Kits', slug: 'starlink-kits', description: 'Complete Starlink satellite internet kits' },
-  });
-  await prisma.category.upsert({
-    where: { slug: 'starlink-accessories' },
-    update: {},
-    create: { name: 'Starlink Accessories', slug: 'starlink-accessories', description: 'Mounts, cables, and accessories' },
-  });
-  await prisma.category.upsert({
-    where: { slug: 'cctv-cameras' },
-    update: {},
-    create: { name: 'CCTV Cameras', slug: 'cctv-cameras', description: 'IP and analog security cameras' },
-  });
-  await prisma.category.upsert({
-    where: { slug: 'dvr-nvr' },
-    update: {},
-    create: { name: 'DVR/NVR', slug: 'dvr-nvr', description: 'Digital and Network Video Recorders' },
-  });
-  await prisma.category.upsert({
-    where: { slug: 'hard-drives' },
-    update: {},
-    create: { name: 'Hard Drives', slug: 'hard-drives', description: 'Surveillance-grade hard drives' },
-  });
-  await prisma.category.upsert({
-    where: { slug: 'network-equipment' },
-    update: {},
-    create: { name: 'Network Equipment', slug: 'network-equipment', description: 'Routers, switches, PoE injectors' },
-  });
-  await prisma.category.upsert({
-    where: { slug: 'installation-accessories' },
-    update: {},
-    create: { name: 'Installation Accessories', slug: 'installation-accessories', description: 'Cables, connectors, brackets' },
+    create: {
+      id: 'admin-default-address',
+      userId: adminUser.id,
+      type: AddressType.SHIPPING,
+      line1: '456 Harambee Avenue',
+      city: 'Nairobi',
+      postalCode: '00100',
+      country: 'Kenya',
+      isDefault: true,
+    },
   });
 
-  // Brands
+  // ─── Store Modules ─────────────────────────────────────────────
+  const moduleStarlink = await prisma.storeModule.upsert({
+    where: { slug: 'starlink' },
+    update: {},
+    create: {
+      id: 'module-starlink',
+      name: 'Starlink',
+      slug: 'starlink',
+      description: 'High-speed satellite internet solutions powered by SpaceX Starlink.',
+      sortOrder: 1,
+    },
+  });
+
+  const moduleCCTV = await prisma.storeModule.upsert({
+    where: { slug: 'cctv' },
+    update: {},
+    create: {
+      id: 'module-cctv',
+      name: 'CCTV & Security',
+      slug: 'cctv',
+      description: 'Professional CCTV cameras, DVRs, NVRs and surveillance accessories.',
+      sortOrder: 2,
+    },
+  });
+
+  // ─── Categories ────────────────────────────────────────────────
+  // Starlink categories
+  const catStarlinkKits = await prisma.category.upsert({
+    where: { slug: 'starlink-kits' },
+    update: { moduleId: moduleStarlink.id },
+    create: {
+      name: 'Starlink Kits',
+      slug: 'starlink-kits',
+      description: 'Complete Starlink satellite internet kits',
+      moduleId: moduleStarlink.id,
+    },
+  });
+  const catStarlinkAccessories = await prisma.category.upsert({
+    where: { slug: 'starlink-accessories' },
+    update: { moduleId: moduleStarlink.id },
+    create: {
+      name: 'Starlink Accessories',
+      slug: 'starlink-accessories',
+      description: 'Mounts, cables, and accessories for Starlink',
+      moduleId: moduleStarlink.id,
+    },
+  });
+  const catStarlinkMounts = await prisma.category.upsert({
+    where: { slug: 'starlink-mounts' },
+    update: { moduleId: moduleStarlink.id },
+    create: {
+      name: 'Starlink Mounts',
+      slug: 'starlink-mounts',
+      description: 'Pole, wall and roof mounts for Starlink dishes',
+      moduleId: moduleStarlink.id,
+    },
+  });
+
+  // CCTV categories
+  const catIPCameras = await prisma.category.upsert({
+    where: { slug: 'ip-cameras' },
+    update: { moduleId: moduleCCTV.id },
+    create: {
+      name: 'IP Cameras',
+      slug: 'ip-cameras',
+      description: 'Wired and wireless network IP cameras',
+      moduleId: moduleCCTV.id,
+    },
+  });
+  const catDvrNvr = await prisma.category.upsert({
+    where: { slug: 'dvr-nvr' },
+    update: { moduleId: moduleCCTV.id },
+    create: {
+      name: 'DVR / NVR',
+      slug: 'dvr-nvr',
+      description: 'Digital and Network Video Recorders',
+      moduleId: moduleCCTV.id,
+    },
+  });
+  const catHardDrives = await prisma.category.upsert({
+    where: { slug: 'surveillance-hard-drives' },
+    update: { moduleId: moduleCCTV.id },
+    create: {
+      name: 'Hard Drives',
+      slug: 'surveillance-hard-drives',
+      description: 'Surveillance-grade hard drives for 24/7 recording',
+      moduleId: moduleCCTV.id,
+    },
+  });
+
+  // ─── Brands ────────────────────────────────────────────────────
   const brandStarlink = await prisma.brand.upsert({
     where: { slug: 'starlink' },
     update: {},
     create: { name: 'Starlink', slug: 'starlink' },
   });
-  await prisma.brand.upsert({
+  const brandHikvision = await prisma.brand.upsert({
     where: { slug: 'hikvision' },
     update: {},
     create: { name: 'Hikvision', slug: 'hikvision' },
   });
-  await prisma.brand.upsert({
+  const brandDahua = await prisma.brand.upsert({
     where: { slug: 'dahua' },
     update: {},
     create: { name: 'Dahua', slug: 'dahua' },
+  });
+  const brandSeagate = await prisma.brand.upsert({
+    where: { slug: 'seagate' },
+    update: {},
+    create: { name: 'Seagate', slug: 'seagate' },
   });
   await prisma.brand.upsert({
     where: { slug: 'tp-link' },
@@ -190,20 +246,15 @@ async function main() {
     update: {},
     create: { name: 'Ubiquiti', slug: 'ubiquiti' },
   });
-  await prisma.brand.upsert({
-    where: { slug: 'seagate' },
-    update: {},
-    create: { name: 'Seagate', slug: 'seagate' },
-  });
 
-  // Products
-  const product1 = await prisma.product.upsert({
+  // ─── Products — Starlink ────────────────────────────────────────
+  const prod1 = await prisma.product.upsert({
     where: { slug: 'starlink-standard-kit' },
     update: {},
     create: {
       name: 'Starlink Standard Kit',
       slug: 'starlink-standard-kit',
-      description: 'Complete Starlink kit with Wi-Fi router, dish, and cables.',
+      description: 'Complete Starlink kit with Gen 3 Wi-Fi router, dish, and cables. Get speeds of 25–220 Mbps wherever you are.',
       shortDescription: 'High-speed satellite internet for home.',
       sku: 'STAR-STD-001',
       price: 65000.00,
@@ -212,38 +263,228 @@ async function main() {
       isActive: true,
       isFeatured: true,
       brandId: brandStarlink.id,
+      moduleId: moduleStarlink.id,
       categories: { create: [{ categoryId: catStarlinkKits.id }] },
     },
   });
   await prisma.inventory.upsert({
-    where: { productId_warehouseId: { productId: product1.id, warehouseId: mainWarehouse.id } },
+    where: { productId_warehouseId: { productId: prod1.id, warehouseId: mainWarehouse.id } },
     update: {},
-    create: { productId: product1.id, warehouseId: mainWarehouse.id, quantity: 25, lowStockThreshold: 5 },
+    create: { productId: prod1.id, warehouseId: mainWarehouse.id, quantity: 25, lowStockThreshold: 5 },
   });
 
-  const product2 = await prisma.product.upsert({
+  const prod2 = await prisma.product.upsert({
+    where: { slug: 'starlink-roam-kit' },
+    update: {},
+    create: {
+      name: 'Starlink Roam Kit',
+      slug: 'starlink-roam-kit',
+      description: 'The portable Starlink kit for mobile use — perfect for RVs, camping, and remote job sites.',
+      shortDescription: 'Portable satellite internet on the go.',
+      sku: 'STAR-ROAM-002',
+      price: 75000.00,
+      compareAtPrice: 82000.00,
+      costPrice: 62000.00,
+      isActive: true,
+      isFeatured: true,
+      brandId: brandStarlink.id,
+      moduleId: moduleStarlink.id,
+      categories: { create: [{ categoryId: catStarlinkKits.id }] },
+    },
+  });
+  await prisma.inventory.upsert({
+    where: { productId_warehouseId: { productId: prod2.id, warehouseId: mainWarehouse.id } },
+    update: {},
+    create: { productId: prod2.id, warehouseId: mainWarehouse.id, quantity: 15, lowStockThreshold: 3 },
+  });
+
+  const prod3 = await prisma.product.upsert({
     where: { slug: 'starlink-ethernet-adapter' },
     update: {},
     create: {
       name: 'Starlink Ethernet Adapter',
       slug: 'starlink-ethernet-adapter',
-      description: 'Add a wired Ethernet port to your Starlink router.',
+      description: 'Add a wired Ethernet port to your Starlink router for faster, more stable connections.',
       shortDescription: 'Ethernet adapter for Starlink.',
-      sku: 'STAR-ETH-002',
+      sku: 'STAR-ETH-003',
       price: 3500.00,
       costPrice: 2500.00,
       isActive: true,
       brandId: brandStarlink.id,
-      categories: { create: [{ categoryId: (await prisma.category.findUnique({ where: { slug: 'starlink-accessories' } }))!.id }] },
+      moduleId: moduleStarlink.id,
+      categories: { create: [{ categoryId: catStarlinkAccessories.id }] },
     },
   });
   await prisma.inventory.upsert({
-    where: { productId_warehouseId: { productId: product2.id, warehouseId: mainWarehouse.id } },
+    where: { productId_warehouseId: { productId: prod3.id, warehouseId: mainWarehouse.id } },
     update: {},
-    create: { productId: product2.id, warehouseId: mainWarehouse.id, quantity: 100, lowStockThreshold: 10 },
+    create: { productId: prod3.id, warehouseId: mainWarehouse.id, quantity: 100, lowStockThreshold: 10 },
   });
 
-  console.log('Seed data inserted successfully.');
+  const prod4 = await prisma.product.upsert({
+    where: { slug: 'starlink-pipe-adapter' },
+    update: {},
+    create: {
+      name: 'Starlink Pole Mount Adapter',
+      slug: 'starlink-pipe-adapter',
+      description: 'Heavy-duty pipe adapter for mounting the Starlink dish on poles from 1.5" to 2.5" diameter.',
+      shortDescription: 'Pole mount adapter for Starlink dish.',
+      sku: 'STAR-MNT-004',
+      price: 4500.00,
+      costPrice: 3000.00,
+      isActive: true,
+      brandId: brandStarlink.id,
+      moduleId: moduleStarlink.id,
+      categories: { create: [{ categoryId: catStarlinkMounts.id }] },
+    },
+  });
+  await prisma.inventory.upsert({
+    where: { productId_warehouseId: { productId: prod4.id, warehouseId: mainWarehouse.id } },
+    update: {},
+    create: { productId: prod4.id, warehouseId: mainWarehouse.id, quantity: 60, lowStockThreshold: 10 },
+  });
+
+  // ─── Products — CCTV ───────────────────────────────────────────
+  const prod5 = await prisma.product.upsert({
+    where: { slug: 'hikvision-4mp-dome' },
+    update: {},
+    create: {
+      name: 'Hikvision 4MP ColorVu Dome Camera',
+      slug: 'hikvision-4mp-dome',
+      description: '4MP ColorVu fixed dome network camera with full-color night vision up to 30m, H.265+ encoding, and IP67 weatherproofing.',
+      shortDescription: 'Full-color night vision dome camera.',
+      sku: 'HIK-DOM-001',
+      price: 8500.00,
+      compareAtPrice: 9500.00,
+      costPrice: 6000.00,
+      isActive: true,
+      isFeatured: true,
+      brandId: brandHikvision.id,
+      moduleId: moduleCCTV.id,
+      categories: { create: [{ categoryId: catIPCameras.id }] },
+    },
+  });
+  await prisma.inventory.upsert({
+    where: { productId_warehouseId: { productId: prod5.id, warehouseId: mainWarehouse.id } },
+    update: {},
+    create: { productId: prod5.id, warehouseId: mainWarehouse.id, quantity: 50, lowStockThreshold: 10 },
+  });
+
+  const prod6 = await prisma.product.upsert({
+    where: { slug: 'hikvision-8ch-nvr' },
+    update: {},
+    create: {
+      name: 'Hikvision 8-Channel NVR',
+      slug: 'hikvision-8ch-nvr',
+      description: '8-channel NVR supporting up to 8MP resolution cameras, with 2 SATA HDD bays, H.265+ compression, and remote mobile access via Hik-Connect.',
+      shortDescription: '8-channel NVR for IP cameras.',
+      sku: 'HIK-NVR-002',
+      price: 18000.00,
+      compareAtPrice: 20000.00,
+      costPrice: 13000.00,
+      isActive: true,
+      isFeatured: true,
+      brandId: brandHikvision.id,
+      moduleId: moduleCCTV.id,
+      categories: { create: [{ categoryId: catDvrNvr.id }] },
+    },
+  });
+  await prisma.inventory.upsert({
+    where: { productId_warehouseId: { productId: prod6.id, warehouseId: mainWarehouse.id } },
+    update: {},
+    create: { productId: prod6.id, warehouseId: mainWarehouse.id, quantity: 20, lowStockThreshold: 5 },
+  });
+
+  const prod7 = await prisma.product.upsert({
+    where: { slug: 'dahua-4k-bullet-camera' },
+    update: {},
+    create: {
+      name: 'Dahua 4K WDR Bullet Camera',
+      slug: 'dahua-4k-bullet-camera',
+      description: 'Ultra HD 4K (8MP) IR bullet camera with 120dB WDR, Smart IR up to 80m range, IP67 and IK10 rated.',
+      shortDescription: '4K outdoor bullet camera.',
+      sku: 'DAH-BUL-003',
+      price: 12000.00,
+      costPrice: 8500.00,
+      isActive: true,
+      brandId: brandDahua.id,
+      moduleId: moduleCCTV.id,
+      categories: { create: [{ categoryId: catIPCameras.id }] },
+    },
+  });
+  await prisma.inventory.upsert({
+    where: { productId_warehouseId: { productId: prod7.id, warehouseId: mainWarehouse.id } },
+    update: {},
+    create: { productId: prod7.id, warehouseId: mainWarehouse.id, quantity: 35, lowStockThreshold: 8 },
+  });
+
+  const prod8 = await prisma.product.upsert({
+    where: { slug: 'seagate-skyhawk-2tb' },
+    update: {},
+    create: {
+      name: 'Seagate SkyHawk 2TB Surveillance HDD',
+      slug: 'seagate-skyhawk-2tb',
+      description: 'Purpose-built surveillance-grade hard drive optimized for 24/7 CCTV recording with up to 16 HD camera streams simultaneously.',
+      shortDescription: '2TB surveillance hard drive.',
+      sku: 'SEA-HDD-001',
+      price: 7500.00,
+      compareAtPrice: 8200.00,
+      costPrice: 5500.00,
+      isActive: true,
+      brandId: brandSeagate.id,
+      moduleId: moduleCCTV.id,
+      categories: { create: [{ categoryId: catHardDrives.id }] },
+    },
+  });
+  await prisma.inventory.upsert({
+    where: { productId_warehouseId: { productId: prod8.id, warehouseId: mainWarehouse.id } },
+    update: {},
+    create: { productId: prod8.id, warehouseId: mainWarehouse.id, quantity: 45, lowStockThreshold: 10 },
+  });
+
+  console.log('✅ Seed data inserted successfully.');
+  console.log(`   Modules: Starlink, CCTV`);
+  console.log(`   Categories: ${[catStarlinkKits, catStarlinkAccessories, catStarlinkMounts, catIPCameras, catDvrNvr, catHardDrives].map(c => c.name).join(', ')}`);
+  console.log(`   Products: ${[prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8].map(p => p.name).join(', ')}`);
+  // ─── Installation Services ───────────────────────────────────────
+  await prisma.installationService.upsert({
+    where: { id: 'service-starlink-standard' },
+    update: {},
+    create: {
+      id: 'service-starlink-standard',
+      name: 'Standard Starlink Installation',
+      description: 'Standard roof or wall mount installation for Starlink kit.',
+      basePrice: 5000,
+      durationMinutes: 120,
+      isActive: true,
+    },
+  });
+
+  await prisma.installationService.upsert({
+    where: { id: 'service-starlink-premium' },
+    update: {},
+    create: {
+      id: 'service-starlink-premium',
+      name: 'Premium Starlink Installation',
+      description: 'Advanced installation including cable routing and pole mounting.',
+      basePrice: 8500,
+      durationMinutes: 180,
+      isActive: true,
+    },
+  });
+
+  await prisma.installationService.upsert({
+    where: { id: 'service-cctv-standard' },
+    update: {},
+    create: {
+      id: 'service-cctv-standard',
+      name: 'Standard CCTV Installation (4 Cameras)',
+      description: 'Installation of up to 4 CCTV cameras including wiring and DVR setup.',
+      basePrice: 15000,
+      durationMinutes: 360,
+      isActive: true,
+    },
+  });
 }
 
 main()

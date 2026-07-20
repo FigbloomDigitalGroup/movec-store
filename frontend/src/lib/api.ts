@@ -57,4 +57,15 @@ export const getErrorMessage = (error: any): string => {
   return 'An unexpected error occurred.';
 };
 
+// ─── Module API helpers ─────────────────────────────────────────────
+export const getModules = () => api.get('/modules').then((r) => r.data);
+
+export const getModule = (slug: string) =>
+  api.get(`/modules/${slug}`).then((r) => r.data);
+
+export const getModuleProducts = (slug: string, params?: Record<string, string>) =>
+  api
+    .get(`/modules/${slug}/products`, { params })
+    .then((r) => r.data);
+
 export default api;

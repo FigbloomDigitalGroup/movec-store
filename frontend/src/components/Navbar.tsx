@@ -19,6 +19,7 @@ export default function Navbar() {
           <Link to="/" className="text-xl font-bold text-blue-400">Starlink CCTV</Link>
 
           <div className="hidden md:flex items-center gap-6">
+            <Link to="/modules" className="hover:text-blue-400 transition">Solutions</Link>
             <Link to="/products" className="hover:text-blue-400 transition">Products</Link>
             <Link to="/categories" className="hover:text-blue-400 transition">Categories</Link>
             <Link to="/installation" className="hover:text-blue-400 transition">Installation</Link>
@@ -44,7 +45,7 @@ export default function Navbar() {
             </Link>
             {isAuthenticated ? (
               <>
-                <Link to="/orders"><FiUser size={20} /></Link>
+                <Link to="/profile" className="relative"><FiUser size={20} /></Link>
                 {user?.roles?.includes('ADMIN') && (
                   <Link to="/admin" className="text-yellow-400 text-sm font-medium">Admin</Link>
                 )}
@@ -63,6 +64,7 @@ export default function Navbar() {
 
         {open && (
           <div className="md:hidden pb-4 flex flex-col gap-3">
+            <Link to="/modules" onClick={() => setOpen(false)}>Solutions</Link>
             <Link to="/products" onClick={() => setOpen(false)}>Products</Link>
             <Link to="/categories" onClick={() => setOpen(false)}>Categories</Link>
             <Link to="/installation" onClick={() => setOpen(false)}>Installation</Link>
@@ -74,7 +76,7 @@ export default function Navbar() {
             </Link>
             {isAuthenticated ? (
               <>
-                <Link to="/orders" onClick={() => setOpen(false)}>Orders</Link>
+                <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
                 {user?.roles?.includes('ADMIN') && <Link to="/admin" onClick={() => setOpen(false)}>Admin</Link>}
                 <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="text-left text-red-400">Logout</button>
               </>

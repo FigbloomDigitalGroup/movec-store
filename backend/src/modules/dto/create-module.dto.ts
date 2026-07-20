@@ -1,6 +1,6 @@
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsInt, MaxLength, Min } from 'class-validator';
 
-export class CreateCategoryDto {
+export class CreateModuleDto {
   @IsString()
   @MaxLength(100)
   name: string;
@@ -18,10 +18,11 @@ export class CreateCategoryDto {
   imageUrl?: string;
 
   @IsOptional()
-  @IsString()
-  parentId?: string;
+  @IsBoolean()
+  isActive?: boolean;
 
   @IsOptional()
-  @IsString()
-  moduleId?: string;
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
 }

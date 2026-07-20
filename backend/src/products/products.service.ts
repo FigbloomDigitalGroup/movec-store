@@ -46,6 +46,10 @@ export class ProductsService {
       where.categories = { some: { category: { slug: query.category } } };
     }
 
+    if (query.module) {
+      where.module = { slug: query.module };
+    }
+
     if (query.brand) {
       where.brand = { slug: query.brand };
     }
@@ -54,6 +58,10 @@ export class ProductsService {
       where.price = {};
       if (query.minPrice) where.price.gte = parseFloat(query.minPrice);
       if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
+    }
+
+    if (query.featured === 'true') {
+      where.isFeatured = true;
     }
 
     const orderBy: any = {};
@@ -70,6 +78,7 @@ export class ProductsService {
         include: {
           images: true,
           brand: true,
+          module: true,
           categories: { include: { category: true } },
           inventory: { include: { warehouse: true } },
         },
@@ -94,6 +103,7 @@ export class ProductsService {
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
         brand: true,
+        module: true,
         categories: { include: { category: true } },
         inventory: { include: { warehouse: true } },
         reviews: {
@@ -134,6 +144,7 @@ export class ProductsService {
         isActive: dto.isActive ?? true,
         isFeatured: dto.isFeatured ?? false,
         brandId: dto.brandId,
+        moduleId: dto.moduleId,
         metaTitle: dto.metaTitle,
         metaDescription: dto.metaDescription,
         categories: dto.categoryIds
