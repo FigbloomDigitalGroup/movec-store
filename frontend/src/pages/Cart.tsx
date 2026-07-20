@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import type { Cart } from '../types';
+import { FiShoppingBag, FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi';
+import Button from '../components/ui/Button';
+import Card, { CardBody } from '../components/ui/Card';
 
 export default function CartPage() {
   const queryClient = useQueryClient();
@@ -34,7 +37,7 @@ export default function CartPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
   });
 
-  if (isAuthenticated && isLoading) return <div className="max-w-4xl mx-auto px-4 py-8">Loading...</div>;
+  if (isAuthenticated && isLoading) return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading...</div>;
 
   const items = isAuthenticated ? (apiCart?.items || []) : guestCart.items;
   const total = isAuthenticated
@@ -42,63 +45,165 @@ export default function CartPage() {
     : guestCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2 text-white">Shopping Cart</h1>
-      {!isAuthenticated && <p className="text-gray-300 mb-6 text-sm">You're browsing as a guest. <button onClick={() => navigate('/login')} className="text-blue-400 underline">Sign in</button> to save your cart.</p>}
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
+          {!isAuthenticated && (
+            <p className="text-gray-700 text-sm">
+              You're browsing as a guest.{' '}
+              <Link to="/login" className="text-blue-600 hover:underline font-medium">
+                Sign in
+              </Link>{' '}
+              to save your cart.
+            </p>
+          )}
+        </div>
+      </div>
 
-      {!items.length ? (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center">
-          <p className="text-gray-500 text-lg">Your cart is empty.</p>
-          <button onClick={() => navigate('/products')} className="mt-4 text-blue-600 hover:underline">Browse Products</button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {items.map((item: any) => (
-            <div key={item.productId || item.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow p-4 flex items-center gap-4">
-              <div className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <span className="text-gray-400">No img</span>}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-blue-600 font-bold">KES {item.price.toLocaleString()}</p>
-              </div>
-              {isAuthenticated ? (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })} disabled={item.quantity <= 1} className="px-2 py-1 border rounded">-</button>
-                  <span className="w-8 text-center">{item.quantity}</span>
-                  <button onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })} className="px-2 py-1 border rounded">+</button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => guestCart.updateQuantity(item.productId, item.quantity - 1)} disabled={item.quantity <= 1} className="px-2 py-1 border rounded">-</button>
-                  <span className="w-8 text-center">{item.quantity}</span>
-                  <button onClick={() => guestCart.updateQuantity(item.productId, item.quantity + 1)} className="px-2 py-1 border rounded">+</button>
-                </div>
-              )}
-              <p className="font-semibold w-24 text-right">KES {(item.price * item.quantity).toLocaleString()}</p>
-              <button
-                onClick={() => isAuthenticated ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
-                className="text-red-500 hover:text-red-700"
-              >Remove</button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!items.length ? (
+          <Card>
+            <CardBody className="text-center py-16">
+              <FiShoppingBag className="text-gray-300 mx-auto mb-4" size={64} />
+              <p className="text-gray-700 text-lg mb-4">Your cart is empty.</p>
+              <Link to="/products">
+                <Button>Browse Products</Button>
+              </Link>
+            </CardBody>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {items.map((item: any) => (
+                <Card key={item.productId || item.id}>
+                  <CardBody>
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                        {item.image ? (
+                          <img src={item.image} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <FiShoppingBag className="text-gray-400" size={32} />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Link to={`/products/${item.slug}`} className="font-semibold text-gray-900 hover:text-blue-600 transition">
+                          {item.name}
+                        </Link>
+                        <p className="text-blue-600 font-bold mt-1">KES {item.price.toLocaleString()}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isAuthenticated ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
+                              disabled={item.quantity <= 1}
+                            >
+                              <FiMinus size={16} />
+                            </Button>
+                            <span className="w-10 text-center font-medium">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
+                            >
+                              <FiPlus size={16} />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => guestCart.updateQuantity(item.productId, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              <FiMinus size={16} />
+                            </Button>
+                            <span className="w-10 text-center font-medium">{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => guestCart.updateQuantity(item.productId, item.quantity + 1)}
+                            >
+                              <FiPlus size={16} />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => isAuthenticated ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <FiTrash2 size={18} />
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              ))}
             </div>
-          ))}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow p-6 text-right">
-            <p className="text-xl font-bold">Total: KES {total.toLocaleString()}</p>
-            <button
-              onClick={() => {
-                if (isAuthenticated) {
-                  navigate('/checkout');
-                } else {
-                  navigate('/login?redirect=checkout');
-                }
-              }}
-              className="mt-4 bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition"
-            >
-              Proceed to Checkout
-            </button>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-24">
+                <CardBody>
+                  <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-gray-700">
+                      <span>Subtotal ({items.length} items)</span>
+                      <span className="font-medium">KES {total.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-700">
+                      <span>Shipping</span>
+                      <span className="font-medium">Calculated at checkout</span>
+                    </div>
+                    <div className="flex justify-between text-gray-700">
+                      <span>Tax</span>
+                      <span className="font-medium">Calculated at checkout</span>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-4 mb-6">
+                    <div className="flex justify-between text-lg font-bold text-gray-900">
+                      <span>Total</span>
+                      <span>KES {total.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        navigate('/checkout');
+                      } else {
+                        navigate('/login?redirect=checkout');
+                      }
+                    }}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Proceed to Checkout
+                    <FiArrowRight className="ml-2" size={18} />
+                  </Button>
+
+                  <Link to="/products" className="block text-center mt-4 text-blue-600 hover:underline text-sm font-medium">
+                    Continue Shopping
+                  </Link>
+                </CardBody>
+              </Card>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

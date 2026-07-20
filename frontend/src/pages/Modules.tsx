@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getModules } from '../lib/api';
-import { FiPackage, FiArrowRight, FiGrid } from 'react-icons/fi';
+import { FiPackage, FiArrowRight, FiGrid, FiWifi, FiCamera, FiTool } from 'react-icons/fi';
+import Button from '../components/ui/Button';
+import Card, { CardBody } from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
 
 interface StoreModule {
   id: string;
@@ -13,26 +16,28 @@ interface StoreModule {
   categories: { id: string; name: string; slug: string }[];
 }
 
-const MODULE_THEMES: Record<string, { gradient: string; accent: string; icon: string; bg: string }> = {
+const MODULE_CONFIG: Record<string, { icon: React.ReactNode; color: string; gradient: string }> = {
   starlink: {
-    gradient: 'from-blue-600 via-indigo-600 to-purple-700',
-    accent: 'text-blue-300',
-    icon: '🛰️',
-    bg: 'from-blue-900/40 to-indigo-900/40',
+    icon: <FiWifi size={32} />,
+    color: 'blue',
+    gradient: 'from-blue-600 to-cyan-500',
   },
   cctv: {
-    gradient: 'from-emerald-600 via-teal-600 to-cyan-700',
-    accent: 'text-emerald-300',
-    icon: '📹',
-    bg: 'from-emerald-900/40 to-teal-900/40',
+    icon: <FiCamera size={32} />,
+    color: 'green',
+    gradient: 'from-green-600 to-emerald-500',
+  },
+  installation: {
+    icon: <FiTool size={32} />,
+    color: 'purple',
+    gradient: 'from-purple-600 to-pink-500',
   },
 };
 
-const DEFAULT_THEME = {
-  gradient: 'from-slate-600 via-gray-600 to-zinc-700',
-  accent: 'text-slate-300',
-  icon: '📦',
-  bg: 'from-slate-900/40 to-gray-900/40',
+const DEFAULT_CONFIG = {
+  icon: <FiPackage size={32} />,
+  color: 'gray',
+  gradient: 'from-gray-600 to-slate-500',
 };
 
 export default function Modules() {
@@ -42,85 +47,75 @@ export default function Modules() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-slate-900 to-gray-950 border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.15),_transparent_60%)]" />
-        <div className="relative max-w-7xl mx-auto px-4 py-20 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 mb-6">
-            <FiGrid className="text-blue-400" size={14} />
-            <span className="text-blue-300 text-sm font-medium">All Solutions</span>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 rounded-full px-4 py-2 mb-6">
+              <FiGrid size={18} />
+              <span className="text-sm font-medium">All Solutions</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Shop by <span className="text-blue-600">Solution</span>
+            </h1>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+              Everything you need for connectivity and security — organized into focused product lines.
+            </p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight">
-            Shop by <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Solution</span>
-          </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Everything you need for connectivity and security — organised into focused product lines.
-          </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[1, 2].map((i) => (
-              <div key={i} className="h-80 rounded-3xl bg-white/5 animate-pulse" />
+              <div key={i} className="h-96 bg-white rounded-2xl border border-gray-200 animate-pulse" />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {(modules || []).map((mod) => {
-              const theme = MODULE_THEMES[mod.slug] || DEFAULT_THEME;
+              const config = MODULE_CONFIG[mod.slug] || DEFAULT_CONFIG;
               return (
-                <Link
-                  key={mod.id}
-                  to={`/modules/${mod.slug}`}
-                  className="group relative rounded-3xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                >
-                  {/* Background gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${theme.bg}`} />
-                  <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-
-                  <div className="relative p-8 md:p-10">
-                    {/* Icon + Badge */}
-                    <div className="flex items-start justify-between mb-6">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-3xl shadow-lg`}>
-                        {theme.icon}
+                <Link key={mod.id} to={`/modules/${mod.slug}`}>
+                  <Card hover>
+                    <CardBody>
+                      <div className="flex items-start justify-between mb-6">
+                        <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center text-white shadow-lg`}>
+                          {config.icon}
+                        </div>
+                        <Badge variant="primary">
+                          {mod._count.products} Products
+                        </Badge>
                       </div>
-                      <span className="bg-white/10 border border-white/20 text-white/70 text-xs font-medium px-3 py-1 rounded-full">
-                        {mod._count.products} Products
-                      </span>
-                    </div>
 
-                    {/* Name & description */}
-                    <h2 className="text-3xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text transition-all"
-                      style={{ backgroundImage: `linear-gradient(to right, ${theme.accent.replace('text-', '')}, white)` }}>
-                      {mod.name}
-                    </h2>
-                    <p className="text-gray-400 text-base leading-relaxed mb-8">
-                      {mod.description}
-                    </p>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition">
+                        {mod.name}
+                      </h2>
+                      <p className="text-gray-700 mb-6 leading-relaxed">
+                        {mod.description}
+                      </p>
 
-                    {/* Categories */}
-                    {mod.categories.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-8">
-                        {mod.categories.map((cat) => (
-                          <span
-                            key={cat.id}
-                            className="bg-white/10 text-white/70 text-xs px-3 py-1 rounded-full border border-white/10"
-                          >
-                            {cat.name}
-                          </span>
-                        ))}
+                      {mod.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {mod.categories.map((cat) => (
+                            <span
+                              key={cat.id}
+                              className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full"
+                            >
+                              {cat.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 text-blue-600 font-semibold group-hover:gap-3 transition-all">
+                        Browse {mod.name}
+                        <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                       </div>
-                    )}
-
-                    {/* CTA */}
-                    <div className={`inline-flex items-center gap-2 font-semibold ${theme.accent} group-hover:gap-3 transition-all`}>
-                      Browse {mod.name}
-                      <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
+                    </CardBody>
+                  </Card>
                 </Link>
               );
             })}
@@ -129,13 +124,12 @@ export default function Modules() {
 
         {/* All Products fallback */}
         <div className="mt-12 text-center">
-          <p className="text-gray-500 mb-4">Looking for something specific?</p>
-          <Link
-            to="/products"
-            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white border border-white/10 hover:border-white/20 px-6 py-3 rounded-xl transition-all"
-          >
-            <FiPackage size={18} />
-            Browse All Products
+          <p className="text-gray-700 mb-4">Looking for something specific?</p>
+          <Link to="/products">
+            <Button variant="outline">
+              <FiPackage className="mr-2" size={18} />
+              Browse All Products
+            </Button>
           </Link>
         </div>
       </div>

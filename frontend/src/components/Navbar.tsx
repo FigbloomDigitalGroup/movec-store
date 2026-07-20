@@ -4,7 +4,7 @@ import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
-import { FiShoppingCart, FiHeart, FiUser, FiLogOut, FiMenu } from 'react-icons/fi';
+import { FiShoppingCart, FiHeart, FiUser, FiLogOut, FiMenu, FiSearch, FiX } from 'react-icons/fi';
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -32,80 +32,188 @@ export default function Navbar() {
 
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery('');
+      setSearchOpen(false);
+    }
+  };
 
   return (
-    <nav className="bg-gray-900/95 backdrop-blur-sm text-white sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-blue-400">Starlink CCTV</Link>
-
-          <div className="hidden md:flex items-center gap-6">
-            <Link to="/modules" className="hover:text-blue-400 transition">Solutions</Link>
-            <Link to="/products" className="hover:text-blue-400 transition">Products</Link>
-            <Link to="/categories" className="hover:text-blue-400 transition">Categories</Link>
-            <Link to="/installation" className="hover:text-blue-400 transition">Installation</Link>
-            <Link to="/support/faqs" className="hover:text-blue-400 transition">FAQs</Link>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <Link to="/cart" className="relative">
-              <FiShoppingCart size={20} />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {cartCount}
-              </span>
+    <>
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">S</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">Starlink CCTV</span>
             </Link>
-            <Link to="/wishlist" className="relative">
-              <FiHeart size={20} />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {wishlistCount}
-              </span>
-            </Link>
-            {isAuthenticated ? (
-              <>
-                <Link to="/profile" className="relative"><FiUser size={20} /></Link>
-                {user?.roles?.includes('ADMIN') && (
-                  <Link to="/admin" className="text-yellow-400 text-sm font-medium">Admin</Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              <Link to="/modules" className="text-gray-700 hover:text-blue-600 font-medium transition">Solutions</Link>
+              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition">Products</Link>
+              <Link to="/categories" className="text-gray-700 hover:text-blue-600 font-medium transition">Categories</Link>
+              <Link to="/installation" className="text-gray-700 hover:text-blue-600 font-medium transition">Installation</Link>
+              <Link to="/support/faqs" className="text-gray-700 hover:text-blue-600 font-medium transition">FAQs</Link>
+            </div>
+
+            {/* Right Actions */}
+            <div className="hidden md:flex items-center gap-4">
+              <button 
+                onClick={() => setSearchOpen(!searchOpen)}
+                className="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition"
+              >
+                <FiSearch size={20} />
+              </button>
+              
+              <Link to="/cart" className="relative p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition">
+                <FiShoppingCart size={20} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    {cartCount}
+                  </span>
                 )}
-                <button onClick={() => { logout(); navigate('/'); }} className="text-red-400"><FiLogOut size={18} /></button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="hover:text-blue-400">Login</Link>
-                <Link to="/register" className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition">Register</Link>
-              </>
-            )}
-          </div>
+              </Link>
+              
+              <Link to="/wishlist" className="relative p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition">
+                <FiHeart size={20} />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+              
+              {isAuthenticated ? (
+                <div className="flex items-center gap-2">
+                  <Link to="/profile" className="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition">
+                    <FiUser size={20} />
+                  </Link>
+                  {user?.roles?.includes('ADMIN') && (
+                    <Link to="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-700">Admin</Link>
+                  )}
+                  <button 
+                    onClick={() => { logout(); navigate('/'); }} 
+                    className="p-2 text-gray-700 hover:text-red-600 hover:bg-gray-100 rounded-lg transition"
+                  >
+                    <FiLogOut size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2">Log in</Link>
+                  <Link to="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                    Sign up
+                  </Link>
+                </div>
+              )}
+            </div>
 
-          <button className="md:hidden" onClick={() => setOpen(!open)}><FiMenu size={24} /></button>
+            {/* Mobile menu button */}
+            <button 
+              className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
         </div>
 
-        {open && (
-          <div className="md:hidden pb-4 flex flex-col gap-3">
-            <Link to="/modules" onClick={() => setOpen(false)}>Solutions</Link>
-            <Link to="/products" onClick={() => setOpen(false)}>Products</Link>
-            <Link to="/categories" onClick={() => setOpen(false)}>Categories</Link>
-            <Link to="/installation" onClick={() => setOpen(false)}>Installation</Link>
-            <Link to="/cart" onClick={() => setOpen(false)} className="relative">
-              Cart ({cartCount})
-            </Link>
-            <Link to="/wishlist" onClick={() => setOpen(false)} className="relative">
-              Wishlist ({wishlistCount})
-            </Link>
-            {isAuthenticated ? (
-              <>
-                <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
-                {user?.roles?.includes('ADMIN') && <Link to="/admin" onClick={() => setOpen(false)}>Admin</Link>}
-                <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="text-left text-red-400">Logout</button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" onClick={() => setOpen(false)}>Login</Link>
-                <Link to="/register" onClick={() => setOpen(false)}>Register</Link>
-              </>
-            )}
+        {/* Search Bar */}
+        {searchOpen && (
+          <div className="border-t border-gray-200 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 py-4">
+              <form onSubmit={handleSearch} className="relative">
+                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <FiX size={20} />
+                </button>
+              </form>
+            </div>
           </div>
         )}
-      </div>
-    </nav>
+
+        {/* Mobile menu */}
+        {open && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-4 py-4 space-y-3">
+              <Link to="/modules" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Solutions
+              </Link>
+              <Link to="/products" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Products
+              </Link>
+              <Link to="/categories" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Categories
+              </Link>
+              <Link to="/installation" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Installation
+              </Link>
+              <Link to="/support/faqs" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                FAQs
+              </Link>
+              <div className="border-t border-gray-200 pt-3 mt-3">
+                <Link to="/cart" onClick={() => setOpen(false)} className="flex items-center justify-between py-2 text-gray-700 hover:text-blue-600 font-medium">
+                  <span>Cart</span>
+                  {cartCount > 0 && <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">{cartCount}</span>}
+                </Link>
+                <Link to="/wishlist" onClick={() => setOpen(false)} className="flex items-center justify-between py-2 text-gray-700 hover:text-blue-600 font-medium">
+                  <span>Wishlist</span>
+                  {wishlistCount > 0 && <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{wishlistCount}</span>}
+                </Link>
+              </div>
+              {isAuthenticated ? (
+                <div className="border-t border-gray-200 pt-3 mt-3">
+                  <Link to="/profile" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                    Profile
+                  </Link>
+                  {user?.roles?.includes('ADMIN') && (
+                    <Link to="/admin" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+                      Admin
+                    </Link>
+                  )}
+                  <button 
+                    onClick={() => { logout(); navigate('/'); setOpen(false); }} 
+                    className="w-full text-left py-2 text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Log out
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
+                  <Link to="/login" onClick={() => setOpen(false)} className="block w-full text-center py-2 text-gray-700 hover:text-blue-600 font-medium border border-gray-300 rounded-lg">
+                    Log in
+                  </Link>
+                  <Link to="/register" onClick={() => setOpen(false)} className="block w-full text-center py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+                    Sign up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+    </>
   );
 }

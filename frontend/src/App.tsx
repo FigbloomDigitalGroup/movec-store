@@ -24,6 +24,7 @@ import ModulesPage from './pages/Modules';
 import ModuleLanding from './pages/ModuleLanding';
 import PaymentPage from './pages/Payment';
 import ProfilePage from './pages/Profile';
+import CCTVModule from './pages/CCTVModule';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminModules from './pages/admin/AdminModules';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/modules" element={<ModulesPage />} />
             <Route path="/modules/:moduleSlug" element={<ModuleLanding />} />
             <Route path="/modules/:moduleSlug/products" element={<ModuleLanding />} />
+            <Route path="/cctv" element={<CCTVModule />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
