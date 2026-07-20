@@ -1,0 +1,168 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../../lib/api';
+import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
+
+export default function AdminModules() {
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 });
+
+  const { data: modules, isLoading } = useQuery({
+    queryKey: ['admin-modules'],
+    queryFn: () => api.get('/admin/modules').then(r => r.data),
+  });
+
+  const createApi = useMutation({
+    mutationFn: (data: any) => api.post('/admin/modules', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
+      setIsCreating(false);
+      setFormData({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 });
+    },
+  });
+
+  const updateApi = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => api.patch(`/admin/modules/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
+      setIsEditing(null);
+    },
+  });
+
+  const deleteApi = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/modules/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-modules'] }),
+  });
+
+  const handleSave = () => {
+    if (isCreating) {
+      createApi.mutate(formData);
+    } else if (isEditing) {
+      updateApi.mutate({ id: isEditing, data: formData });
+    }
+  };
+
+  const handleEdit = (mod: any) => {
+    setIsEditing(mod.id);
+    setIsCreating(false);
+    setFormData({
+      name: mod.name,
+      slug: mod.slug,
+      description: mod.description || '',
+      isActive: mod.isActive,
+      sortOrder: mod.sortOrder,
+    });
+  };
+
+  if (isLoading) return <p>Loading modules...</p>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Modules (Solutions)</h1>
+        <button
+          onClick={() => { setIsCreating(true); setIsEditing(null); setFormData({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 }); }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
+        >
+          <FiPlus /> Add Module
+        </button>
+      </div>
+
+      {(isCreating || isEditing) && (
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow mb-6 relative">
+          <button onClick={() => { setIsCreating(false); setIsEditing(null); }} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+            <FiX size={20} />
+          </button>
+          <h2 className="text-xl font-bold mb-4">{isCreating ? 'Add New Module' : 'Edit Module'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Slug</label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={e => setFormData({ ...formData, slug: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2"
+                required
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Sort Order</label>
+              <input
+                type="number"
+                value={formData.sortOrder}
+                onChange={e => setFormData({ ...formData, sortOrder: Number(e.target.value) })}
+                className="w-full border rounded-lg px-3 py-2"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={formData.isActive}
+                onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+              />
+              <label htmlFor="isActive" className="text-sm font-medium">Is Active</label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button onClick={() => { setIsCreating(false); setIsEditing(null); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+            <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="text-left p-4">Name</th>
+              <th className="text-left p-4">Slug</th>
+              <th className="text-left p-4">Status</th>
+              <th className="text-left p-4">Order</th>
+              <th className="text-right p-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {modules?.map((mod: any) => (
+              <tr key={mod.id} className="border-t">
+                <td className="p-4 font-medium">{mod.name}</td>
+                <td className="p-4 text-gray-500">{mod.slug}</td>
+                <td className="p-4">
+                  <span className={`px-2 py-1 rounded-full text-xs ${mod.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {mod.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td className="p-4">{mod.sortOrder}</td>
+                <td className="p-4 flex justify-end gap-2">
+                  <button onClick={() => handleEdit(mod)} className="p-2 text-blue-600 hover:bg-blue-50 rounded"><FiEdit2 /></button>
+                  <button onClick={() => { if(confirm('Are you sure you want to delete this module?')) deleteApi.mutate(mod.id) }} className="p-2 text-red-600 hover:bg-red-50 rounded"><FiTrash2 /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

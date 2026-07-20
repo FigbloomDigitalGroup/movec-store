@@ -1,4 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
@@ -7,8 +9,27 @@ import { useState } from 'react';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuthStore();
-  const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
-  const wishlistCount = useWishlistStore((s) => s.items.length);
+  const guestCartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
+  const guestWishlistCount = useWishlistStore((s) => s.items.length);
+  
+  const { data: apiCart } = useQuery({
+    queryKey: ['cart'],
+    queryFn: async () => {
+      const { data } = await api.get('/cart');
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  const { data: apiWishlist } = useQuery({
+    queryKey: ['wishlist'],
+    queryFn: () => api.get('/wishlist').then((r) => r.data),
+    enabled: isAuthenticated,
+  });
+
+  const cartCount = isAuthenticated ? (apiCart?.items?.reduce((sum: number, i: any) => sum + i.quantity, 0) || 0) : guestCartCount;
+  const wishlistCount = isAuthenticated ? (apiWishlist?.length || 0) : guestWishlistCount;
+
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -29,19 +50,15 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <Link to="/cart" className="relative">
               <FiShoppingCart size={20} />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {cartCount}
+              </span>
             </Link>
             <Link to="/wishlist" className="relative">
               <FiHeart size={20} />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {wishlistCount}
+              </span>
             </Link>
             {isAuthenticated ? (
               <>
@@ -69,10 +86,10 @@ export default function Navbar() {
             <Link to="/categories" onClick={() => setOpen(false)}>Categories</Link>
             <Link to="/installation" onClick={() => setOpen(false)}>Installation</Link>
             <Link to="/cart" onClick={() => setOpen(false)} className="relative">
-              Cart {cartCount > 0 && `(${cartCount})`}
+              Cart ({cartCount})
             </Link>
             <Link to="/wishlist" onClick={() => setOpen(false)} className="relative">
-              Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
+              Wishlist ({wishlistCount})
             </Link>
             {isAuthenticated ? (
               <>

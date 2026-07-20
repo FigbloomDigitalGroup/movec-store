@@ -25,6 +25,7 @@ import ModuleLanding from './pages/ModuleLanding';
 import PaymentPage from './pages/Payment';
 import ProfilePage from './pages/Profile';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminModules from './pages/admin/AdminModules';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -69,6 +70,7 @@ export default function App() {
           </Route>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/modules" element={<AdminModules />} />
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/users" element={<AdminUsers />} />

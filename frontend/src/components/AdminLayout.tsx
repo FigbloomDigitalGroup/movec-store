@@ -4,11 +4,12 @@ import { useAuthStore } from '../store/authStore';
 import {
   FiGrid, FiBox, FiShoppingCart, FiUsers, FiPackage,
   FiTool, FiMessageSquare, FiBarChart2, FiStar,
-  FiBell, FiMenu, FiX, FiLogOut, FiHome
+  FiBell, FiMenu, FiX, FiLogOut, FiHome, FiLayers
 } from 'react-icons/fi';
 
 const sidebarLinks = [
   { to: '/admin', icon: FiGrid, label: 'Dashboard' },
+  { to: '/admin/modules', icon: FiLayers, label: 'Modules' },
   { to: '/admin/products', icon: FiBox, label: 'Products' },
   { to: '/admin/orders', icon: FiShoppingCart, label: 'Orders' },
   { to: '/admin/users', icon: FiUsers, label: 'Users' },
