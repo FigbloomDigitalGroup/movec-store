@@ -90,7 +90,7 @@ export default function PaymentPage() {
 
     const bankDetails = {
         bankName: 'NCBA Bank',
-        accountName: 'Starlink CCTV Solutions Ltd',
+        accountName: 'Movec Store Ltd',
         accountNumber: '1234567890',
         branch: 'Nairobi CBD',
     };

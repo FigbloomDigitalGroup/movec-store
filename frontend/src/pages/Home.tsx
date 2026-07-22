@@ -11,6 +11,7 @@ import ScrollFloat from '../components/ScrollFloat';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import AnimatedContent from '../components/AnimatedContent';
 
 export default function Home() {
   const { data: featured } = useQuery({
@@ -26,8 +27,8 @@ export default function Home() {
   const yHeroIcons = useTransform(scrollY, [0, 500], [0, -150]);
 
   const [emblaRef] = useEmblaCarousel(
-    { loop: true, align: 'start' },
-    [Autoplay({ delay: 3500, stopOnInteraction: true })]
+    { loop: true, dragFree: true, duration: 30, align: 'start', skipSnaps: false },
+    [Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })]
   );
 
   return (
@@ -160,6 +161,7 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.1}>
             <Card hover>
               <CardBody>
                 <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
@@ -174,6 +176,8 @@ export default function Home() {
                 </Link>
               </CardBody>
             </Card>
+            </AnimatedContent>
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.2}>
             <Card hover>
               <CardBody>
                 <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
@@ -188,6 +192,8 @@ export default function Home() {
                 </Link>
               </CardBody>
             </Card>
+            </AnimatedContent>
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.3}>
             <Card hover>
               <CardBody>
                 <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
@@ -202,6 +208,7 @@ export default function Home() {
                 </Link>
               </CardBody>
             </Card>
+            </AnimatedContent>
           </div>
         </div>
       </section>
@@ -217,10 +224,20 @@ export default function Home() {
               <p className="text-xl text-gray-700">Our most popular items</p>
             </div>
             <div className="embla overflow-hidden" ref={emblaRef}>
-              <div className="embla__container flex -ml-6">
-                {featured.map((product) => (
-                  <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 pl-6 pb-8">
-                    <ProductCard product={product} />
+              <div className="embla__container flex -mx-3 [backface-visibility:hidden] [touch-action:pan-y]">
+                {featured.map((product, idx) => (
+                  <div 
+                    key={product.id} 
+                    className="embla__slide flex-[0_0_90%] sm:flex-[0_0_60%] md:flex-[0_0_45%] lg:flex-[0_0_30%] xl:flex-[0_0_25%] min-w-0 px-3 pb-6 cursor-grab active:cursor-grabbing transition-transform duration-300 hover:scale-[1.02]"
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
                   </div>
                 ))}
               </div>
@@ -244,6 +261,7 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.1}>
             <Card hover>
               <CardBody className="text-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -253,6 +271,8 @@ export default function Home() {
                 <p className="text-gray-700 text-sm">Nationwide shipping within 24-48 hours</p>
               </CardBody>
             </Card>
+            </AnimatedContent>
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.2}>
             <Card hover>
               <CardBody className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -262,6 +282,8 @@ export default function Home() {
                 <p className="text-gray-700 text-sm">All products come with manufacturer warranty</p>
               </CardBody>
             </Card>
+            </AnimatedContent>
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.3}>
             <Card hover>
               <CardBody className="text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -271,6 +293,8 @@ export default function Home() {
                 <p className="text-gray-700 text-sm">Certified technicians with years of experience</p>
               </CardBody>
             </Card>
+            </AnimatedContent>
+            <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.4}>
             <Card hover>
               <CardBody className="text-center">
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -280,6 +304,7 @@ export default function Home() {
                 <p className="text-gray-700 text-sm">Always available to help via phone or WhatsApp</p>
               </CardBody>
             </Card>
+            </AnimatedContent>
           </div>
         </div>
       </section>
@@ -293,7 +318,8 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
-              <Card key={i}>
+              <AnimatedContent key={i} distance={40} direction="vertical" duration={0.8} delay={i * 0.1}>
+              <Card>
                 <CardBody>
                   <div className="flex items-center gap-1 mb-4">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -314,13 +340,15 @@ export default function Home() {
                   </div>
                 </CardBody>
               </Card>
+              </AnimatedContent>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-center">
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-center overflow-hidden">
+        <AnimatedContent distance={50} direction="vertical" duration={0.8}>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Connected?</h2>
           <p className="text-xl text-blue-100 mb-8">
@@ -337,6 +365,7 @@ export default function Home() {
             </a>
           </div>
         </div>
+        </AnimatedContent>
       </section>
     </div>
   );

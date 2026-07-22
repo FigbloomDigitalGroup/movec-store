@@ -6,6 +6,7 @@ import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { FiShoppingCart, FiHeart, FiUser, FiLogOut, FiMenu, FiSearch, FiX } from 'react-icons/fi';
 import { useState } from 'react';
+import logo from '../assets/logo.png';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -50,11 +51,8 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">S</span>
-              </div>
-              <span className="text-xl font-hero text-gray-900">Starlink CCTV</span>
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Movec Store" className="h-10 w-auto object-contain" />
             </Link>
 
             {/* Desktop Navigation */}

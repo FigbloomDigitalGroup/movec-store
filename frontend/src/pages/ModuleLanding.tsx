@@ -5,6 +5,7 @@ import { getModule, getModuleProducts } from '../lib/api';
 import { FiSearch, FiFilter, FiArrowLeft, FiChevronRight, FiShoppingCart, FiShoppingBag, FiHeart, FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiActivity, FiMap, FiGlobe, FiZap, FiWifi, FiTool, FiMonitor, FiHelpCircle, FiLock, FiTruck, FiPhone, FiStar, FiMessageSquare, FiBox, FiMonitor as FiBuilding, FiBookOpen as FiBook, FiSun, FiCloud, FiPlay, FiMonitor as FiLaptop, FiUpload, FiDownload, FiUsers, FiLink, FiArrowUp } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
+import AnimatedContent from '../components/AnimatedContent';
 import type { ReactElement } from 'react';
 
 interface StoreModule {
@@ -61,14 +62,18 @@ function ProductCard({ product }: { product: Product }) {
   const image = product.images?.[0];
 
   return (
-    <div className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg flex flex-col">
+    <div 
+      className="group bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:-translate-y-2 hover:shadow-xl"
+      style={{ transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
+    >
       <Link to={`/products/${product.slug}`} className="block relative overflow-hidden">
         <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative">
           {image ? (
             <img
               src={image.url}
               alt={image.alt || product.name}
-              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="h-full w-full object-cover group-hover:scale-108"
+              style={{ transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)' }}
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-gray-400 opacity-30">
@@ -470,13 +475,15 @@ export default function ModuleLanding() {
                     color: 'indigo'
                   }
                 ].map((benefit, index) => (
-                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100">
+                  <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
+                  <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
                     <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-lg flex items-center justify-center mb-4`}>
                       <benefit.icon className={`text-${benefit.color}-600`} size={24} />
                     </div>
                     <h3 className="font-semibold text-lg mb-2 text-gray-900">{benefit.title}</h3>
                     <p className="text-gray-700 text-sm">{benefit.description}</p>
                   </div>
+                  </AnimatedContent>
                 ))}
               </div>
             </div>
@@ -503,12 +510,14 @@ export default function ModuleLanding() {
                   'Expandable systems for homes and businesses',
                   'Professional after-sales support'
                 ].map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
+                  <AnimatedContent key={index} distance={20} direction="horizontal" reverse={false} duration={0.5} delay={index * 0.05}>
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <FiCheck className="text-green-600" size={16} />
                     </div>
                     <span className="text-gray-700 font-medium">{feature}</span>
                   </div>
+                  </AnimatedContent>
                 ))}
               </div>
             </div>
@@ -537,10 +546,12 @@ export default function ModuleLanding() {
                   { icon: <FiHome />, name: 'Churches' },
                   { icon: <FiHome />, name: 'Estates' }
                 ].map((place, index) => (
-                  <div key={index} className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div className="text-blue-600 mx-auto mb-3" size={32}>{place.icon}</div>
+                  <AnimatedContent key={index} distance={30} direction="vertical" duration={0.5} delay={index * 0.05}>
+                  <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                    <div className="text-blue-600 mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
                     <span className="text-gray-700 font-medium">{place.name}</span>
                   </div>
+                  </AnimatedContent>
                 ))}
               </div>
             </div>
@@ -613,12 +624,14 @@ export default function ModuleLanding() {
                     'Secure payment options',
                     '24/7 customer support'
                   ].map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
+                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
                       <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
                         <FiCheck className="text-blue-600" size={16} />
                       </div>
                       <span className="font-medium">{reason}</span>
                     </div>
+                    </AnimatedContent>
                   ))}
                 </div>
 
@@ -832,11 +845,13 @@ export default function ModuleLanding() {
                     description: 'Monitor your connection, check performance, and manage your network through the Starlink mobile app.'
                   }
                 ].map((feature, index) => (
-                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100">
+                  <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
+                  <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
                     <div className="text-4xl mb-4 block text-blue-600">{feature.icon}</div>
                     <h3 className="font-semibold text-lg mb-2 text-gray-900">{feature.title}</h3>
                     <p className="text-gray-700 text-sm">{feature.description}</p>
                   </div>
+                  </AnimatedContent>
                 ))}
               </div>
             </div>
@@ -897,10 +912,12 @@ export default function ModuleLanding() {
                   { icon: <FiDownload />, name: 'Download large files' },
                   { icon: <FiUsers />, name: 'Connect multiple devices' }
                 ].map((activity, index) => (
-                  <div key={index} className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div className="text-4xl mb-3 block text-blue-600">{activity.icon}</div>
+                  <AnimatedContent key={index} distance={20} direction="vertical" duration={0.5} delay={index * 0.05}>
+                  <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full">
+                    <div className="text-4xl mb-3 flex justify-center text-blue-600">{activity.icon}</div>
                     <span className="text-gray-700 font-medium text-sm">{activity.name}</span>
                   </div>
+                  </AnimatedContent>
                 ))}
               </div>
             </div>
@@ -927,10 +944,12 @@ export default function ModuleLanding() {
                     { icon: <FiTool />, name: 'Mounting Hardware' },
                     { icon: <FiBook />, name: 'Setup Guide' }
                   ].map((item, index) => (
-                    <div key={index} className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
-                      <div className="text-3xl mb-2 block text-blue-600">{item.icon}</div>
+                    <AnimatedContent key={index} distance={20} direction="vertical" duration={0.5} delay={index * 0.05}>
+                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100 h-full">
+                      <div className="text-3xl mb-2 flex justify-center text-blue-600">{item.icon}</div>
                       <span className="text-gray-700 font-medium text-xs">{item.name}</span>
                     </div>
+                    </AnimatedContent>
                   ))}
                 </div>
               </div>

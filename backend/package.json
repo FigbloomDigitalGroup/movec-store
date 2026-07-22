@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "movec-store-backend",
   "version": "0.0.1",
-  "description": "",
+  "description": "Movec Store backend API",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

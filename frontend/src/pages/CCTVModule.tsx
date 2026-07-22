@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiShoppingBag, FiActivity, FiMap, FiMonitor as FiBuilding, FiBookOpen as FiBook, FiTool } from 'react-icons/fi';
+import AnimatedContent from '../components/AnimatedContent';
 
 export default function CCTVModule() {
   return (
@@ -109,13 +110,15 @@ export default function CCTVModule() {
                 color: 'indigo'
               }
             ].map((benefit, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100">
+              <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
+              <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
                 <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-lg flex items-center justify-center mb-4`}>
                   <benefit.icon className={`text-${benefit.color}-600`} size={24} />
                 </div>
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">{benefit.title}</h3>
                 <p className="text-gray-700 text-sm">{benefit.description}</p>
               </div>
+              </AnimatedContent>
             ))}
           </div>
         </div>
@@ -142,12 +145,14 @@ export default function CCTVModule() {
               'Expandable systems for homes and businesses',
               'Professional after-sales support'
             ].map((feature, index) => (
-              <div key={index} className="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
+              <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
+              <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4 h-full">
                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <FiCheck className="text-green-600" size={16} />
                 </div>
                 <span className="text-gray-700 font-medium">{feature}</span>
               </div>
+              </AnimatedContent>
             ))}
           </div>
         </div>
@@ -176,10 +181,12 @@ export default function CCTVModule() {
               { icon: <FiHome />, name: 'Churches' },
               { icon: <FiHome />, name: 'Estates' }
             ].map((place, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                <div className="text-blue-600 mx-auto mb-3 flex justify-center">{place.icon}</div>
+              <AnimatedContent key={index} distance={30} direction="vertical" duration={0.5} delay={index * 0.05}>
+              <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full">
+                <div className="text-blue-600 mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
                 <span className="text-gray-700 font-medium">{place.name}</span>
               </div>
+              </AnimatedContent>
             ))}
           </div>
         </div>
@@ -252,12 +259,14 @@ export default function CCTVModule() {
                 'Secure payment options',
                 '24/7 customer support'
               ].map((reason, index) => (
-                <div key={index} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
+                <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
                   <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
                     <FiCheck className="text-blue-600" size={16} />
                   </div>
                   <span className="font-medium">{reason}</span>
                 </div>
+                </AnimatedContent>
               ))}
             </div>
 

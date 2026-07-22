@@ -3,6 +3,7 @@ import { FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiCheckCircle, FiAlertCircl
 import api from '../lib/api';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
+import AnimatedContent from '../components/AnimatedContent';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -37,16 +38,19 @@ export default function ContactPage() {
   return (
     <div className="bg-gray-50 min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AnimatedContent distance={30} direction="vertical" duration={0.6}>
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Have questions about Starlink or CCTV installations? We're here to help. Reach out to our team.
           </p>
         </div>
+        </AnimatedContent>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Info */}
           <div className="lg:col-span-1 space-y-6">
+            <AnimatedContent distance={40} direction="horizontal" duration={0.6} delay={0.1}>
             <Card>
               <CardBody className="space-y-6">
                 <h3 className="text-xl font-semibold mb-4">Business Information</h3>
@@ -80,7 +84,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Email</h4>
-                    <p className="text-gray-600">info@starlinkcctv.co.ke</p>
+                    <p className="text-gray-600">info@movec.co.ke</p>
                   </div>
                 </div>
 
@@ -96,7 +100,9 @@ export default function ContactPage() {
                 </div>
               </CardBody>
             </Card>
+            </AnimatedContent>
 
+            <AnimatedContent distance={40} direction="horizontal" duration={0.6} delay={0.2}>
             <Card className="overflow-hidden">
               <iframe
                 title="Google Maps"
@@ -109,10 +115,12 @@ export default function ContactPage() {
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
             </Card>
+            </AnimatedContent>
           </div>
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
+            <AnimatedContent distance={40} direction="vertical" duration={0.6} delay={0.2}>
             <Card>
               <CardBody className="p-8">
                 <h3 className="text-2xl font-semibold mb-6">Send us a Message</h3>
@@ -218,6 +226,7 @@ export default function ContactPage() {
                 )}
               </CardBody>
             </Card>
+            </AnimatedContent>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     this.fromEmail = this.configService.get<string>('BREVO_FROM_EMAIL', 'noreply@starlinkcctv.co.ke');
-    this.fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Starlink CCTV');
+    this.fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Movec Store');
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
 
     // 1. Try to initialize Brevo transactional email client
@@ -51,10 +51,10 @@ export class EmailService {
 
   async sendVerificationEmail(toEmail: string, toName: string, token: string) {
     const verificationLink = `${this.frontendUrl}/verify-email?token=${token}`;
-    const subject = 'Verify your email - Starlink CCTV';
+    const subject = 'Verify your email - Movec Store';
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1e40af;">Welcome to Starlink CCTV!</h2>
+        <h2 style="color: #1e40af;">Welcome to Movec Store!</h2>
         <p>Hi ${toName},</p>
         <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
         <a href="${verificationLink}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
@@ -63,7 +63,7 @@ export class EmailService {
         <p>Or copy this link: ${verificationLink}</p>
         <p>This link expires in 24 hours.</p>
         <hr style="border: 1px solid #e5e7eb; margin: 24px 0;" />
-        <p style="color: #6b7280; font-size: 12px;">Starlink CCTV, Nairobi, Kenya</p>
+        <p style="color: #6b7280; font-size: 12px;">Movec Store, Nairobi, Kenya</p>
       </div>
     `;
 
@@ -105,7 +105,7 @@ export class EmailService {
 
   async sendPasswordResetEmail(toEmail: string, toName: string, token: string) {
     const resetLink = `${this.frontendUrl}/reset-password?token=${token}`;
-    const subject = 'Reset your password - Starlink CCTV';
+    const subject = 'Reset your password - Movec Store';
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Password Reset</h2>
@@ -118,7 +118,7 @@ export class EmailService {
         <p>This link expires in 1 hour.</p>
         <p>If you didn't request this, please ignore this email.</p>
         <hr style="border: 1px solid #e5e7eb; margin: 24px 0;" />
-        <p style="color: #6b7280; font-size: 12px;">Starlink CCTV, Nairobi, Kenya</p>
+        <p style="color: #6b7280; font-size: 12px;">Movec Store, Nairobi, Kenya</p>
       </div>
     `;
 
@@ -261,7 +261,7 @@ export class EmailService {
   }
 
   async sendContactFormConfirmation(toEmail: string, toName: string) {
-    const subject = 'We received your message - Starlink CCTV';
+    const subject = 'We received your message - Movec Store';
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Thanks for reaching out!</h2>
@@ -269,7 +269,7 @@ export class EmailService {
         <p>We've successfully received your message and our team will get back to you as soon as possible.</p>
         <p>For urgent inquiries, you can also reach us via WhatsApp at +254 727572310.</p>
         <hr style="border: 1px solid #e5e7eb; margin: 24px 0;" />
-        <p style="color: #6b7280; font-size: 12px;">Starlink CCTV, Nairobi, Kenya</p>
+        <p style="color: #6b7280; font-size: 12px;">Movec Store, Nairobi, Kenya</p>
       </div>
     `;
 

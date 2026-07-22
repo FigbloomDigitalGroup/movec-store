@@ -16,8 +16,8 @@ export default function Card({ children, className = '', hover = false, onClick 
     <motion.div
       className={`${baseStyles} ${hoverStyles} ${className}`}
       onClick={onClick}
-      whileHover={hover ? { y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" } : {}}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={hover ? { y: -6, boxShadow: "0 20px 35px -10px rgba(0, 0, 0, 0.08), 0 15px 20px -8px rgba(0, 0, 0, 0.04)" } : {}}
+      transition={{ type: "tween", ease: [0.16, 1, 0.3, 1], duration: 0.5 }}
     >
       {children}
     </motion.div>

@@ -1,4 +1,5 @@
 import { FiMapPin, FiPhone, FiMail, FiShield } from 'react-icons/fi';
+import AnimatedContent from '../components/AnimatedContent';
 
 export default function PrivacyPolicy() {
   return (
@@ -20,10 +21,11 @@ export default function PrivacyPolicy() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 leading-relaxed mb-8">
-            Starlink CCTV ("we", "us", "our") provides Starlink internet equipment, CCTV and surveillance systems, and related installation services in Kenya through our website and platform (the "Service"). This Privacy Policy explains what personal information we collect, how we use it, and the choices you have. By using the Service, you agree to the collection and use of information as described here.
+            Movec Store ("we", "us", "our") provides Starlink internet equipment, CCTV and surveillance systems, networking equipment, smart devices, and related installation services in Kenya through our website and platform (the "Service"). This Privacy Policy explains what personal information we collect, how we use it, and the choices you have. By using the Service, you agree to the collection and use of information as described here.
           </p>
 
           <div className="space-y-8">
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">1. Information We Collect</h2>
               <p className="text-gray-700 mb-4">We collect the following categories of information:</p>
@@ -37,7 +39,9 @@ export default function PrivacyPolicy() {
                 <li><strong>Technical information:</strong> IP address, browser type, device information, and usage data collected automatically via cookies and similar technologies.</li>
               </ul>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.2}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">2. How We Use Your Information</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -52,7 +56,9 @@ export default function PrivacyPolicy() {
                 <li>With your consent, to send promotional offers, which you may opt out of at any time.</li>
               </ul>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">3. How We Share Your Information</h2>
               <p className="text-gray-700 mb-4">We do not sell your personal information. We share information only with:</p>
@@ -65,28 +71,36 @@ export default function PrivacyPolicy() {
                 <li><strong>Authorities:</strong> where required by Kenyan law, regulation, or a valid legal process.</li>
               </ul>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Cookies</h2>
               <p className="text-gray-700">
                 We use cookies and similar technologies to keep you logged in, remember items in your cart, and understand how the Service is used. You can disable cookies in your browser settings, but some features, such as checkout, may not work correctly without them.
               </p>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">5. Data Retention</h2>
               <p className="text-gray-700">
                 We retain personal information for as long as your account is active or as needed to provide the Service, comply with our legal and tax obligations, resolve disputes, and enforce our agreements. Order records are generally retained for at least the period required under applicable Kenyan tax and consumer protection law.
               </p>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">6. Data Security</h2>
               <p className="text-gray-700">
                 We apply industry-standard safeguards, including encrypted password storage, HTTPS encryption in transit, access controls, and rate limiting, to protect your information. No method of transmission or storage is completely secure, and we cannot guarantee absolute security.
               </p>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">7. Your Rights</h2>
               <p className="text-gray-700 mb-4">Subject to applicable law, including the Kenya Data Protection Act, 2019, you may:</p>
@@ -99,21 +113,27 @@ export default function PrivacyPolicy() {
               </ul>
               <p className="text-gray-700 mt-4">To exercise any of these rights, contact us using the details in Section 10.</p>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">8. Children's Privacy</h2>
               <p className="text-gray-700">
                 The Service is not directed at children under 18. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will delete it.
               </p>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">9. Changes to This Policy</h2>
               <p className="text-gray-700">
                 We may update this Privacy Policy from time to time. Material changes will be posted on this page with an updated "Last updated" date. Continued use of the Service after changes take effect constitutes acceptance of the revised policy.
               </p>
             </section>
+            </AnimatedContent>
 
+            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">10. Contact Us</h2>
               <p className="text-gray-700 mb-4">If you have questions about this Privacy Policy or how we handle your data, contact us:</p>
@@ -128,10 +148,11 @@ export default function PrivacyPolicy() {
                 </div>
                 <div className="flex items-center gap-3">
                   <FiMail className="text-gray-400 flex-shrink-0" size={18} />
-                  <span className="text-gray-700">info@starlinkcctv.co.ke</span>
+                  <span className="text-gray-700">info@movec.co.ke</span>
                 </div>
               </div>
             </section>
+            </AnimatedContent>
           </div>
         </div>
       </div>
