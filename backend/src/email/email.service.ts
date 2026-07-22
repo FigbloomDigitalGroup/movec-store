@@ -208,4 +208,97 @@ export class EmailService {
       this.logger.error('Failed to send order confirmation via Brevo:', error);
     }
   }
+
+  async sendContactFormEmail(contactData: { name: string; email: string; phone?: string; subject: string; message: string }) {
+    const businessEmail = this.configService.get<string>('CONTACT_EMAIL', 'info@starlinkcctv.co.ke');
+    const subject = `New Contact Form Submission: ${contactData.subject}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1e40af;">New Contact Request</h2>
+        <p><strong>Name:</strong> ${contactData.name}</p>
+        <p><strong>Email:</strong> ${contactData.email}</p>
+        <p><strong>Phone:</strong> ${contactData.phone || 'N/A'}</p>
+        <p><strong>Subject:</strong> ${contactData.subject}</p>
+        <div style="margin-top: 16px; padding: 16px; background-color: #f3f4f6; border-radius: 8px;">
+          <p style="white-space: pre-wrap; margin: 0;">${contactData.message}</p>
+        </div>
+      </div>
+    `;
+
+    // Try sending via SMTP first
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: businessEmail,
+          replyTo: contactData.email,
+          subject,
+          html: htmlContent,
+        });
+        this.logger.log('Contact form email sent to business via SMTP');
+        return;
+      } catch (error) {
+        this.logger.error('Failed to send contact form email via SMTP:', error);
+      }
+    }
+
+    // Fallback to Brevo
+    if (!this.apiInstance) return;
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: businessEmail }];
+    sendSmtpEmail.sender = { email: this.fromEmail, name: contactData.name };
+    (sendSmtpEmail as any).replyTo = { email: contactData.email };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      this.logger.log('Contact form email sent to business via Brevo');
+    } catch (error) {
+      this.logger.error('Failed to send contact form email via Brevo:', error);
+    }
+  }
+
+  async sendContactFormConfirmation(toEmail: string, toName: string) {
+    const subject = 'We received your message - Starlink CCTV';
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1e40af;">Thanks for reaching out!</h2>
+        <p>Hi ${toName},</p>
+        <p>We've successfully received your message and our team will get back to you as soon as possible.</p>
+        <p>For urgent inquiries, you can also reach us via WhatsApp at +254 727572310.</p>
+        <hr style="border: 1px solid #e5e7eb; margin: 24px 0;" />
+        <p style="color: #6b7280; font-size: 12px;">Starlink CCTV, Nairobi, Kenya</p>
+      </div>
+    `;
+
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: `"${toName}" <${toEmail}>`,
+          subject,
+          html: htmlContent,
+        });
+        return;
+      } catch (error) {
+        this.logger.error('Failed to send contact confirmation via SMTP:', error);
+      }
+    }
+
+    if (!this.apiInstance) return;
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: toEmail, name: toName }];
+    sendSmtpEmail.sender = { email: this.fromEmail, name: this.fromName };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+    } catch (error) {
+      this.logger.error('Failed to send contact confirmation via Brevo:', error);
+    }
+  }
 }

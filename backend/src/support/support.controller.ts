@@ -2,6 +2,7 @@ import { Controller, Get, Post, Param, Body, UseGuards, Req } from '@nestjs/comm
 import { SupportService } from './support.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { CreateContactDto } from './dto/create-contact.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { Request } from 'express';
 
@@ -12,6 +13,11 @@ export class SupportController {
   @Get('faqs')
   getFaqs() {
     return this.supportService.getFaqs();
+  }
+
+  @Post('contact')
+  submitContactForm(@Body() dto: CreateContactDto) {
+    return this.supportService.submitContactForm(dto);
   }
 
   @Get('tickets')

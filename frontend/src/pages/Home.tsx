@@ -8,6 +8,9 @@ import Card, { CardBody } from '../components/ui/Card';
 import ProductCard from '../components/ProductCard';
 import TextType from '../components/TextType';
 import ScrollFloat from '../components/ScrollFloat';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
 export default function Home() {
   const { data: featured } = useQuery({
@@ -18,13 +21,22 @@ export default function Home() {
     },
   });
 
+  const { scrollY } = useScroll();
+  const yHeroText = useTransform(scrollY, [0, 500], [0, 100]);
+  const yHeroIcons = useTransform(scrollY, [0, 500], [0, -150]);
+
+  const [emblaRef] = useEmblaCarousel(
+    { loop: true, align: 'start' },
+    [Autoplay({ delay: 3500, stopOnInteraction: true })]
+  );
+
   return (
     <div className="bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-16 md:py-24">
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-16 md:py-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
+            <motion.div style={{ y: yHeroText }}>
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
                 <FiWifi className="text-cyan-300" />
                 <span className="text-cyan-100 text-sm font-medium">Official Starlink Reseller in Kenya</span>
@@ -95,9 +107,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="hidden lg:flex items-center justify-center">
+            <motion.div className="hidden lg:flex items-center justify-center" style={{ y: yHeroIcons }}>
               <div className="relative">
                 <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center">
                   <FiShield className="text-white/80" size={120} />
@@ -109,7 +121,7 @@ export default function Home() {
                   <FiCamera className="text-white" size={32} />
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -204,12 +216,16 @@ export default function Home() {
               </ScrollFloat>
               <p className="text-xl text-gray-700">Our most popular items</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featured.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div className="embla overflow-hidden" ref={emblaRef}>
+              <div className="embla__container flex -ml-6">
+                {featured.map((product) => (
+                  <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 pl-6 pb-8">
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="text-center mt-10">
+            <div className="text-center mt-2">
               <Link to="/products">
                 <Button variant="primary">View All Products</Button>
               </Link>

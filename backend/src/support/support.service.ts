@@ -3,10 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateFaqDto } from './dto/create-faq.dto';
+import { CreateContactDto } from './dto/create-contact.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class SupportService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async getFaqs() {
     return this.prisma.fAQ.findMany({
@@ -97,5 +102,23 @@ export class SupportService {
       where: { id: ticketId },
       data: { status: status as any },
     });
+  }
+
+  async submitContactForm(dto: CreateContactDto) {
+    if (dto.website) {
+      return { success: true };
+    }
+
+    await this.emailService.sendContactFormEmail({
+      name: dto.name,
+      email: dto.email,
+      phone: dto.phone,
+      subject: dto.subject,
+      message: dto.message,
+    });
+
+    await this.emailService.sendContactFormConfirmation(dto.email, dto.name);
+
+    return { success: true };
   }
 }
