@@ -198,10 +198,10 @@ export default function ModuleLanding() {
                   High-Speed Internet, Wherever You Are. Experience next-generation satellite internet designed for homes, businesses, farms, schools, and remote locations. Stay connected with fast, reliable internet even where traditional fiber or mobile networks aren't available.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link to="/products?category=starlink" className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
+                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
                     Shop Starlink Kits
                     <FiArrowRight />
-                  </Link>
+                  </button>
                   <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/30 transition">
                     Book Installation
                   </Link>
@@ -237,10 +237,10 @@ export default function ModuleLanding() {
                   Smarter surveillance. Faster response. Better protection. Modern CCTV systems with computer vision technologies analyze video in real time, detect important events, and help you respond before incidents escalate.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
+                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
                     Shop CCTV Systems
                     <FiArrowRight />
-                  </Link>
+                  </button>
                   <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/30 transition">
                     Book Installation
                   </Link>
@@ -277,7 +277,7 @@ export default function ModuleLanding() {
       {moduleSlug === 'cctv' && (
         <>
           {/* Product Grid */}
-          <div className="max-w-7xl mx-auto px-4 py-8 bg-white">
+          <div id="products-grid" className="max-w-7xl mx-auto px-4 py-8 bg-white">
             {/* Search + filter toggle */}
             <div className="flex gap-3 mb-6">
               <div className="relative flex-1 max-w-md">
@@ -623,10 +623,10 @@ export default function ModuleLanding() {
                 </div>
 
                 <div className="text-center mt-12">
-                  <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
+                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
                     Browse CCTV Products
                     <FiArrowRight />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
@@ -640,10 +640,10 @@ export default function ModuleLanding() {
                 Get AI-powered CCTV systems with professional installation. Protect what matters most.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
+                <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
                   Shop CCTV Systems
                   <FiArrowRight />
-                </Link>
+                </button>
                 <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition">
                   Book Installation
                 </Link>
@@ -657,7 +657,7 @@ export default function ModuleLanding() {
       {moduleSlug === 'starlink' && (
         <>
           {/* Product Grid */}
-          <div className="max-w-7xl mx-auto px-4 py-8 bg-white">
+          <div id="products-grid" className="max-w-7xl mx-auto px-4 py-8 bg-white">
             {/* Search + filter toggle */}
             <div className="flex gap-3 mb-6">
               <div className="relative flex-1 max-w-md">
@@ -1020,10 +1020,10 @@ export default function ModuleLanding() {
                 Bring high-speed satellite internet to your home or business. Browse our range of genuine Starlink equipment, accessories, and installation services to find the solution that fits your needs.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link to="/products?category=starlink" className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
+                <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
                   Shop Starlink Kits
                   <FiArrowRight />
-                </Link>
+                </button>
                 <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition">
                   Book Installation
                 </Link>
@@ -1058,7 +1058,7 @@ export default function ModuleLanding() {
 
       {/* Product grid for other modules (not CCTV or Starlink) */}
       {moduleSlug !== 'cctv' && moduleSlug !== 'starlink' && (
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div id="products-grid" className="max-w-7xl mx-auto px-4 py-8">
           {/* Search + filter toggle */}
           <div className="flex gap-3 mb-6">
             <div className="relative flex-1 max-w-md">

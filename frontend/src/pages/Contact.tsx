@@ -13,7 +13,7 @@ export default function ContactPage() {
     message: '',
     website: '', // honeypot
   });
-  
+
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -23,7 +23,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
-    
+
     try {
       await api.post('/support/contact', formData);
       setStatus('success');
@@ -50,14 +50,14 @@ export default function ContactPage() {
             <Card>
               <CardBody className="space-y-6">
                 <h3 className="text-xl font-semibold mb-4">Business Information</h3>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="bg-blue-100 p-3 rounded-full text-blue-600">
                     <FiMapPin size={24} />
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Address</h4>
-                    <p className="text-gray-600">CBD, Nairobi, Kenya</p>
+                    <p className="text-gray-600">SMK Business Center, Nairobi, Kenya</p>
                   </div>
                 </div>
 
@@ -100,7 +100,7 @@ export default function ContactPage() {
             <Card className="overflow-hidden">
               <iframe
                 title="Google Maps"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127643.0801265856!2d36.74411139474705!3d-1.3031933722247552!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f1172d84d49a7%3A0xf7cf0254b297924c!2sNairobi!5e0!3m2!1sen!2ske!4v1700000000000!5m2!1sen!2ske"
+                src="https://maps.google.com/maps?width=100%25&height=600&hl=en&q=SMK%20Business%20Centre,%20Nairobi,%20Kenya&t=&z=15&ie=UTF8&iwloc=B&output=embed"
                 width="100%"
                 height="250"
                 style={{ border: 0 }}
@@ -116,7 +116,7 @@ export default function ContactPage() {
             <Card>
               <CardBody className="p-8">
                 <h3 className="text-2xl font-semibold mb-6">Send us a Message</h3>
-                
+
                 {status === 'success' ? (
                   <div className="bg-green-50 text-green-800 p-6 rounded-lg flex flex-col items-center justify-center text-center space-y-4">
                     <FiCheckCircle size={48} className="text-green-500" />
@@ -171,7 +171,7 @@ export default function ContactPage() {
                           value={formData.phone}
                           onChange={handleChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                          placeholder="+254 700 000000"
+                          placeholder="+254 727572310"
                         />
                       </div>
                       <div>
