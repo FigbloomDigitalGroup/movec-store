@@ -7,6 +7,7 @@ import type { Cart } from '../types';
 import { FiShoppingBag, FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
+import Skeleton from '../components/ui/Skeleton';
 
 export default function CartPage() {
   const queryClient = useQueryClient();
@@ -37,7 +38,55 @@ export default function CartPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
   });
 
-  if (isAuthenticated && isLoading) return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading...</div>;
+  if (isAuthenticated && isLoading) {
+    return (
+      <div className="min-h-screen">
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Skeleton className="h-10 w-48 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardBody>
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="w-24 h-24 rounded-lg flex-shrink-0" />
+                      <div className="flex-1">
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-5 w-24" />
+                      </div>
+                      <Skeleton className="h-10 w-24" />
+                      <Skeleton className="h-8 w-8" />
+                    </div>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+            <div className="lg:col-span-1">
+              <Card className="sticky top-24">
+                <CardBody>
+                  <Skeleton className="h-8 w-40 mb-6" />
+                  <div className="space-y-3 mb-6">
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                    <Skeleton className="h-5 w-full" />
+                  </div>
+                  <Skeleton className="h-px w-full mb-6" />
+                  <Skeleton className="h-8 w-32 mb-6" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-5 w-40 mx-auto mt-4" />
+                </CardBody>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const items = isAuthenticated ? (apiCart?.items || []) : guestCart.items;
   const total = isAuthenticated
@@ -45,11 +94,11 @@ export default function CartPage() {
     : guestCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
+          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Shopping Cart</h1>
           {!isAuthenticated && (
             <p className="text-gray-700 text-sm">
               You're browsing as a guest.{' '}
@@ -89,10 +138,10 @@ export default function CartPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <Link to={`/products/${item.slug}`} className="font-semibold text-gray-900 hover:text-blue-600 transition">
+                        <Link to={`/products/${item.slug}`} className="font-product-name text-gray-900 hover:text-blue-600 transition">
                           {item.name}
                         </Link>
-                        <p className="text-blue-600 font-bold mt-1">KES {item.price.toLocaleString()}</p>
+                        <p className="text-blue-600 font-price mt-1">KES {item.price.toLocaleString()}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {isAuthenticated ? (
@@ -136,7 +185,7 @@ export default function CartPage() {
                         )}
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</p>
+                        <p className="font-price text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</p>
                       </div>
                       <Button
                         variant="ghost"
@@ -156,7 +205,7 @@ export default function CartPage() {
             <div className="lg:col-span-1">
               <Card className="sticky top-24">
                 <CardBody>
-                  <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                  <h2 className="text-xl font-section-title text-gray-900 mb-6">Order Summary</h2>
                   
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-700">
@@ -174,7 +223,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="border-t border-gray-200 pt-4 mb-6">
-                    <div className="flex justify-between text-lg font-bold text-gray-900">
+                    <div className="flex justify-between text-lg font-price text-gray-900">
                       <span>Total</span>
                       <span>KES {total.toLocaleString()}</span>
                     </div>
@@ -185,7 +234,7 @@ export default function CartPage() {
                       if (isAuthenticated) {
                         navigate('/checkout');
                       } else {
-                        navigate('/login?redirect=checkout');
+                        navigate('/login?redirect=/checkout');
                       }
                     }}
                     className="w-full"

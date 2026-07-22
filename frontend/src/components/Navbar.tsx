@@ -54,16 +54,16 @@ export default function Navbar() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">S</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Starlink CCTV</span>
+              <span className="text-xl font-hero text-gray-900">Starlink CCTV</span>
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <Link to="/modules" className="text-gray-700 hover:text-blue-600 font-medium transition">Solutions</Link>
-              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition">Products</Link>
-              <Link to="/categories" className="text-gray-700 hover:text-blue-600 font-medium transition">Categories</Link>
-              <Link to="/installation" className="text-gray-700 hover:text-blue-600 font-medium transition">Installation</Link>
-              <Link to="/support/faqs" className="text-gray-700 hover:text-blue-600 font-medium transition">FAQs</Link>
+              <Link to="/modules" className="text-gray-700 hover:text-blue-600 font-navigation transition">Solutions</Link>
+              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-navigation transition">Products</Link>
+              <Link to="/categories" className="text-gray-700 hover:text-blue-600 font-navigation transition">Categories</Link>
+              <Link to="/installation" className="text-gray-700 hover:text-blue-600 font-navigation transition">Installation</Link>
+              <Link to="/support/faqs" className="text-gray-700 hover:text-blue-600 font-navigation transition">FAQs</Link>
             </div>
 
             {/* Right Actions */}

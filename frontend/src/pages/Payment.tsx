@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import api from '../lib/api';
-import { FiCreditCard, FiPhone, FiDollarSign, FiCheckCircle, FiCopy } from 'react-icons/fi';
+import { FiCreditCard, FiPhone, FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
@@ -43,25 +44,103 @@ export default function PaymentPage() {
 
     if (completed) {
         return (
-            <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12">
-                    <FiCheckCircle className="mx-auto text-green-500 mb-4" size={64} />
-                    <h1 className="text-3xl font-bold mb-2">
-                        {method === 'BANK_TRANSFER' ? 'Payment Instructions' : 'Payment Initiated!'}
-                    </h1>
-                    <p className="text-gray-600 mb-8">
-                        {method === 'BANK_TRANSFER'
-                            ? 'Please complete the transfer using the details below. Your order will be confirmed once payment is received.'
-                            : 'Your payment is being processed. You will receive a confirmation shortly.'}
-                    </p>
-                    <div className="flex gap-4 justify-center">
-                        <Link to={`/orders/${orderNumber}`} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                            View Order
-                        </Link>
-                        <Link to="/products" className="border px-6 py-3 rounded-lg hover:bg-gray-100 transition">
-                            Continue Shopping
-                        </Link>
-                    </div>
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+                <div className="max-w-3xl mx-auto px-4 py-16">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white rounded-2xl shadow-xl p-8 md:p-12"
+                    >
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", duration: 0.5, delay: 0.2 }}
+                            className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+                        >
+                            <FiCheckCircle className="text-green-500" size={40} />
+                        </motion.div>
+                        
+                        <motion.h1
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-3xl font-bold text-center mb-2 text-gray-900"
+                        >
+                            {method === 'BANK_TRANSFER' ? 'Payment Instructions' : 'Payment Initiated!'}
+                        </motion.h1>
+                        
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-gray-600 text-center mb-8"
+                        >
+                            {method === 'BANK_TRANSFER'
+                                ? 'Please complete the transfer using the details below. Your order will be confirmed once payment is received.'
+                                : 'Your payment is being processed. You will receive a confirmation shortly.'}
+                        </motion.p>
+
+                        {/* What Happens Next */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                            className="bg-gray-50 rounded-xl p-6 mb-8"
+                        >
+                            <h3 className="font-semibold text-gray-900 mb-4">What happens next?</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiMail className="text-blue-600" size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">Confirmation Email</p>
+                                        <p className="text-sm text-gray-600">You'll receive an email with your order details and payment confirmation.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiTruck className="text-green-600" size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">Order Processing</p>
+                                        <p className="text-sm text-gray-600">Your order will be processed within 1-2 business days.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiCalendar className="text-purple-600" size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">Installation Scheduling</p>
+                                        <p className="text-sm text-gray-600">For installation orders, our team will contact you to schedule a convenient time.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="flex flex-col sm:flex-row gap-4 justify-center"
+                        >
+                            <Link
+                                to={`/orders/${orderNumber}`}
+                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium text-center flex items-center justify-center gap-2"
+                            >
+                                View Order
+                                <FiArrowRight size={18} />
+                            </Link>
+                            <Link
+                                to="/products"
+                                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-medium text-center"
+                            >
+                                Continue Shopping
+                            </Link>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </div>
         );
@@ -255,6 +334,26 @@ export default function PaymentPage() {
                     <Link to={`/orders/${orderNumber}`} className="block text-center text-blue-600 text-sm mt-4 hover:underline">
                         View Order Details
                     </Link>
+
+                    {/* Trust Badges */}
+                    <div className="mt-6 pt-6 border-t">
+                        <p className="text-xs text-gray-500 mb-3 text-center">Secure Payment</p>
+                        <div className="flex items-center justify-center gap-3">
+                            <div className="bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                                <span className="text-xs font-medium text-green-700">M-Pesa</span>
+                            </div>
+                            <div className="bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
+                                <span className="text-xs font-medium text-purple-700">Stripe</span>
+                            </div>
+                            <div className="bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                                <span className="text-xs font-medium text-blue-700">PayPal</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-center gap-2 mt-3">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-gray-500">256-bit SSL Encrypted</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

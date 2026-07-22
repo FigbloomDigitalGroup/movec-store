@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -35,10 +36,52 @@
   --color-accent-900: #7f1d1d;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Manrope', sans-serif;
 }
 
 * {
   font-family: var(--font-sans);
+}
+
+/* Typography System */
+.font-hero {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.font-hero-bold {
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.font-section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.font-product-name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.font-product-description {
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+.font-button {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.font-navigation {
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+.font-price {
+  font-family: var(--font-sans);
+  font-weight: 700;
 }
 
 body {

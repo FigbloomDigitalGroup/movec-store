@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiShoppingBag, FiActivity, FiMap } from 'react-icons/fi';
+import { FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiShoppingBag, FiActivity, FiMap, FiMonitor as FiBuilding, FiBookOpen as FiBook, FiTool } from 'react-icons/fi';
 
 export default function CCTVModule() {
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -165,23 +165,19 @@ export default function CCTVModule() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
-              { icon: FiHome, name: 'Homes' },
-              { emoji: '🏢', name: 'Offices' },
-              { icon: FiShoppingBag, name: 'Retail Shops' },
-              { emoji: '🏫', name: 'Schools' },
-              { icon: FiActivity, name: 'Hospitals' },
-              { emoji: '🏭', name: 'Warehouses' },
-              { icon: FiMap, name: 'Parking Lots' },
-              { emoji: '🏨', name: 'Hotels' },
-              { emoji: '⛪', name: 'Churches' },
-              { icon: FiHome, name: 'Estates' }
+              { icon: <FiHome />, name: 'Homes' },
+              { icon: <FiBuilding />, name: 'Offices' },
+              { icon: <FiShoppingBag />, name: 'Retail Shops' },
+              { icon: <FiBook />, name: 'Schools' },
+              { icon: <FiActivity />, name: 'Hospitals' },
+              { icon: <FiTool />, name: 'Warehouses' },
+              { icon: <FiMap />, name: 'Parking Lots' },
+              { icon: <FiShield />, name: 'Hotels' },
+              { icon: <FiHome />, name: 'Churches' },
+              { icon: <FiHome />, name: 'Estates' }
             ].map((place, index) => (
               <div key={index} className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                {place.emoji ? (
-                  <span className="text-4xl mb-3 block">{place.emoji}</span>
-                ) : (
-                  <place.icon className="text-blue-600 mx-auto mb-3" size={32} />
-                )}
+                <div className="text-blue-600 mx-auto mb-3 flex justify-center">{place.icon}</div>
                 <span className="text-gray-700 font-medium">{place.name}</span>
               </div>
             ))}

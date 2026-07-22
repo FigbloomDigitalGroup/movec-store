@@ -91,7 +91,7 @@ export default function ProductDetail() {
   const inStock = product.inventory?.reduce((sum: number, i: any) => sum + i.quantity, 0) > 0;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -146,12 +146,12 @@ export default function ProductDetail() {
           <div>
             <div className="mb-4">
               <p className="text-sm text-gray-500 uppercase tracking-wide">{product.brand?.name}</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-1">{product.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-product-name text-gray-900 mt-1">{product.name}</h1>
               <p className="text-sm text-gray-500 mt-1">SKU: {product.sku}</p>
             </div>
 
             <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-3xl font-bold text-blue-600">KES {product.price.toLocaleString()}</span>
+              <span className="text-3xl font-price text-blue-600">KES {product.price.toLocaleString()}</span>
               {product.compareAtPrice && (
                 <>
                   <span className="text-lg text-gray-400 line-through">KES {product.compareAtPrice.toLocaleString()}</span>
@@ -253,7 +253,7 @@ export default function ProductDetail() {
         {/* Reviews */}
         {product.reviews && product.reviews.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
+            <h2 className="text-2xl font-section-title text-gray-900 mb-6">Customer Reviews</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {product.reviews.map((review: any) => (
                 <Card key={review.id}>

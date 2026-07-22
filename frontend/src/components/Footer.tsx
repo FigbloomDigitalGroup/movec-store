@@ -44,7 +44,7 @@ export default function Footer() {
                 <Link to="/modules/starlink" className="text-gray-700 hover:text-blue-600 transition">Starlink Kits</Link>
               </li>
               <li>
-                <Link to="/cctv" className="text-gray-700 hover:text-blue-600 transition">CCTV Systems</Link>
+                <Link to="/modules/cctv" className="text-gray-700 hover:text-blue-600 transition">CCTV Systems</Link>
               </li>
               <li>
                 <Link to="/installation" className="text-gray-700 hover:text-blue-600 transition">Installation</Link>
@@ -112,9 +112,9 @@ export default function Footer() {
               &copy; {new Date().getFullYear()} Starlink CCTV. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm">
-              <Link to="#" className="text-gray-600 hover:text-blue-600 transition">Privacy Policy</Link>
-              <Link to="#" className="text-gray-600 hover:text-blue-600 transition">Terms of Service</Link>
-              <Link to="#" className="text-gray-600 hover:text-blue-600 transition">Refund Policy</Link>
+              <Link to="/privacy" className="text-gray-600 hover:text-blue-600 transition">Privacy Policy</Link>
+              <Link to="/terms" className="text-gray-600 hover:text-blue-600 transition">Terms of Service</Link>
+              <Link to="/refund" className="text-gray-600 hover:text-blue-600 transition">Refund Policy</Link>
             </div>
           </div>
         </div>

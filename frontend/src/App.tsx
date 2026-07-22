@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 import Threads from './components/Threads';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -24,7 +26,7 @@ import ModulesPage from './pages/Modules';
 import ModuleLanding from './pages/ModuleLanding';
 import PaymentPage from './pages/Payment';
 import ProfilePage from './pages/Profile';
-import CCTVModule from './pages/CCTVModule';
+import { Navigate } from 'react-router-dom';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminModules from './pages/admin/AdminModules';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -36,6 +38,9 @@ import AdminSupport from './pages/admin/AdminSupport';
 import AdminReports from './pages/admin/AdminReports';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminNotifications from './pages/admin/AdminNotifications';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import RefundPolicy from './pages/RefundPolicy';
 
 const queryClient = new QueryClient();
 
@@ -43,7 +48,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Threads color={[0.05, 0.1, 0.3]} amplitude={0.4} distance={0.2} enableMouseInteraction />
+        <ScrollToTop />
+        <Threads color={[0.05, 0.1, 0.3]} amplitude={0.2} distance={0.1} enableMouseInteraction />
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
@@ -58,7 +65,7 @@ export default function App() {
             <Route path="/modules" element={<ModulesPage />} />
             <Route path="/modules/:moduleSlug" element={<ModuleLanding />} />
             <Route path="/modules/:moduleSlug/products" element={<ModuleLanding />} />
-            <Route path="/cctv" element={<CCTVModule />} />
+            <Route path="/cctv" element={<Navigate to="/modules/cctv" replace />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
@@ -69,6 +76,9 @@ export default function App() {
             <Route path="/installation" element={<InstallationPage />} />
             <Route path="/support/faqs" element={<SupportPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/refund" element={<RefundPolicy />} />
           </Route>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />

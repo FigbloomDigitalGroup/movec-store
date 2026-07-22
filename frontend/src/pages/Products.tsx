@@ -1,73 +1,12 @@
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { Product } from '../types';
-import { FiSearch, FiChevronLeft, FiChevronRight, FiFilter, FiSliders } from 'react-icons/fi';
-import Card, { CardBody } from '../components/ui/Card';
+import { FiSearch, FiChevronLeft, FiChevronRight, FiFilter } from 'react-icons/fi';
 import Button from '../components/ui/Button';
-
-function ProductImageCarousel({ product }: { product: Product }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const images = product.images || [];
-
-  const goNext = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (images.length > 1) {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }
-  };
-
-  const goPrev = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (images.length > 1) {
-      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-    }
-  };
-
-  return (
-    <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 h-64 rounded-t-xl overflow-hidden group">
-      {images.length > 0 ? (
-        <img
-          src={images[currentIndex]?.url}
-          alt={product.name}
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-      ) : (
-        <div className="h-full w-full flex items-center justify-center text-gray-400">
-          <FiSliders size={48} />
-        </div>
-      )}
-
-      {images.length > 1 && (
-        <>
-          <button
-            onClick={goPrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition hover:bg-black/70"
-          >
-            <FiChevronLeft size={18} />
-          </button>
-          <button
-            onClick={goNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition hover:bg-black/70"
-          >
-            <FiChevronRight size={18} />
-          </button>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {images.map((_, i) => (
-              <span
-                key={i}
-                className={`w-2 h-2 rounded-full transition ${i === currentIndex ? 'bg-white' : 'bg-white/50'}`}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+import Skeleton from '../components/ui/Skeleton';
+import ProductCard from '../components/ProductCard';
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,11 +36,11 @@ export default function Products() {
   const totalPages = data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 1;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Products</h1>
+          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Products</h1>
           <p className="text-gray-700">Browse our full catalog of Starlink and CCTV products</p>
         </div>
       </div>
@@ -198,34 +137,21 @@ export default function Products() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 h-80 animate-pulse" />
+              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <Skeleton className="h-64 w-full" />
+                <div className="p-5">
+                  <Skeleton className="h-4 w-16 mb-2" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-6 w-3/4 mb-3" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              </div>
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {data?.data?.map((product: Product) => (
-              <Link key={product.id} to={`/products/${product.slug}`} className="group">
-                <Card hover>
-                  <ProductImageCarousel product={product} />
-                  <CardBody className="pt-5">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{product.brand?.name || 'Brand'}</p>
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 text-gray-900 group-hover:text-blue-600 transition">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-baseline gap-2 mb-3">
-                      <span className="text-2xl font-bold text-blue-600">KES {product.price.toLocaleString()}</span>
-                      {product.compareAtPrice && (
-                        <span className="text-sm text-gray-400 line-through">KES {product.compareAtPrice.toLocaleString()}</span>
-                      )}
-                    </div>
-                    {product.compareAtPrice && (
-                      <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
-                        Save {Math.round((1 - product.price / product.compareAtPrice) * 100)}%
-                      </span>
-                    )}
-                  </CardBody>
-                </Card>
-              </Link>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

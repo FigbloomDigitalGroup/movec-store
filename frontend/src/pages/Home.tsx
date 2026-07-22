@@ -5,6 +5,9 @@ import type { Product } from '../types';
 import { FiWifi, FiCamera, FiTool, FiTruck, FiPhone, FiShield, FiArrowRight, FiCheckCircle, FiStar } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
+import ProductCard from '../components/ProductCard';
+import TextType from '../components/TextType';
+import ScrollFloat from '../components/ScrollFloat';
 
 export default function Home() {
   const { data: featured } = useQuery({
@@ -27,10 +30,14 @@ export default function Home() {
                 <span className="text-cyan-100 text-sm font-medium">Official Starlink Reseller in Kenya</span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                High-Speed Internet
-                <br />
-                <span className="text-cyan-300">From Space to Your Home</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-hero-bold mb-6 leading-tight">
+                <TextType
+                  text="High-Speed Internet From Space to Your Home Anywhere in Kenya"
+                  typingSpeed={75}
+                  showCursor={false}
+                  loop={false}
+                  className="text-white"
+                />
               </h1>
 
               <p className="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed max-w-2xl">
@@ -46,14 +53,14 @@ export default function Home() {
                     <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <Link to="/cctv" className="group">
-                  <Button variant="secondary" className="w-full sm:w-auto bg-white/10 border-white/30 text-white hover:bg-white/20">
+                <Link to="/modules/cctv" className="group">
+                  <Button variant="secondary" className="w-full sm:w-auto">
                     <FiCamera className="mr-2" size={20} />
                     Shop CCTV Systems
                   </Button>
                 </Link>
                 <Link to="/installation" className="group">
-                  <Button variant="secondary" className="w-full sm:w-auto bg-transparent border-2 border-white/30 text-white hover:bg-white/10">
+                  <Button variant="secondary" className="w-full sm:w-auto">
                     Book Installation
                   </Button>
                 </Link>
@@ -65,7 +72,7 @@ export default function Home() {
                     <FiWifi className="text-cyan-300" size={20} />
                   </div>
                   <div>
-                    <p className="text-white font-semibold text-sm">200+ Mbps</p>
+                    <p className="text-white font-semibold text-sm">Up to 300+ Mbps</p>
                     <p className="text-blue-200 text-xs">Download Speeds</p>
                   </div>
                 </div>
@@ -123,7 +130,7 @@ export default function Home() {
             <p className="text-sm text-gray-700">Customer Support</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-900">KES 6,500</p>
+            <p className="text-3xl font-bold text-gray-900">From KES 4,500 </p>
             <p className="text-sm text-gray-700">Monthly Subscription</p>
           </div>
         </div>
@@ -133,7 +140,9 @@ export default function Home() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Services</h2>
+            <ScrollFloat animationDuration={1} ease='back.inOut(2)' scrollStart='center bottom+=50%' scrollEnd='bottom bottom-=40%' stagger={0.03} containerClassName="mb-4">
+              Our Services
+            </ScrollFloat>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
               Complete connectivity and security solutions for homes and businesses
             </p>
@@ -144,12 +153,12 @@ export default function Home() {
                 <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
                   <FiWifi className="text-blue-600" size={28} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-900">Starlink Internet</h3>
+                <h3 className="text-xl font-product-name mb-3 text-gray-900">Starlink Internet</h3>
                 <p className="text-gray-700 mb-4">
                   High-speed satellite internet anywhere in Kenya. Perfect for remote areas with no fiber coverage.
                 </p>
-                <Link to="/products" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
-                  View Kits <FiArrowRight size={16} />
+                <Link to="/modules/starlink" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
+                  Learn More <FiArrowRight size={16} />
                 </Link>
               </CardBody>
             </Card>
@@ -158,11 +167,11 @@ export default function Home() {
                 <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
                   <FiCamera className="text-green-600" size={28} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-900">CCTV Systems</h3>
+                <h3 className="text-xl font-product-name mb-3 text-gray-900">CCTV Systems</h3>
                 <p className="text-gray-700 mb-4">
                   AI-powered IP cameras, NVR systems, and complete surveillance for homes and businesses.
                 </p>
-                <Link to="/cctv" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
+                <Link to="/modules/cctv" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
                   Learn More <FiArrowRight size={16} />
                 </Link>
               </CardBody>
@@ -172,7 +181,7 @@ export default function Home() {
                 <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
                   <FiTool className="text-purple-600" size={28} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-900">Installation</h3>
+                <h3 className="text-xl font-product-name mb-3 text-gray-900">Installation</h3>
                 <p className="text-gray-700 mb-4">
                   Professional installation by certified technicians. Fast, clean, and guaranteed workmanship.
                 </p>
@@ -190,32 +199,14 @@ export default function Home() {
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
+              <ScrollFloat animationDuration={1} ease='back.inOut(2)' scrollStart='center bottom+=50%' scrollEnd='bottom bottom-=40%' stagger={0.03} containerClassName="mb-4">
+                Featured Products
+              </ScrollFloat>
               <p className="text-xl text-gray-700">Our most popular items</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featured.map((product) => (
-                <Link key={product.id} to={`/products/${product.slug}`} className="group">
-                  <Card hover>
-                    <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-56 flex items-center justify-center rounded-t-xl overflow-hidden">
-                      {product.images?.[0] ? (
-                        <img src={product.images[0].url} alt={product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <FiCamera className="text-gray-400" size={48} />
-                      )}
-                    </div>
-                    <CardBody className="pt-5">
-                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{product.brand?.name || 'Brand'}</p>
-                      <h3 className="font-semibold text-lg mb-2 line-clamp-2 text-gray-900 group-hover:text-blue-600 transition">{product.name}</h3>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-blue-600">KES {product.price.toLocaleString()}</span>
-                        {product.compareAtPrice && (
-                          <span className="text-sm text-gray-400 line-through">KES {product.compareAtPrice.toLocaleString()}</span>
-                        )}
-                      </div>
-                    </CardBody>
-                  </Card>
-                </Link>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
             <div className="text-center mt-10">
@@ -231,7 +222,7 @@ export default function Home() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Us</h2>
+            <h2 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-4">Why Choose Us</h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
               Trusted by hundreds of customers across Kenya
             </p>
@@ -242,7 +233,7 @@ export default function Home() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiTruck className="text-blue-600" size={28} />
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Fast Delivery</h3>
+                <h3 className="font-product-name text-lg mb-2 text-gray-900">Fast Delivery</h3>
                 <p className="text-gray-700 text-sm">Nationwide shipping within 24-48 hours</p>
               </CardBody>
             </Card>
@@ -251,7 +242,7 @@ export default function Home() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiShield className="text-green-600" size={28} />
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Warranty</h3>
+                <h3 className="font-product-name text-lg mb-2 text-gray-900">Warranty</h3>
                 <p className="text-gray-700 text-sm">All products come with manufacturer warranty</p>
               </CardBody>
             </Card>
@@ -260,7 +251,7 @@ export default function Home() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiTool className="text-purple-600" size={28} />
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Expert Installation</h3>
+                <h3 className="font-product-name text-lg mb-2 text-gray-900">Expert Installation</h3>
                 <p className="text-gray-700 text-sm">Certified technicians with years of experience</p>
               </CardBody>
             </Card>
@@ -269,7 +260,7 @@ export default function Home() {
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiPhone className="text-orange-600" size={28} />
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-gray-900">24/7 Support</h3>
+                <h3 className="font-product-name text-lg mb-2 text-gray-900">24/7 Support</h3>
                 <p className="text-gray-700 text-sm">Always available to help via phone or WhatsApp</p>
               </CardBody>
             </Card>
@@ -281,7 +272,7 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
+            <h2 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-4">What Our Customers Say</h2>
             <p className="text-xl text-gray-700">Real reviews from satisfied customers</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -324,7 +315,7 @@ export default function Home() {
               <Button variant="secondary" className="w-full sm:w-auto">Shop Now</Button>
             </Link>
             <a href="https://wa.me/254727572310" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-              <Button variant="secondary" className="w-full sm:w-auto bg-green-500 border-green-500 text-white hover:bg-green-600">
+              <Button variant="secondary" className="w-full sm:w-auto !bg-green-500 !border-green-500 !text-white hover:!bg-green-600 focus:!ring-green-500">
                 WhatsApp Us
               </Button>
             </a>

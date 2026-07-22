@@ -5,7 +5,7 @@ import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import type { Cart, Address } from '../types';
-import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiCheck, FiPlus, FiX, FiLock } from 'react-icons/fi';
+import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -26,13 +26,13 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Kenya');
 
-  const { data: cart } = useQuery<Cart>({
+  const { data: cart, isLoading: cartLoading, error: cartError } = useQuery<Cart>({
     queryKey: ['cart'],
     queryFn: () => api.get('/cart').then(r => r.data),
     enabled: isAuthenticated,
   });
 
-  const { data: addresses, refetch: refetchAddresses } = useQuery<Address[]>({
+  const { data: addresses, refetch: refetchAddresses, isLoading: addressesLoading, error: addressesError } = useQuery<Address[]>({
     queryKey: ['addresses'],
     queryFn: () => api.get('/users/me/addresses').then(r => r.data),
     enabled: isAuthenticated,
@@ -71,15 +71,20 @@ export default function CheckoutPage() {
     if (isAuthenticated && guestCart.items.length > 0) {
       setSyncing(true);
       const syncCart = async () => {
-        for (const item of guestCart.items) {
-          await api.post('/cart/items', { productId: item.productId, quantity: item.quantity });
+        try {
+          for (const item of guestCart.items) {
+            await api.post('/cart/items', { productId: item.productId, quantity: item.quantity });
+          }
+          guestCart.clearCart();
+        } catch (err) {
+          console.error('Failed to sync cart:', err);
+        } finally {
+          setSyncing(false);
         }
-        guestCart.clearCart();
-        setSyncing(false);
       };
       syncCart();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, guestCart.items]);
 
   const placeOrder = useMutation({
     mutationFn: async () => {
@@ -110,21 +115,21 @@ export default function CheckoutPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="bg-gray-50 min-h-screen">
+      <div className="min-h-screen">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <Card>
             <CardBody className="text-center py-16">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FiLock className="text-blue-600" size={32} />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Sign in to Checkout</h1>
+              <h1 className="text-2xl font-section-title text-gray-900 mb-4">Sign in to Checkout</h1>
               <p className="text-gray-600 mb-6">You need an account to complete your order. Your cart will be saved.</p>
               <Link to="/login?redirect=checkout">
                 <Button size="lg">Sign In</Button>
               </Link>
               <p className="mt-4 text-sm text-gray-500">
                 Don't have an account?{' '}
-                <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                <Link to="/register?redirect=checkout" className="text-blue-600 hover:underline font-medium">
                   Register
                 </Link>
               </p>
@@ -137,13 +142,63 @@ export default function CheckoutPage() {
 
   if (syncing) return <div className="min-h-screen flex items-center justify-center text-gray-600">Syncing your cart...</div>;
 
+  if (cartLoading || addressesLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading checkout...</div>;
+  }
+
+  if (cartError || addressesError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardBody className="text-center py-8">
+            <p className="text-red-600 mb-4">
+              {cartError?.message || addressesError?.message || 'Failed to load checkout data'}
+            </p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Checkout</h1>
+          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Checkout</h1>
           <p className="text-gray-700">Complete your order</p>
+        </div>
+      </div>
+
+      {/* Progress Stepper */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">1</div>
+              <div>
+                <p className="font-medium text-gray-900">Shipping</p>
+                <p className="text-xs text-gray-500">Enter delivery address</p>
+              </div>
+            </div>
+            <div className="flex-1 h-px bg-gray-200 mx-4" />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">2</div>
+              <div>
+                <p className="font-medium text-gray-500">Payment</p>
+                <p className="text-xs text-gray-400">Select payment method</p>
+              </div>
+            </div>
+            <div className="flex-1 h-px bg-gray-200 mx-4" />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">3</div>
+              <div>
+                <p className="font-medium text-gray-500">Confirmation</p>
+                <p className="text-xs text-gray-400">Review and complete</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -158,7 +213,7 @@ export default function CheckoutPage() {
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <FiMapPin className="text-blue-600" size={20} />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">Shipping Address</h2>
+                  <h2 className="text-xl font-section-title text-gray-900">Shipping Address</h2>
                 </div>
 
                 {addresses?.length === 0 && !showAddAddress && (
@@ -261,7 +316,7 @@ export default function CheckoutPage() {
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                     <FiTag className="text-green-600" size={20} />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">Coupon Code</h2>
+                  <h2 className="text-xl font-section-title text-gray-900">Coupon Code</h2>
                 </div>
                 <Input
                   value={couponCode}
@@ -278,7 +333,7 @@ export default function CheckoutPage() {
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                     <FiFileText className="text-purple-600" size={20} />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">Order Notes</h2>
+                  <h2 className="text-xl font-section-title text-gray-900">Order Notes</h2>
                 </div>
                 <textarea
                   value={notes}
@@ -295,7 +350,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardBody>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                <h2 className="text-xl font-section-title text-gray-900 mb-6">Order Summary</h2>
 
                 {cartEmpty ? (
                   <div className="text-center py-8">
@@ -336,7 +391,7 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="border-t border-gray-200 pt-4 mb-6">
-                      <div className="flex justify-between text-lg font-bold text-gray-900">
+                      <div className="flex justify-between text-lg font-price text-gray-900">
                         <span>Total</span>
                         <span>KES {total.toLocaleString()}</span>
                       </div>

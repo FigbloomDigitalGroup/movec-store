@@ -78,7 +78,13 @@ export default function Login() {
           </button>
         </form>
         <p className="text-center mt-4 text-sm">
-          Don't have an account? <Link to="/register" className="text-blue-600">Register</Link>
+          Don't have an account?{' '}
+          <Link
+            to={redirect !== '/' ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'}
+            className="text-blue-600"
+          >
+            Register
+          </Link>
         </p>
         <p className="text-center mt-2 text-sm">
           <Link to="/forgot-password" className="text-blue-600">Forgot password?</Link>

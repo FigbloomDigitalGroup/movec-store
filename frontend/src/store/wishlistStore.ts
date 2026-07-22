@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import toast from 'react-hot-toast';
 
 interface GuestWishlistItem {
   productId: string;
@@ -39,14 +40,17 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
       }
       const newItems = [...state.items, item];
       saveWishlist(newItems);
+      toast.success(`Added ${item.name} to wishlist`);
       return { items: newItems };
     });
   },
 
   removeItem: (productId) => {
     set((state) => {
+      const item = state.items.find((i) => i.productId === productId);
       const newItems = state.items.filter((i) => i.productId !== productId);
       saveWishlist(newItems);
+      if (item) toast.success(`Removed ${item.name} from wishlist`);
       return { items: newItems };
     });
   },

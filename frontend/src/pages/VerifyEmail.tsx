@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api, { getErrorMessage } from '../lib/api';
+import { FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -32,7 +33,7 @@ export default function VerifyEmailPage() {
         {status === 'loading' && <p className="text-lg">Verifying your email...</p>}
         {status === 'success' && (
           <div>
-            <div className="text-6xl mb-4">✅</div>
+            <div className="text-6xl mb-4 text-green-600 flex justify-center"><FiCheckCircle size={64} /></div>
             <h1 className="text-2xl font-bold mb-2">Email Verified!</h1>
             <p className="text-gray-600 mb-6">{message}</p>
             <Link to="/login" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">Go to Login</Link>
@@ -40,7 +41,7 @@ export default function VerifyEmailPage() {
         )}
         {status === 'error' && (
           <div>
-            <div className="text-6xl mb-4">❌</div>
+            <div className="text-6xl mb-4 text-red-600 flex justify-center"><FiXCircle size={64} /></div>
             <h1 className="text-2xl font-bold mb-2">Verification Failed</h1>
             <p className="text-gray-600 mb-6">{message}</p>
             <Link to="/login" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">Go to Login</Link>
