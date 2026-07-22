@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import type { Product } from '../types';
 import { FiShoppingCart, FiHeart, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Card, { CardBody } from './ui/Card';
+import { useAuthStore } from '../store/authStore';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../lib/api';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 
@@ -13,8 +16,28 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = product.images || [];
+  const { isAuthenticated } = useAuthStore();
+  const queryClient = useQueryClient();
   const cartStore = useCartStore();
   const wishlistStore = useWishlistStore();
+
+  const addToCartApi = useMutation({
+    mutationFn: async () => {
+      await api.post('/cart/items', { productId: product.id, quantity: 1 });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+
+  const addToWishlistApi = useMutation({
+    mutationFn: async () => {
+      await api.post('/wishlist', { productId: product.id });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+    },
+  });
 
   const goNext = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -35,26 +58,34 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    cartStore.addItem({
-      productId: product.id,
-      name: product.name,
-      slug: product.slug,
-      price: product.price,
-      image: images[currentIndex]?.url || null,
-      quantity: 1,
-    });
+    if (isAuthenticated) {
+      addToCartApi.mutate();
+    } else {
+      cartStore.addItem({
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        image: images[currentIndex]?.url || null,
+        quantity: 1,
+      });
+    }
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    wishlistStore.toggleItem({
-      productId: product.id,
-      name: product.name,
-      slug: product.slug,
-      price: product.price,
-      image: images[currentIndex]?.url || null,
-    });
+    if (isAuthenticated) {
+      addToWishlistApi.mutate();
+    } else {
+      wishlistStore.toggleItem({
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: product.price,
+        image: images[currentIndex]?.url || null,
+      });
+    }
   };
 
   return (

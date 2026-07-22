@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripeCheckoutForm from '../components/StripeCheckoutForm';
 import api from '../lib/api';
 import { FiCreditCard, FiPhone, FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
@@ -12,6 +17,7 @@ export default function PaymentPage() {
     const [processing, setProcessing] = useState(false);
     const [completed, setCompleted] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
 
     const { data: order } = useQuery({
         queryKey: ['order', orderNumber],
@@ -34,6 +40,53 @@ export default function PaymentPage() {
             alert(err.response?.data?.error?.message || 'M-Pesa payment failed. Please try again.');
         },
     });
+
+    const initiateStripe = useMutation({
+        mutationFn: () => api.post('/payments/stripe/create-intent', { orderNumber }).then(r => r.data),
+        onSuccess: (data) => {
+            setClientSecret(data.clientSecret);
+        },
+        onError: (err: any) => {
+            alert(err.response?.data?.message || 'Failed to initialize Stripe');
+        }
+    });
+
+    const initiatePaypal = useMutation({
+        mutationFn: () => api.post('/payments/paypal/create-order', { orderNumber }).then(r => r.data),
+        onSuccess: (data) => {
+            if (data.approvalUrl) {
+                window.location.href = data.approvalUrl;
+            }
+        },
+        onError: (err: any) => {
+            alert(err.response?.data?.message || 'Failed to initialize PayPal');
+            setProcessing(false);
+        }
+    });
+
+    const capturePaypal = useMutation({
+        mutationFn: (token: string) => api.post('/payments/paypal/capture', { orderNumber, token }).then(r => r.data),
+        onSuccess: () => {
+            setProcessing(false);
+            setCompleted(true);
+        },
+        onError: (err: any) => {
+            alert(err.response?.data?.message || 'Failed to capture PayPal payment');
+            setProcessing(false);
+        }
+    });
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('paypal') === 'return') {
+            const token = params.get('token');
+            if (token) {
+                setMethod('PAYPAL');
+                setProcessing(true);
+                capturePaypal.mutate(token);
+            }
+        }
+    }, [orderNumber]);
 
     const bankDetails = {
         bankName: 'NCBA Bank',
@@ -245,13 +298,21 @@ export default function PaymentPage() {
 
                             {method === 'STRIPE' && (
                                 <div>
-                                    <p className="text-gray-600 mb-4">You'll be redirected to Stripe's secure payment page.</p>
-                                    <button
-                                        onClick={() => alert('Stripe integration requires API keys in .env')}
-                                        className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold"
-                                    >
-                                        Pay with Card
-                                    </button>
+                                    {!clientSecret ? (
+                                        <button
+                                            onClick={() => initiateStripe.mutate()}
+                                            disabled={initiateStripe.isPending}
+                                            className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold disabled:opacity-50"
+                                        >
+                                            {initiateStripe.isPending ? 'Loading secure payment...' : 'Proceed to Card Payment'}
+                                        </button>
+                                    ) : (
+                                        <div className="bg-white p-4 rounded-xl border border-gray-100">
+                                            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                                                <StripeCheckoutForm onSuccess={() => setCompleted(true)} amount={order?.total || 0} />
+                                            </Elements>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -259,10 +320,11 @@ export default function PaymentPage() {
                                 <div>
                                     <p className="text-gray-600 mb-4">You'll be redirected to PayPal to complete payment.</p>
                                     <button
-                                        onClick={() => alert('PayPal integration requires API keys in .env')}
-                                        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                                        onClick={() => { setProcessing(true); initiatePaypal.mutate(); }}
+                                        disabled={initiatePaypal.isPending || processing}
+                                        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50"
                                     >
-                                        Pay with PayPal
+                                        {(initiatePaypal.isPending || (processing && method === 'PAYPAL')) ? 'Processing PayPal...' : 'Pay with PayPal'}
                                     </button>
                                 </div>
                             )}

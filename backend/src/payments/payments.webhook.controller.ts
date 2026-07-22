@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Headers, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { InventoryService } from '../inventory/inventory.service';
 import Stripe from 'stripe';
 
 @Controller('payments')
@@ -11,10 +12,11 @@ export class PaymentsWebhookController {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private inventoryService: InventoryService,
   ) {
     const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (stripeKey) {
-      this.stripe = new Stripe(stripeKey, { apiVersion: '2025-06-30.acacia' as any });
+      this.stripe = new Stripe(stripeKey);
     }
   }
 
@@ -59,6 +61,8 @@ export class PaymentsWebhookController {
               },
             },
           });
+
+          await this.inventoryService.fulfillOrder(transaction.payment.orderId);
         }
       }
     }
@@ -91,15 +95,13 @@ export class PaymentsWebhookController {
             },
           },
         });
+
+        await this.inventoryService.fulfillOrder(payment.orderId);
       }
     }
 
     return { received: true };
   }
 
-  @Post('paypal/capture/:orderId')
-  async capturePaypal(@Body() body: any) {
-    this.logger.log('PayPal capture:', body);
-    return { message: 'PayPal capture endpoint' };
-  }
+
 }

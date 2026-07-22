@@ -1,4 +1,5 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -27,17 +28,41 @@ export class ReportsController {
   }
 
   @Get('customers')
-  getCustomers() {
-    return this.reportsService.getCustomersReport();
+  getCustomers(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.reportsService.getCustomersReport(from, to);
   }
 
   @Get('products')
-  getProducts() {
-    return this.reportsService.getProductsReport();
+  getProducts(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.reportsService.getProductsReport(from, to);
   }
 
   @Get('installations')
-  getInstallations() {
-    return this.reportsService.getInstallationsReport();
+  getInstallations(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.reportsService.getInstallationsReport(from, to);
+  }
+
+  @Get('export')
+  async exportReport(
+    @Query('type') type: string,
+    @Query('format') format: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Res() res: Response
+  ) {
+    const { title, rows } = await this.reportsService.getExportData(type, from, to);
+
+    if (format === 'csv') {
+      const csv = this.reportsService.buildCsv(rows);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=${type}-report.csv`);
+      return res.send(csv);
+    } else if (format === 'pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${type}-report.pdf`);
+      this.reportsService.buildPdf(title, rows, res);
+    } else {
+      res.status(400).send('Invalid format');
+    }
   }
 }

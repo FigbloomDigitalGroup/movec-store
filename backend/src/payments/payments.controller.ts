@@ -33,6 +33,11 @@ export class PaymentsController {
     return this.paymentsService.initiatePaypal(dto.orderNumber);
   }
 
+  @Post('paypal/capture')
+  capturePaypal(@Req() req: Request, @Body() dto: { orderNumber: string, token: string }) {
+    return this.paymentsService.capturePaypal(dto.orderNumber, dto.token);
+  }
+
   @Post('bank-transfer/initiate')
   initiateBankTransfer(@Req() req: Request, @Body() dto: ConfirmBankTransferDto) {
     return this.paymentsService.initiateBankTransfer(dto.orderNumber);

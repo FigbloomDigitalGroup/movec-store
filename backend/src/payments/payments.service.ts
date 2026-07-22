@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { InventoryService } from '../inventory/inventory.service';
 import axios from 'axios';
 import Stripe from 'stripe';
 
@@ -12,10 +13,11 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private inventoryService: InventoryService,
   ) {
     const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (stripeKey) {
-      this.stripe = new Stripe(stripeKey, { apiVersion: '2025-06-30.acacia' as any });
+      this.stripe = new Stripe(stripeKey);
     }
   }
 
@@ -162,6 +164,7 @@ export class PaymentsService {
       throw new BadRequestException('PayPal is not configured');
     }
 
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
     const baseUrl = mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
 
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
@@ -185,6 +188,11 @@ export class PaymentsService {
             },
           },
         ],
+        application_context: {
+          return_url: `${frontendUrl}/payment/${orderNumber}?paypal=return`,
+          cancel_url: `${frontendUrl}/payment/${orderNumber}`,
+          user_action: 'PAY_NOW'
+        }
       },
       { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } },
     );
@@ -212,6 +220,80 @@ export class PaymentsService {
       paypalOrderId: paypalOrder.id,
       approvalUrl: paypalOrder.links.find((l: any) => l.rel === 'approve')?.href,
     };
+  }
+
+  async capturePaypal(orderNumber: string, token: string) {
+    const order = await this.findOrder(orderNumber);
+
+    const payment = order.payments.find(
+      (p) => p.method === 'PAYPAL' && p.transactionReference === token && p.status === 'PENDING'
+    );
+
+    if (!payment) {
+      throw new BadRequestException('No pending PayPal payment found for this order');
+    }
+
+    const clientId = this.configService.get<string>('PAYPAL_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('PAYPAL_CLIENT_SECRET');
+    const mode = this.configService.get<string>('PAYPAL_MODE', 'sandbox');
+
+    const baseUrl = mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+    try {
+      const { data: authData } = await axios.post(
+        `${baseUrl}/v1/oauth2/token`,
+        'grant_type=client_credentials',
+        { headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' } },
+      );
+
+      const { data: captureData } = await axios.post(
+        `${baseUrl}/v2/checkout/orders/${token}/capture`,
+        {},
+        { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } }
+      );
+
+      if (captureData.status === 'COMPLETED') {
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'COMPLETED',
+            paidAt: new Date(),
+          },
+        });
+
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: {
+            status: 'CONFIRMED',
+            statusHistory: {
+              create: { status: 'CONFIRMED', changedBy: 'system' },
+            },
+          },
+        });
+
+        await this.inventoryService.fulfillOrder(order.id);
+
+        // Update the transaction record
+        const transaction = await this.prisma.transaction.findFirst({
+          where: { paymentId: payment.id, provider: 'PAYPAL' }
+        });
+        
+        if (transaction) {
+          await this.prisma.transaction.update({
+            where: { id: transaction.id },
+            data: { status: 'COMPLETED', responsePayload: captureData as any }
+          });
+        }
+
+        return { success: true, message: 'PayPal payment captured successfully' };
+      } else {
+        throw new BadRequestException(`Payment capture failed: ${captureData.status}`);
+      }
+    } catch (error) {
+      this.logger.error('PayPal capture error:', error.response?.data || error.message);
+      throw new BadRequestException('Failed to capture PayPal payment');
+    }
   }
 
   async initiateBankTransfer(orderNumber: string) {
@@ -276,6 +358,8 @@ export class PaymentsService {
         },
       },
     });
+
+    await this.inventoryService.fulfillOrder(order.id);
 
     return { message: 'Payment confirmed. Order is now confirmed.' };
   }

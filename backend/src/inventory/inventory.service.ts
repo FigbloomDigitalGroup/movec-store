@@ -101,4 +101,56 @@ export class InventoryService {
       include: { product: true, warehouse: true },
     });
   }
+
+  async fulfillOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) return;
+
+    for (const item of order.items) {
+      const inventories = await this.prisma.inventory.findMany({
+        where: { productId: item.productId },
+        orderBy: { quantity: 'desc' },
+      });
+
+      if (!inventories.length) continue;
+
+      let remainingQuantity = item.quantity;
+
+      for (let i = 0; i < inventories.length; i++) {
+        if (remainingQuantity <= 0) break;
+
+        const inv = inventories[i];
+        const isLast = i === inventories.length - 1;
+
+        let deduct = 0;
+        if (isLast) {
+          deduct = remainingQuantity;
+        } else if (inv.quantity > 0) {
+          deduct = Math.min(inv.quantity, remainingQuantity);
+        }
+
+        if (deduct > 0) {
+          await this.prisma.inventory.update({
+            where: { id: inv.id },
+            data: { quantity: { decrement: deduct } },
+          });
+
+          await this.prisma.inventoryHistory.create({
+            data: {
+              inventoryId: inv.id,
+              change: -deduct,
+              reason: 'SALE',
+              reference: order.orderNumber,
+            },
+          });
+
+          remainingQuantity -= deduct;
+        }
+      }
+    }
+  }
 }
