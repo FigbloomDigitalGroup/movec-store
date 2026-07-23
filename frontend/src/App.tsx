@@ -7,6 +7,7 @@ import AdminLayout from './components/AdminLayout';
 import Threads from './components/Threads';
 import ScrollToTop from './components/ScrollToTop';
 import PageLoader from './components/PageLoader';
+import AuthBootstrap from './components/AuthBootstrap';
 
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
@@ -50,6 +51,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <AuthBootstrap />
         <ScrollToTop />
         <Threads color={[0.05, 0.1, 0.3]} amplitude={0.2} distance={0.1} enableMouseInteraction />
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
