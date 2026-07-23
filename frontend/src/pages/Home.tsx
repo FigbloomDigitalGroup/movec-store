@@ -8,10 +8,10 @@ import Card, { CardBody } from '../components/ui/Card';
 import ProductCard from '../components/ProductCard';
 import TextType from '../components/TextType';
 import ScrollFloat from '../components/ScrollFloat';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import AnimatedContent from '../components/AnimatedContent';
+import { motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import AnimatedContent from '../components/AnimatedContent';
 
 export default function Home() {
   const { data: featured } = useQuery({
@@ -22,10 +22,6 @@ export default function Home() {
     },
   });
 
-  const { scrollY } = useScroll();
-  const yHeroText = useTransform(scrollY, [0, 500], [0, 100]);
-  const yHeroIcons = useTransform(scrollY, [0, 500], [0, -150]);
-
   const [emblaRef] = useEmblaCarousel(
     { loop: true, dragFree: true, duration: 30, align: 'start', skipSnaps: false },
     [Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })]
@@ -34,10 +30,10 @@ export default function Home() {
   return (
     <div className="bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-16 md:py-24 overflow-hidden">
+      <section className="relative z-10 bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div style={{ y: yHeroText }}>
+            <div>
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
                 <FiWifi className="text-cyan-300" />
                 <span className="text-cyan-100 text-sm font-medium">Official Starlink Reseller in Kenya</span>
@@ -108,9 +104,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div className="hidden lg:flex items-center justify-center" style={{ y: yHeroIcons }}>
+            <div className="hidden lg:flex items-center justify-center">
               <div className="relative">
                 <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center">
                   <FiShield className="text-white/80" size={120} />
@@ -122,13 +118,13 @@ export default function Home() {
                   <FiCamera className="text-white" size={32} />
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Stats Bar */}
-      <section className="bg-white border-b border-gray-200 py-8">
+      <section className="relative z-0 bg-white border-b border-gray-200 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
             <p className="text-3xl font-bold text-gray-900">500+</p>
