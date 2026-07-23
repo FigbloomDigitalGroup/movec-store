@@ -73,7 +73,7 @@ async function main() {
       passwordHash: passwordHashAdmin,
       firstName: 'Super',
       lastName: 'Admin',
-      phone: '+254700000001',
+      phone: '+254727572310',
       isEmailVerified: true,
       isActive: true,
       userRoles: { create: { roleId: adminRole.id } },
