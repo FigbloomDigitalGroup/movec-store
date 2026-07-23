@@ -9,10 +9,9 @@ primary_region = 'jnb'
 [build]
 [deploy]
   release_command = 'npx prisma migrate deploy'
-  seed_command = 'ts-node prisma/seed.ts'
 
 [http_service]
-  internal_port = 3000
+  internal_port = 4000
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
