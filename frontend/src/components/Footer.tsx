@@ -10,9 +10,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div>
-            <div className="flex items-center mb-4">
-              <img src={logo} alt="Movec Store" className="h-10 w-auto object-contain" />
-            </div>
+            <Link to="/" className="mb-4 inline-flex items-center gap-1.5 focus:outline-none">
+              <span className="inline-flex h-9 w-[6.25rem] overflow-hidden">
+                <img
+                  src={logo}
+                  alt="Movec"
+                  className="h-full w-full object-cover object-center"
+                />
+              </span>
+              <span className="font-hero-bold text-lg text-gray-900 leading-none">Store</span>
+            </Link>
             <p className="text-gray-700 mb-4">
               Your trusted partner for Starlink internet, AI-powered CCTV security, networking equipment, and smart devices in Kenya.
             </p>

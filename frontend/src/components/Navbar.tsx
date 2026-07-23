@@ -51,9 +51,15 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Movec" className="h-10 w-auto object-contain" />
-              <span className="font-hero-bold text-xl text-gray-900 tracking-tight">Store</span>
+            <Link to="/" className="flex items-center gap-1.5 shrink-0 focus:outline-none">
+              <span className="inline-flex h-9 w-[6.25rem] overflow-hidden">
+                <img
+                  src={logo}
+                  alt="Movec"
+                  className="h-full w-full object-cover object-center"
+                />
+              </span>
+              <span className="font-hero-bold text-xl text-gray-900 tracking-tight leading-none">Store</span>
             </Link>
 
             {/* Desktop Navigation */}

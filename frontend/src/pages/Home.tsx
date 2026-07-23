@@ -127,20 +127,20 @@ export default function Home() {
       <section className="relative z-0 bg-white border-b border-gray-200 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
-            <p className="text-3xl font-bold text-gray-900">500+</p>
-            <p className="text-sm text-gray-700">Starlink Installations</p>
+            <p className="text-xl md:text-2xl font-semibold text-gray-900">500+</p>
+            <p className="text-sm text-gray-600 mt-1">Starlink Installations</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-900">47</p>
-            <p className="text-sm text-gray-700">Counties Covered</p>
+            <p className="text-xl md:text-2xl font-semibold text-gray-900">47</p>
+            <p className="text-sm text-gray-600 mt-1">Counties Covered</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-900">24/7</p>
-            <p className="text-sm text-gray-700">Customer Support</p>
+            <p className="text-xl md:text-2xl font-semibold text-gray-900">24/7</p>
+            <p className="text-sm text-gray-600 mt-1">Customer Support</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-900">From KES 4,500 </p>
-            <p className="text-sm text-gray-700">Monthly Subscription</p>
+            <p className="text-lg md:text-xl font-semibold text-gray-900">From KES 4,500</p>
+            <p className="text-sm text-gray-600 mt-1">Monthly Subscription</p>
           </div>
         </div>
       </section>
