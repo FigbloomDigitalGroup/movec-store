@@ -72,7 +72,7 @@ export default function ContactPage() {
                   <div>
                     <h4 className="font-medium text-gray-900">Phone & WhatsApp</h4>
                     <p className="text-gray-600">+254 727 572 310</p>
-                    <a href="https://wa.me/254727572310" target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm font-medium hover:underline mt-1 inline-block">
+                    <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm font-medium hover:underline mt-1 inline-block">
                       Chat on WhatsApp
                     </a>
                   </div>
@@ -84,7 +84,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Email</h4>
-                    <p className="text-gray-600">info@movec.co.ke</p>
+                    <p className="text-gray-600">sales@movec.com</p>
                   </div>
                 </div>
 
@@ -179,7 +179,7 @@ export default function ContactPage() {
                           value={formData.phone}
                           onChange={handleChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                          placeholder="+254 727572310"
+                          placeholder="+254 796285718"
                         />
                       </div>
                       <div>

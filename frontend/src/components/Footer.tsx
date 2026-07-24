@@ -94,14 +94,14 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <FiPhone className="text-gray-400 flex-shrink-0" size={18} />
-                <a href="tel:+254727572310" className="text-gray-700 hover:text-blue-600 transition">
-                  +254 727572310
+                <a href="tel:+254796285718" className="text-gray-700 hover:text-blue-600 transition">
+                  +254 796285718
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <FiMail className="text-gray-400 flex-shrink-0" size={18} />
-                <a href="mailto:info@movec.co.ke" className="text-gray-700 hover:text-blue-600 transition">
-                  info@movec.co.ke
+                <a href="mailto:sales@movec.com" className="text-gray-700 hover:text-blue-600 transition">
+                  sales@movec.com
                 </a>
               </li>
               <li className="flex items-center gap-3">

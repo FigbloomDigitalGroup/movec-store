@@ -193,11 +193,11 @@ export default function TermsOfService() {
                 </div>
                 <div className="flex items-center gap-3">
                   <FiPhone className="text-gray-400 flex-shrink-0" size={18} />
-                  <span className="text-gray-700">+254 727572310</span>
+                  <span className="text-gray-700">+254 796285718</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <FiMail className="text-gray-400 flex-shrink-0" size={18} />
-                  <span className="text-gray-700">info@movec.co.ke</span>
+                  <span className="text-gray-700">sales@movec.com</span>
                 </div>
               </div>
             </section>

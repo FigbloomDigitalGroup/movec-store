@@ -502,7 +502,7 @@ export default function Home() {
             <Link to="/products">
               <Button variant="secondary" className="w-full sm:w-auto">Shop Now</Button>
             </Link>
-            <a href="https://wa.me/254727572310" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+            <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
               <Button variant="secondary" className="w-full sm:w-auto !bg-green-500 !border-green-500 !text-white hover:!bg-green-600 focus:!ring-green-500">
                 WhatsApp Us
               </Button>

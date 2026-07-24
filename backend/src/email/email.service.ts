@@ -267,7 +267,7 @@ export class EmailService {
         <h2 style="color: #1e40af;">Thanks for reaching out!</h2>
         <p>Hi ${toName},</p>
         <p>We've successfully received your message and our team will get back to you as soon as possible.</p>
-        <p>For urgent inquiries, you can also reach us via WhatsApp at +254 727572310.</p>
+        <p>For urgent inquiries, you can also reach us via WhatsApp at +254 796285718.</p>
         <hr style="border: 1px solid #e5e7eb; margin: 24px 0;" />
         <p style="color: #6b7280; font-size: 12px;">Movec Store, Nairobi, Kenya</p>
       </div>
