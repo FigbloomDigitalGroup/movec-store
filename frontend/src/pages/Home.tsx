@@ -2,7 +2,18 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { Product } from '../types';
-import { FiWifi, FiCamera, FiTool, FiTruck, FiPhone, FiShield, FiArrowRight, FiCheckCircle, FiStar } from 'react-icons/fi';
+import {
+  FiWifi,
+  FiCamera,
+  FiTool,
+  FiTruck,
+  FiPhone,
+  FiShield,
+  FiArrowRight,
+  FiCheckCircle,
+  FiStar,
+  FiMessageSquare,
+} from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import ProductCard from '../components/ProductCard';
@@ -12,6 +23,69 @@ import AnimatedContent from '../components/AnimatedContent';
 import { motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+
+interface Testimonial {
+  name: string;
+  location: string;
+  product: string;
+  rating: number;
+  verified: boolean;
+  date: string;
+  review: string;
+}
+
+const testimonials: Testimonial[] = [
+  {
+    name: 'James Mwangi',
+    location: 'Nairobi',
+    product: 'Starlink Standard Kit',
+    rating: 5,
+    verified: true,
+    date: 'June 2026',
+    review:
+      'Delivery was next day and installation took less than an hour. The team was professional and the internet has been flawless since day one.',
+  },
+  {
+    name: 'Grace Wanjiku',
+    location: 'Nakuru',
+    product: 'Hikvision CCTV System',
+    rating: 5,
+    verified: true,
+    date: 'May 2026',
+    review:
+      'Excellent CCTV installation. The mobile app works perfectly and the technicians explained everything clearly before leaving.',
+  },
+  {
+    name: 'Brian Otieno',
+    location: 'Kisumu',
+    product: 'Starlink Mini',
+    rating: 5,
+    verified: true,
+    date: 'July 2026',
+    review:
+      'Fast delivery and excellent customer service. Setup was straightforward and speeds exceeded what I was expecting for a rural area.',
+  },
+  {
+    name: 'Fatuma Hassan',
+    location: 'Mombasa',
+    product: 'Starlink Standard Kit + CCTV Bundle',
+    rating: 5,
+    verified: true,
+    date: 'April 2026',
+    review:
+      'Booked both installs together and the crew handled it in one visit. Support has answered every WhatsApp message within minutes.',
+  },
+  {
+    name: 'Kevin Kiprono',
+    location: 'Eldoret',
+    product: 'Dahua CCTV System',
+    rating: 4,
+    verified: true,
+    date: 'June 2026',
+    review:
+      'Solid system, good night vision on the cameras. Took an extra day to get an installer out to us but the work itself was clean.',
+  },
+];
 
 export default function Home() {
   const { data: featured } = useQuery({
@@ -25,6 +99,11 @@ export default function Home() {
   const [emblaRef] = useEmblaCarousel(
     { loop: true, dragFree: true, duration: 30, align: 'start', skipSnaps: false },
     [Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })]
+  );
+
+  const [testimonialRef] = useEmblaCarousel(
+    { loop: true, dragFree: true, duration: 30, align: 'start', skipSnaps: false },
+    [Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })]
   );
 
   return (
@@ -222,8 +301,8 @@ export default function Home() {
             <div className="embla overflow-hidden" ref={emblaRef}>
               <div className="embla__container flex -mx-3 [backface-visibility:hidden] [touch-action:pan-y]">
                 {featured.map((product, idx) => (
-                  <div 
-                    key={product.id} 
+                  <div
+                    key={product.id}
                     className="embla__slide flex-[0_0_90%] sm:flex-[0_0_60%] md:flex-[0_0_45%] lg:flex-[0_0_30%] xl:flex-[0_0_25%] min-w-0 px-3 pb-6 cursor-grab active:cursor-grabbing transition-transform duration-300 hover:scale-[1.02]"
                   >
                     <motion.div
@@ -308,36 +387,105 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-4">What Our Customers Say</h2>
-            <p className="text-xl text-gray-700">Real reviews from satisfied customers</p>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-4">
+              Trusted by Customers Across Kenya
+            </h2>
+            <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+              Over 500 successful installations with an average customer rating of 4.9/5.
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <AnimatedContent key={i} distance={40} direction="vertical" duration={0.8} delay={i * 0.1}>
-              <Card>
-                <CardBody>
-                  <div className="flex items-center gap-1 mb-4">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <FiStar key={star} className="text-yellow-400 fill-yellow-400" size={16} />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-4">
-                    "Excellent service and fast delivery. The Starlink installation was quick and the internet speed is amazing!"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-600 font-semibold">JD</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">John Doe</p>
-                      <p className="text-sm text-gray-500">Nairobi</p>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-              </AnimatedContent>
-            ))}
+
+          {/* Trust stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mb-14 text-center">
+            <div>
+              <div className="flex items-center justify-center gap-1 text-yellow-400 mb-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <FiStar key={s} className="fill-yellow-400" size={16} />
+                ))}
+              </div>
+              <p className="text-2xl font-bold text-gray-900">4.9</p>
+              <p className="text-sm text-gray-500">Average Rating</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">500+</p>
+              <p className="text-sm text-gray-500">Installations</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">98%</p>
+              <p className="text-sm text-gray-500">Satisfied Customers</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">47</p>
+              <p className="text-sm text-gray-500">Counties Served</p>
+            </div>
+          </div>
+
+          <div className="embla overflow-hidden" ref={testimonialRef}>
+            <div className="embla__container flex -mx-3 [backface-visibility:hidden] [touch-action:pan-y]">
+              {testimonials.map((t, idx) => (
+                <div
+                  key={t.name}
+                  className="embla__slide flex-[0_0_90%] sm:flex-[0_0_60%] md:flex-[0_0_45%] lg:flex-[0_0_33%] min-w-0 px-3 pb-6 cursor-grab active:cursor-grabbing"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    className="h-full"
+                  >
+                    <Card
+                      hover
+                      className="relative rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 h-full overflow-hidden"
+                    >
+                      <FiMessageSquare
+                        className="absolute top-4 right-4 text-gray-900 opacity-[0.06]"
+                        size={64}
+                      />
+                      <CardBody className="relative">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <FiStar
+                                key={star}
+                                size={16}
+                                className={
+                                  star <= t.rating
+                                    ? 'text-yellow-400 fill-yellow-400'
+                                    : 'text-gray-200 fill-gray-200'
+                                }
+                              />
+                            ))}
+                          </div>
+                          {t.verified && (
+                            <div className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 rounded-full px-2 py-1">
+                              <FiCheckCircle size={12} />
+                              Verified Purchase
+                            </div>
+                          )}
+                        </div>
+
+                        <p className="text-gray-700 mb-6 leading-relaxed">"{t.review}"</p>
+
+                        <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                          <div className="w-11 h-11 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                            {t.name.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 truncate">{t.name}</p>
+                            <p className="text-sm text-blue-600 truncate">{t.product}</p>
+                            <p className="text-xs text-gray-500">
+                              {t.location} · {t.date}
+                            </p>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </motion.div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

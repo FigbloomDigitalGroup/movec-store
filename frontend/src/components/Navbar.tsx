@@ -51,22 +51,22 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Movec" className="h-10 w-auto object-contain" />
+            <Link to="/" className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+              <img src={logo} alt="Movec" className="h-10 w-auto object-contain flex-shrink-0" />
               <span className="font-hero-bold text-xl text-gray-900 tracking-tight">Store</span>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/modules" className="text-gray-700 hover:text-blue-600 font-navigation transition">Solutions</Link>
-              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-navigation transition">Products</Link>
-              <Link to="/categories" className="text-gray-700 hover:text-blue-600 font-navigation transition">Categories</Link>
-              <Link to="/installation" className="text-gray-700 hover:text-blue-600 font-navigation transition">Installation</Link>
-              <Link to="/support/faqs" className="text-gray-700 hover:text-blue-600 font-navigation transition">FAQs</Link>
+            <div className="hidden lg:flex items-center gap-6 xl:gap-8 flex-shrink-0">
+              <Link to="/modules" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Solutions</Link>
+              <Link to="/products" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Products</Link>
+              <Link to="/categories" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Categories</Link>
+              <Link to="/installation" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Installation</Link>
+              <Link to="/support/faqs" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">FAQs</Link>
             </div>
 
             {/* Right Actions */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
               <button 
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition"
@@ -119,7 +119,7 @@ export default function Navbar() {
 
             {/* Mobile menu button */}
             <button 
-              className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg flex-shrink-0"
               onClick={() => setOpen(!open)}
             >
               {open ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -155,7 +155,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {open && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="lg:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-4 space-y-3">
               <Link to="/modules" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
                 Solutions
