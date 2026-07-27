@@ -23,10 +23,10 @@ export default function Footer() {
               <a href="https://www.tiktok.com/@movec.connect" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition">
                 <FaTiktok size={20} />
               </a>
-              <a href="https://www.instagram.com/movecconnect/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition">
+              <a href="https://www.instagram.com/figbloomdigital/?hl=en" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition">
                 <FiInstagram size={20} />
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition">
+              <a href="https://www.linkedin.com/company/135305554/admin/dashboard/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition">
                 <FiLinkedin size={20} />
               </a>
             </div>
