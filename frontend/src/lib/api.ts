@@ -64,8 +64,9 @@ export const getModule = (slug: string) =>
   api.get(`/modules/${slug}`).then((r) => r.data);
 
 export const getModuleProducts = (slug: string, params?: Record<string, string>) =>
-  api
-    .get(`/modules/${slug}/products`, { params })
-    .then((r) => r.data);
+  api.get(`/modules/${slug}/products`, { params }).then(r => r.data);
+
+export const resendVerification = (email: string) =>
+  api.post('/auth/resend-verification', { email }).then(r => r.data);
 
 export default api;

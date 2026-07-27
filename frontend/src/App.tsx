@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
-import Threads from './components/Threads';
+
 import ScrollToTop from './components/ScrollToTop';
 import PageLoader from './components/PageLoader';
 import AuthBootstrap from './components/AuthBootstrap';
@@ -53,7 +53,7 @@ export default function App() {
       <BrowserRouter>
         <AuthBootstrap />
         <ScrollToTop />
-        <Threads color={[0.05, 0.1, 0.3]} amplitude={0.2} distance={0.1} enableMouseInteraction />
+
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -67,10 +67,13 @@ export default function App() {
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/modules" element={<ModulesPage />} />
-              <Route path="/modules/:moduleSlug" element={<ModuleLanding />} />
-              <Route path="/modules/:moduleSlug/products" element={<ModuleLanding />} />
-              <Route path="/cctv" element={<Navigate to="/modules/cctv" replace />} />
+              <Route path="/solutions" element={<ModulesPage />} />
+              <Route path="/solutions/:moduleSlug" element={<ModuleLanding />} />
+              <Route path="/solutions/:moduleSlug/products" element={<ModuleLanding />} />
+              {/* Legacy redirects */}
+              <Route path="/modules" element={<Navigate to="/solutions" replace />} />
+              <Route path="/modules/:moduleSlug" element={<Navigate to="/solutions/:moduleSlug" replace />} />
+              <Route path="/cctv" element={<Navigate to="/solutions/cctv" replace />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />

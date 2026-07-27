@@ -32,11 +32,15 @@ interface Product {
 
 const MODULE_THEMES: Record<string, { gradient: string; banner: string; icon: ReactElement; pill: string; pillText: string }> = {
   starlink: {
-    gradient: 'from-blue-900 via-indigo-900 to-purple-900',
-    banner: 'from-blue-500/20 via-indigo-500/10 to-transparent',
+    gradient: 'from-[#FC6501] via-[#FC6501] to-[#10B982]',
+
+    banner: 'from-[#FC6501]/20 via-[#10B982]/10 to-transparent',
+
     icon: <FiGlobe />,
-    pill: 'bg-blue-500/20 border-blue-500/30',
-    pillText: 'text-blue-300',
+
+    pill: 'bg-[#FC6501]/20 border-[#FC6501]/30',
+
+    pillText: 'text-[#FC6501]',
   },
   cctv: {
     gradient: 'from-emerald-900 via-teal-900 to-cyan-900',
@@ -62,7 +66,7 @@ function ProductCard({ product }: { product: Product }) {
   const image = product.images?.[0];
 
   return (
-    <div 
+    <div
       className="group bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:-translate-y-2 hover:shadow-xl"
       style={{ transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
     >
@@ -179,7 +183,7 @@ export default function ModuleLanding() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(255,255,255,0.04),_transparent_60%)]" />
 
         <div className="relative max-w-7xl mx-auto px-4 py-16">
-          <Link to="/modules" className="inline-flex items-center gap-1.5 text-white/50 hover:text-white/80 text-sm mb-6 transition-colors">
+          <Link to="/solutions" className="inline-flex items-center gap-1.5 text-white/50 hover:text-white/80 text-sm mb-6 transition-colors">
             <FiArrowLeft size={16} />
             All Solutions
           </Link>
@@ -193,17 +197,17 @@ export default function ModuleLanding() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                  <FiGlobe className="text-indigo-300" />
-                  <span className="text-indigo-100 text-sm font-medium">Satellite Internet</span>
+                  <FiGlobe className="text-orange-300" />
+                  <span className="text-orange-100 text-sm font-medium">Satellite Internet</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
                   Connect Anywhere with Starlink
                 </h1>
-                <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                <p className="text-xl text-orange-100 mb-8 leading-relaxed">
                   High-Speed Internet, Wherever You Are. Experience next-generation satellite internet designed for homes, businesses, farms, schools, and remote locations. Stay connected with fast, reliable internet even where traditional fiber or mobile networks aren't available.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
+                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-orange-600 px-8 py-4 rounded-xl font-semibold hover:bg-orange-50 transition">
                     Shop Starlink Kits
                     <FiArrowRight />
                   </button>
@@ -217,10 +221,10 @@ export default function ModuleLanding() {
                   <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center">
                     <FiGlobe className="text-white/80" size={120} />
                   </div>
-                  <div className="absolute -top-4 -right-4 bg-indigo-400 rounded-2xl p-4 shadow-xl">
+                  <div className="absolute -top-4 -right-4 bg-orange-400 rounded-2xl p-4 shadow-xl">
                     <FiZap className="text-white" size={32} />
                   </div>
-                  <div className="absolute -bottom-4 -left-4 bg-blue-400 rounded-2xl p-4 shadow-xl">
+                  <div className="absolute -bottom-4 -left-4 bg-green-400 rounded-2xl p-4 shadow-xl">
                     <FiWifi className="text-white" size={32} />
                   </div>
                 </div>
@@ -298,9 +302,8 @@ export default function ModuleLanding() {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${
-                  showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 <FiFilter size={15} />
                 Filters
@@ -312,11 +315,10 @@ export default function ModuleLanding() {
               <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <button
                   onClick={() => setCategory('')}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                    !activeCategory
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
+                    }`}
                 >
                   All
                 </button>
@@ -324,11 +326,10 @@ export default function ModuleLanding() {
                   <button
                     key={cat.id}
                     onClick={() => setCategory(cat.slug)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                      activeCategory === cat.slug
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                    }`}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
+                      }`}
                   >
                     {cat.name}
                   </button>
@@ -339,7 +340,7 @@ export default function ModuleLanding() {
             {/* Breadcrumbs for active filter */}
             {(activeCategory || searchParams.get('search')) && (
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                <Link to={`/modules/${moduleSlug}`} className="hover:text-blue-600 transition">
+                <Link to={`/solutions/${moduleSlug}`} className="hover:text-blue-600 transition">
                   {mod?.name}
                 </Link>
                 {activeCategory && (
@@ -423,7 +424,7 @@ export default function ModuleLanding() {
                   Advanced AI features that take your security to the next level
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   {
@@ -476,13 +477,13 @@ export default function ModuleLanding() {
                   }
                 ].map((benefit, index) => (
                   <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
-                  <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
-                    <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-lg flex items-center justify-center mb-4`}>
-                      <benefit.icon className={`text-${benefit.color}-600`} size={24} />
+                    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
+                      <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-lg flex items-center justify-center mb-4`}>
+                        <benefit.icon className={`text-${benefit.color}-600`} size={24} />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2 text-gray-900">{benefit.title}</h3>
+                      <p className="text-gray-700 text-sm">{benefit.description}</p>
                     </div>
-                    <h3 className="font-semibold text-lg mb-2 text-gray-900">{benefit.title}</h3>
-                    <p className="text-gray-700 text-sm">{benefit.description}</p>
-                  </div>
                   </AnimatedContent>
                 ))}
               </div>
@@ -511,12 +512,12 @@ export default function ModuleLanding() {
                   'Professional after-sales support'
                 ].map((feature, index) => (
                   <AnimatedContent key={index} distance={20} direction="horizontal" reverse={false} duration={0.5} delay={index * 0.05}>
-                  <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <FiCheck className="text-green-600" size={16} />
+                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <FiCheck className="text-green-600" size={16} />
+                      </div>
+                      <span className="text-gray-700 font-medium">{feature}</span>
                     </div>
-                    <span className="text-gray-700 font-medium">{feature}</span>
-                  </div>
                   </AnimatedContent>
                 ))}
               </div>
@@ -547,10 +548,10 @@ export default function ModuleLanding() {
                   { icon: <FiHome />, name: 'Estates' }
                 ].map((place, index) => (
                   <AnimatedContent key={index} distance={30} direction="vertical" duration={0.5} delay={index * 0.05}>
-                  <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div className="text-blue-600 mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
-                    <span className="text-gray-700 font-medium">{place.name}</span>
-                  </div>
+                    <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+                      <div className="text-blue-600 mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
+                      <span className="text-gray-700 font-medium">{place.name}</span>
+                    </div>
                   </AnimatedContent>
                 ))}
               </div>
@@ -625,12 +626,12 @@ export default function ModuleLanding() {
                     '24/7 customer support'
                   ].map((reason, index) => (
                     <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
-                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
-                      <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                        <FiCheck className="text-blue-600" size={16} />
+                      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                          <FiCheck className="text-blue-600" size={16} />
+                        </div>
+                        <span className="font-medium">{reason}</span>
                       </div>
-                      <span className="font-medium">{reason}</span>
-                    </div>
                     </AnimatedContent>
                   ))}
                 </div>
@@ -686,9 +687,8 @@ export default function ModuleLanding() {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${
-                  showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 <FiFilter size={15} />
                 Filters
@@ -700,11 +700,10 @@ export default function ModuleLanding() {
               <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <button
                   onClick={() => setCategory('')}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                    !activeCategory
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
+                    }`}
                 >
                   All
                 </button>
@@ -712,11 +711,10 @@ export default function ModuleLanding() {
                   <button
                     key={cat.id}
                     onClick={() => setCategory(cat.slug)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                      activeCategory === cat.slug
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                    }`}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
+                      }`}
                   >
                     {cat.name}
                   </button>
@@ -727,7 +725,7 @@ export default function ModuleLanding() {
             {/* Breadcrumbs for active filter */}
             {(activeCategory || searchParams.get('search')) && (
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                <Link to={`/modules/${moduleSlug}`} className="hover:text-blue-600 transition">
+                <Link to={`/solutions/${moduleSlug}`} className="hover:text-blue-600 transition">
                   {mod?.name}
                 </Link>
                 {activeCategory && (
@@ -846,11 +844,11 @@ export default function ModuleLanding() {
                   }
                 ].map((feature, index) => (
                   <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
-                  <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
-                    <div className="text-4xl mb-4 block text-blue-600">{feature.icon}</div>
-                    <h3 className="font-semibold text-lg mb-2 text-gray-900">{feature.title}</h3>
-                    <p className="text-gray-700 text-sm">{feature.description}</p>
-                  </div>
+                    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
+                      <div className="text-4xl mb-4 block text-orange-500">{feature.icon}</div>
+                      <h3 className="font-semibold text-lg mb-2 text-gray-900">{feature.title}</h3>
+                      <p className="text-gray-700 text-sm">{feature.description}</p>
+                    </div>
                   </AnimatedContent>
                 ))}
               </div>
@@ -881,7 +879,7 @@ export default function ModuleLanding() {
                   { icon: <FiGlobe />, name: 'Remote Communities' }
                 ].map((place, index) => (
                   <div key={index} className="bg-gray-50 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div className="text-4xl mb-3 block text-blue-600">{place.icon}</div>
+                    <div className="text-4xl mb-3 block text-orange-500">{place.icon}</div>
                     <span className="text-gray-700 font-medium">{place.name}</span>
                   </div>
                 ))}
@@ -913,10 +911,10 @@ export default function ModuleLanding() {
                   { icon: <FiUsers />, name: 'Connect multiple devices' }
                 ].map((activity, index) => (
                   <AnimatedContent key={index} distance={20} direction="vertical" duration={0.5} delay={index * 0.05}>
-                  <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full">
-                    <div className="text-4xl mb-3 flex justify-center text-blue-600">{activity.icon}</div>
-                    <span className="text-gray-700 font-medium text-sm">{activity.name}</span>
-                  </div>
+                    <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full">
+                      <div className="text-4xl mb-3 flex justify-center text-orange-500">{activity.icon}</div>
+                      <span className="text-gray-700 font-medium text-sm">{activity.name}</span>
+                    </div>
                   </AnimatedContent>
                 ))}
               </div>
@@ -945,10 +943,10 @@ export default function ModuleLanding() {
                     { icon: <FiBook />, name: 'Setup Guide' }
                   ].map((item, index) => (
                     <AnimatedContent key={index} distance={20} direction="vertical" duration={0.5} delay={index * 0.05}>
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100 h-full">
-                      <div className="text-3xl mb-2 flex justify-center text-blue-600">{item.icon}</div>
-                      <span className="text-gray-700 font-medium text-xs">{item.name}</span>
-                    </div>
+                      <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100 h-full">
+                        <div className="text-3xl mb-2 flex justify-center text-orange-500">{item.icon}</div>
+                        <span className="text-gray-700 font-medium text-xs">{item.name}</span>
+                      </div>
                     </AnimatedContent>
                   ))}
                 </div>
@@ -959,10 +957,10 @@ export default function ModuleLanding() {
           {/* Why Buy From Us */}
           <section className="py-20 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-white">
+              <div className="bg-gradient-to-br from-orange-500 to-green-600 rounded-3xl p-8 md:p-12 text-white">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>
-                  <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+                  <p className="text-xl text-orange-100 max-w-2xl mx-auto">
                     Your trusted partner for Starlink solutions
                   </p>
                 </div>
@@ -978,12 +976,14 @@ export default function ModuleLanding() {
                     'After-sales support',
                     'Competitive pricing'
                   ].map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                      <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                        <FiCheck className="text-blue-600" size={16} />
+                    <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
+                      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                          <FiCheck className="text-orange-500" size={16} />
+                        </div>
+                        <span className="font-medium">{reason}</span>
                       </div>
-                      <span className="font-medium">{reason}</span>
-                    </div>
+                    </AnimatedContent>
                   ))}
                 </div>
               </div>
@@ -1021,7 +1021,7 @@ export default function ModuleLanding() {
                 ].map((faq, index) => (
                   <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                     <h3 className="font-semibold text-lg mb-2 text-gray-900 flex items-center gap-2">
-                      <FiHelpCircle className="text-blue-600" />
+                      <FiHelpCircle className="text-orange-500" />
                       {faq.question}
                     </h3>
                     <p className="text-gray-700">{faq.answer}</p>
@@ -1039,7 +1039,7 @@ export default function ModuleLanding() {
                 Bring high-speed satellite internet to your home or business. Browse our range of genuine Starlink equipment, accessories, and installation services to find the solution that fits your needs.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
+                <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-orange-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-orange-600 transition">
                   Shop Starlink Kits
                   <FiArrowRight />
                 </button>
@@ -1065,7 +1065,7 @@ export default function ModuleLanding() {
                   { icon: FiBox, text: 'Ready-to-Ship Stock' }
                 ].map((signal, index) => (
                   <div key={index} className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                    <signal.icon className="text-blue-600" size={24} />
+                    <signal.icon className="text-orange-500" size={24} />
                     <span className="text-gray-700 font-medium text-sm">{signal.text}</span>
                   </div>
                 ))}
@@ -1093,9 +1093,8 @@ export default function ModuleLanding() {
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${
-                showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                }`}
             >
               <FiFilter size={15} />
               Filters
@@ -1107,11 +1106,10 @@ export default function ModuleLanding() {
             <div className="flex flex-wrap gap-2 mb-6 p-4 bg-white/5 border border-white/10 rounded-xl">
               <button
                 onClick={() => setCategory('')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                  !activeCategory
-                    ? `${theme.pill} ${theme.pillText} border-current`
-                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                }`}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory
+                  ? `${theme.pill} ${theme.pillText} border-current`
+                  : 'bg-transparent border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
+                  }`}
               >
                 All
               </button>
@@ -1119,11 +1117,10 @@ export default function ModuleLanding() {
                 <button
                   key={cat.id}
                   onClick={() => setCategory(cat.slug)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                    activeCategory === cat.slug
-                      ? `${theme.pill} ${theme.pillText} border-current`
-                      : 'bg-transparent border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug
+                    ? `${theme.pill} ${theme.pillText} border-current`
+                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
+                    }`}
                 >
                   {cat.name}
                 </button>
@@ -1134,7 +1131,7 @@ export default function ModuleLanding() {
           {/* Breadcrumbs for active filter */}
           {(activeCategory || searchParams.get('search')) && (
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-              <Link to={`/modules/${moduleSlug}`} className="hover:text-white transition">
+              <Link to={`/solutions/${moduleSlug}`} className="hover:text-white transition">
                 {mod?.name}
               </Link>
               {activeCategory && (

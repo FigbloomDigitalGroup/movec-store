@@ -135,13 +135,13 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <Link to="/modules/starlink" className="group">
+                <Link to="/solutions/starlink" className="group">
                   <Button variant="secondary" className="w-full sm:w-auto">
                     Shop Starlink Kits
                     <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <Link to="/modules/cctv" className="group">
+                <Link to="/solutions/cctv" className="group">
                   <Button variant="secondary" className="w-full sm:w-auto">
                     <FiCamera className="mr-2" size={20} />
                     Shop CCTV Systems
@@ -237,52 +237,46 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.1}>
-            <Card hover>
-              <CardBody>
-                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
-                  <FiWifi className="text-blue-600" size={28} />
-                </div>
-                <h3 className="text-xl font-product-name mb-3 text-gray-900">Starlink Internet</h3>
-                <p className="text-gray-700 mb-4">
-                  High-speed satellite internet anywhere in Kenya. Perfect for remote areas with no fiber coverage.
-                </p>
-                <Link to="/modules/starlink" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
-                  Learn More <FiArrowRight size={16} />
-                </Link>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody>
+                  <FiWifi className="text-blue-600 mb-6" size={28} />
+                  <h3 className="text-xl font-product-name mb-3 text-gray-900">Starlink Internet</h3>
+                  <p className="text-gray-700 mb-4">
+                    High-speed satellite internet anywhere in Kenya. Perfect for remote areas with no fiber coverage.
+                  </p>
+                  <Link to="/solutions/starlink" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
+                    Learn More <FiArrowRight size={16} />
+                  </Link>
+                </CardBody>
+              </Card>
             </AnimatedContent>
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.2}>
-            <Card hover>
-              <CardBody>
-                <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
-                  <FiCamera className="text-green-600" size={28} />
-                </div>
-                <h3 className="text-xl font-product-name mb-3 text-gray-900">CCTV Systems</h3>
-                <p className="text-gray-700 mb-4">
-                  AI-powered IP cameras, NVR systems, and complete surveillance for homes and businesses.
-                </p>
-                <Link to="/modules/cctv" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
-                  Learn More <FiArrowRight size={16} />
-                </Link>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody>
+                  <FiCamera className="text-green-600 mb-6" size={28} />
+                  <h3 className="text-xl font-product-name mb-3 text-gray-900">CCTV Systems</h3>
+                  <p className="text-gray-700 mb-4">
+                    AI-powered IP cameras, NVR systems, and complete surveillance for homes and businesses.
+                  </p>
+                  <Link to="/solutions/cctv" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
+                    Learn More <FiArrowRight size={16} />
+                  </Link>
+                </CardBody>
+              </Card>
             </AnimatedContent>
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.3}>
-            <Card hover>
-              <CardBody>
-                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
-                  <FiTool className="text-purple-600" size={28} />
-                </div>
-                <h3 className="text-xl font-product-name mb-3 text-gray-900">Installation</h3>
-                <p className="text-gray-700 mb-4">
-                  Professional installation by certified technicians. Fast, clean, and guaranteed workmanship.
-                </p>
-                <Link to="/installation" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
-                  Book Now <FiArrowRight size={16} />
-                </Link>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody>
+                  <FiTool className="text-purple-600 mb-6" size={28} />
+                  <h3 className="text-xl font-product-name mb-3 text-gray-900">Installation</h3>
+                  <p className="text-gray-700 mb-4">
+                    Professional installation by certified technicians. Fast, clean, and guaranteed workmanship.
+                  </p>
+                  <Link to="/installation" className="text-blue-600 font-semibold hover:underline inline-flex items-center gap-1">
+                    Book Now <FiArrowRight size={16} />
+                  </Link>
+                </CardBody>
+              </Card>
             </AnimatedContent>
           </div>
         </div>
@@ -337,48 +331,40 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.1}>
-            <Card hover>
-              <CardBody className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FiTruck className="text-blue-600" size={28} />
-                </div>
-                <h3 className="font-product-name text-lg mb-2 text-gray-900">Fast Delivery</h3>
-                <p className="text-gray-700 text-sm">Nationwide shipping within 24-48 hours</p>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody className="text-center">
+                  <FiTruck className="text-blue-600 mb-4 mx-auto" size={28} />
+                  <h3 className="font-product-name text-lg mb-2 text-gray-900">Fast Delivery</h3>
+                  <p className="text-gray-700 text-sm">Nationwide shipping within 24-48 hours</p>
+                </CardBody>
+              </Card>
             </AnimatedContent>
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.2}>
-            <Card hover>
-              <CardBody className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FiShield className="text-green-600" size={28} />
-                </div>
-                <h3 className="font-product-name text-lg mb-2 text-gray-900">Warranty</h3>
-                <p className="text-gray-700 text-sm">All products come with manufacturer warranty</p>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody className="text-center">
+                  <FiShield className="text-green-600 mb-4 mx-auto" size={28} />
+                  <h3 className="font-product-name text-lg mb-2 text-gray-900">Warranty</h3>
+                  <p className="text-gray-700 text-sm">All products come with manufacturer warranty</p>
+                </CardBody>
+              </Card>
             </AnimatedContent>
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.3}>
-            <Card hover>
-              <CardBody className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FiTool className="text-purple-600" size={28} />
-                </div>
-                <h3 className="font-product-name text-lg mb-2 text-gray-900">Expert Installation</h3>
-                <p className="text-gray-700 text-sm">Certified technicians with years of experience</p>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody className="text-center">
+                  <FiTool className="text-purple-600 mb-4 mx-auto" size={28} />
+                  <h3 className="font-product-name text-lg mb-2 text-gray-900">Expert Installation</h3>
+                  <p className="text-gray-700 text-sm">Certified technicians with years of experience</p>
+                </CardBody>
+              </Card>
             </AnimatedContent>
             <AnimatedContent distance={40} direction="vertical" duration={0.8} delay={0.4}>
-            <Card hover>
-              <CardBody className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FiPhone className="text-orange-600" size={28} />
-                </div>
-                <h3 className="font-product-name text-lg mb-2 text-gray-900">24/7 Support</h3>
-                <p className="text-gray-700 text-sm">Always available to help via phone or WhatsApp</p>
-              </CardBody>
-            </Card>
+              <Card hover>
+                <CardBody className="text-center">
+                  <FiPhone className="text-orange-600 mb-4 mx-auto" size={28} />
+                  <h3 className="font-product-name text-lg mb-2 text-gray-900">24/7 Support</h3>
+                  <p className="text-gray-700 text-sm">Always available to help via phone or WhatsApp</p>
+                </CardBody>
+              </Card>
             </AnimatedContent>
           </div>
         </div>
@@ -493,22 +479,22 @@ export default function Home() {
       {/* CTA */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-center overflow-hidden">
         <AnimatedContent distance={50} direction="vertical" duration={0.8}>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Connected?</h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Order your Starlink kit today. Professional installation available nationwide.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/products">
-              <Button variant="secondary" className="w-full sm:w-auto">Shop Now</Button>
-            </Link>
-            <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-              <Button variant="secondary" className="w-full sm:w-auto !bg-green-500 !border-green-500 !text-white hover:!bg-green-600 focus:!ring-green-500">
-                WhatsApp Us
-              </Button>
-            </a>
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Connected?</h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Order your Starlink kit today. Professional installation available nationwide.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Link to="/products">
+                <Button variant="secondary" className="w-full sm:w-auto">Shop Now</Button>
+              </Link>
+              <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                <Button variant="secondary" className="w-full sm:w-auto !bg-green-500 !border-green-500 !text-white hover:!bg-green-600 focus:!ring-green-500">
+                  WhatsApp Us
+                </Button>
+              </a>
+            </div>
           </div>
-        </div>
         </AnimatedContent>
       </section>
     </div>

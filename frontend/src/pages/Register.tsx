@@ -5,7 +5,7 @@ import { getErrorMessage } from '../lib/api';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function Register() {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +19,10 @@ export default function Register() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
     setLoading(true);
     try {
       await register(form);
@@ -84,6 +88,25 @@ export default function Register() {
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              className="w-full border rounded-lg pl-4 pr-10 py-2"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+            </button>
+          </div>
+
+          <label className="block text-sm font-medium mb-1">Confirm Password</label>
+          <div className="relative mt-4">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.confirmPassword}
+              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
               required
               className="w-full border rounded-lg pl-4 pr-10 py-2"
             />

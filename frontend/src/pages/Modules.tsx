@@ -19,7 +19,7 @@ interface StoreModule {
 const MODULE_CONFIG: Record<string, { icon: React.ReactNode; gradient: string }> = {
   starlink: {
     icon: <FiWifi size={36} />,
-    gradient: 'from-blue-600 to-cyan-500',
+    gradient: 'from-orange-500 to-green-500',
   },
   cctv: {
     icon: <FiCamera size={36} />,
@@ -71,7 +71,7 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
 
   return (
     <Link
-      to={`/modules/${mod.slug}`}
+      to={`/solutions/${mod.slug}`}
       className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
     >
       <Card hover className="h-full transition-shadow group-hover:border-blue-200 group-hover:shadow-lg">

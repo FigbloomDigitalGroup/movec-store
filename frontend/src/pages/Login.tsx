@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { getErrorMessage } from '../lib/api';
+import { getErrorMessage, resendVerification } from '../lib/api';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function Login() {
@@ -10,6 +10,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const { login } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -29,11 +31,55 @@ export default function Login() {
     }
   };
 
+  const handleResend = async () => {
+    if (!email) {
+      setError('Please enter your email before resending verification.');
+      return;
+    }
+    setResendLoading(true);
+    try {
+      await resendVerification(email);
+      setError('A new verification email has been sent. Please check your inbox and spam folder.');
+      setResendCooldown(60);
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setInterval(() => setResendCooldown((c) => Math.max(c - 1, 0)), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resendCooldown]);
+
   return (
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8">
         <h1 className="text-3xl font-bold text-center mb-8">Login</h1>
-        {error && <p className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</p>}
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+            <p>{error}</p>
+            {error.includes('Please verify your email') && (
+              <div className="mt-2 text-sm">
+                <p className="inline">Didn't receive the email? </p>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendLoading || resendCooldown > 0}
+                  className="text-blue-600 underline hover:text-blue-800 disabled:opacity-50"
+                >
+                  {resendLoading ? 'Resending...' : 'Resend Verification Email'}
+                </button>
+                {resendCooldown > 0 && (
+                  <span className="ml-2 text-gray-500">(available in {resendCooldown}s)</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
@@ -93,3 +139,4 @@ export default function Login() {
     </div>
   );
 }
+

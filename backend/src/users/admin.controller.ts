@@ -16,6 +16,13 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
+import { IsArray, IsEnum } from 'class-validator';
+
+class AssignRolesDto {
+  @IsArray()
+  @IsEnum(RoleName, { each: true })
+  roles: RoleName[];
+}
 
 @Controller('admin/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -46,5 +53,10 @@ export class AdminUsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.softDelete(id);
+  }
+
+  @Patch(':id/roles')
+  assignRoles(@Param('id') id: string, @Body() dto: AssignRolesDto) {
+    return this.usersService.update(id, { roles: dto.roles });
   }
 }

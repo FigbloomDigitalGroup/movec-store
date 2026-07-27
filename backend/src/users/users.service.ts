@@ -113,14 +113,6 @@ export class UsersService {
     await this.prisma.user.update({ where: { id }, data });
 
     if (dto.roles) {
-      await this.prisma.userRole.deleteMany({ where: { userId: id } });
-      await this.prisma.userRole.createMany({
-        data: dto.roles.map((roleName) => ({
-          userId: id,
-          roleId: roleName, // we need the actual role ID; so we'll fetch roles first
-        })),
-      });
-      // Better: fetch role IDs
       const roles = await this.prisma.role.findMany({
         where: { name: { in: dto.roles } },
       });
@@ -129,6 +121,7 @@ export class UsersService {
         data: roles.map((r) => ({ userId: id, roleId: r.id })),
       });
     }
+
 
     return this.findById(id);
   }

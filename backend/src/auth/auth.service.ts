@@ -19,6 +19,9 @@ import { RoleName } from '@prisma/client';
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
+  // In-memory map for rate limiting resend requests (email -> timestamp)
+  private resendTimestamps: Record<string, number> = {};
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -69,6 +72,41 @@ export class AuthService {
         ? 'Registration successful. You can now log in.'
         : 'Registration successful. Please verify your email.',
     };
+  }
+
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // generic response to avoid user enumeration
+      return { message: 'If the email exists, a verification email has been sent.' };
+    }
+
+    if (user.isEmailVerified) {
+      return { message: 'If the email exists, a verification email has been sent.' };
+    }
+
+    const now = Date.now();
+    const last = this.resendTimestamps[email] || 0;
+    if (now - last < 60 * 1000) {
+      const waitSec = Math.ceil((60 * 1000 - (now - last)) / 1000);
+      throw new BadRequestException(`Please wait ${waitSec} seconds before requesting another verification email.`);
+    }
+    this.resendTimestamps[email] = now;
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verificationToken,
+        verificationTokenExpires,
+      },
+    });
+
+    await this.emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
+
+    return { message: 'If the email exists, a verification email has been sent.' };
   }
 
   async login(dto: LoginDto) {

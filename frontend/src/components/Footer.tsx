@@ -40,10 +40,10 @@ export default function Footer() {
                 <Link to="/products" className="text-gray-700 hover:text-blue-600 transition">Products</Link>
               </li>
               <li>
-                <Link to="/modules/starlink" className="text-gray-700 hover:text-blue-600 transition">Starlink Kits</Link>
+                <Link to="/solutions/starlink" className="text-gray-700 hover:text-blue-600 transition">Starlink Kits</Link>
               </li>
               <li>
-                <Link to="/modules/cctv" className="text-gray-700 hover:text-blue-600 transition">CCTV Systems</Link>
+                <Link to="/solutions/cctv" className="text-gray-700 hover:text-blue-600 transition">CCTV Systems</Link>
               </li>
               <li>
                 <Link to="/installation" className="text-gray-700 hover:text-blue-600 transition">Installation</Link>

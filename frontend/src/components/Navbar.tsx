@@ -58,7 +58,7 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-6 xl:gap-8 flex-shrink-0">
-              <Link to="/modules" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Solutions</Link>
+              <Link to="/solutions" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Solutions</Link>
               <Link to="/products" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Products</Link>
               <Link to="/categories" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Categories</Link>
               <Link to="/installation" className="text-gray-700 hover:text-blue-600 font-navigation transition whitespace-nowrap">Installation</Link>
@@ -157,7 +157,7 @@ export default function Navbar() {
         {open && (
           <div className="lg:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-4 space-y-3">
-              <Link to="/modules" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
+              <Link to="/solutions" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
                 Solutions
               </Link>
               <Link to="/products" onClick={() => setOpen(false)} className="block py-2 text-gray-700 hover:text-blue-600 font-medium">
