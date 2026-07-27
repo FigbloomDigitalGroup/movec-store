@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FiFacebook, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin, FiClock, FiShield, FiRefreshCw, FiTruck, FiHeadphones, FiAward } from 'react-icons/fi';
+import { FiFacebook, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin, FiClock, FiRefreshCw, FiTruck, FiHeadphones, FiAward } from 'react-icons/fi';
 import { FaTiktok } from 'react-icons/fa6';
 import { FaLock } from 'react-icons/fa';
 import logo from '../assets/logo.png';

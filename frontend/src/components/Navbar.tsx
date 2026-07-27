@@ -8,7 +8,6 @@ import {
   FiShoppingCart,
   FiHeart,
   FiUser,
-  FiLogOut,
   FiMenu,
   FiSearch,
   FiX,
@@ -149,7 +148,7 @@ export default function Navbar() {
                 >
                   <FiUser size={18} />
                   <span className="text-xs mt-0.5 font-medium">
-                    {isAuthenticated ? user?.name?.split(' ')[0] || 'Account' : 'Account'}
+                    {isAuthenticated ? user?.firstName || 'Account' : 'Account'}
                   </span>
                 </button>
                 {accountOpen && (
