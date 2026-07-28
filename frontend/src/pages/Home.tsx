@@ -180,9 +180,9 @@ export default function Home() {
       {/* ══════════════════════════════════════
           HERO — Sidebar + Carousel
       ══════════════════════════════════════ */}
-      <section className="bg-white border-b border-gray-200">
+      <section className="bg-white border-b border-gray-200 pt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-0">
+          <div className="flex gap-4">
 
             {/* Category Sidebar */}
             <aside className="hidden lg:block w-52 flex-shrink-0 border-r border-gray-200 bg-white">
@@ -599,6 +599,19 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ══════════════════════════════════════
+          FLOATING WHATSAPP BUTTON
+      ══════════════════════════════════════ */}
+      <a
+        href={WHATSAPP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-[#25d366] hover:bg-[#1ebe57] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+        aria-label="Order via WhatsApp"
+      >
+        <FaWhatsapp size={26} />
+      </a>
 
     </div>
   );

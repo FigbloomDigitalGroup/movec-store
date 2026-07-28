@@ -298,9 +298,9 @@ export default function Navbar() {
                 href={WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1.5 px-4 h-full text-[#25d366] font-semibold hover:text-[#1ebe57] transition"
+                className="ml-auto flex items-center gap-1.5 px-4 py-1.5 mx-2 my-auto bg-[#25d366] hover:bg-[#1ebe57] text-white font-semibold text-xs rounded-full transition shadow-sm"
               >
-                <FaWhatsapp size={16} />
+                <FaWhatsapp size={15} />
                 Order via WhatsApp
               </a>
             </div>

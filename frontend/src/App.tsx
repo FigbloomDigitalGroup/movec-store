@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 
 import ScrollToTop from './components/ScrollToTop';
+import BackToTop from './components/BackToTop';
 import PageLoader from './components/PageLoader';
 import AuthBootstrap from './components/AuthBootstrap';
 
@@ -53,6 +54,7 @@ export default function App() {
       <BrowserRouter>
         <AuthBootstrap />
         <ScrollToTop />
+        <BackToTop />
 
         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Suspense fallback={<PageLoader />}>

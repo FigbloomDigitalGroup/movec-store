@@ -99,11 +99,13 @@ export class ModulesService {
         take: limit,
         orderBy,
         include: {
-          images: true,
-          brand: true,
-          module: true,
-          categories: { include: { category: true } },
-          inventory: { include: { warehouse: true } },
+          images: { take: 1, orderBy: { sortOrder: 'asc' } },
+          brand: { select: { id: true, name: true, slug: true } },
+          categories: { 
+            take: 1,
+            include: { category: { select: { id: true, name: true, slug: true } } } 
+          },
+          inventory: { select: { quantity: true } },
         },
       }),
       this.prisma.product.count({ where }),

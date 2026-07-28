@@ -145,6 +145,7 @@ export default function ModuleLanding() {
     queryKey: ['module', moduleSlug],
     queryFn: () => getModule(moduleSlug!),
     enabled: !!moduleSlug,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data, isLoading: productsLoading } = useQuery({
@@ -155,6 +156,7 @@ export default function ModuleLanding() {
       return getModuleProducts(moduleSlug!, params);
     },
     enabled: !!moduleSlug,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
   const activeCategory = searchParams.get('category') || '';
