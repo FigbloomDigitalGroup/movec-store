@@ -3,7 +3,6 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -16,7 +15,6 @@ export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private cloudinary: CloudinaryService,
-    private configService: ConfigService,
   ) {}
 
   private async generateSKU(brandId?: string): Promise<string> {
@@ -228,27 +226,13 @@ export class ProductsService {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Product not found');
 
-    const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
-
     const uploaded = [];
     for (const file of files) {
-      let url: string;
-
-      if (cloudName) {
-        try {
-          const result = await this.cloudinary.uploadImage(file);
-          url = result.secure_url;
-        } catch (error) {
-          url = `http://localhost:4000/uploads/${file.filename || Date.now() + '-' + file.originalname}`;
-        }
-      } else {
-        url = `http://localhost:4000/uploads/${file.filename || Date.now() + '-' + file.originalname}`;
-      }
-
+      const result = await this.cloudinary.uploadImage(file);
       const image = await this.prisma.productImage.create({
         data: {
           productId,
-          url,
+          url: result.secure_url,
           alt: file.originalname || 'Product image',
           sortOrder: 0,
           isPrimary: false,
