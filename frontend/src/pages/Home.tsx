@@ -394,6 +394,7 @@ export default function Home() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.35, delay: idx * 0.07 }}
+                    className="h-full"
                   >
                     <ProductCard product={product} />
                   </motion.div>
@@ -511,6 +512,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: idx * 0.05 }}
+                  className="h-full"
                 >
                   <ProductCard product={product} />
                 </motion.div>

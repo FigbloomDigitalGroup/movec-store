@@ -54,8 +54,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div>
-            <div className="flex items-center mb-4">
+            <div className="flex items-center gap-2 mb-4">
               <img src={logo} alt="Movec Store" className="h-10 w-auto object-contain" />
+              <span className="text-sm font-bold text-gray-800 tracking-wide">Store</span>
             </div>
             <p className="text-gray-700 mb-4">
               Your trusted partner for Starlink internet, AI-powered CCTV security, networking equipment, and smart devices in Kenya.

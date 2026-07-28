@@ -71,7 +71,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Phone & WhatsApp</h4>
-                    <p className="text-gray-600">+254 727 572 310</p>
+                    <p className="text-gray-600">+254 796285718</p>
                     <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm font-medium hover:underline mt-1 inline-block">
                       Chat on WhatsApp
                     </a>

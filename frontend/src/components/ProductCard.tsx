@@ -89,8 +89,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Link to={`/products/${product.slug}`} className="group">
-      <Card hover>
+    <Link to={`/products/${product.slug}`} className="group h-full">
+      <Card hover className="h-full flex flex-col">
         <div className="relative">
           <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-56 flex items-center justify-center rounded-t-xl overflow-hidden">
             {images.length > 0 ? (
@@ -134,9 +134,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        <CardBody className="pt-5">
+        <CardBody className="pt-5 flex-1 flex flex-col">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{product.brand?.name || 'Brand'}</p>
-          <h3 className="font-product-name text-lg mb-2 line-clamp-2 text-gray-900 group-hover:text-blue-600 transition">
+          <h3 className="font-product-name text-lg mb-2 line-clamp-2 text-gray-900 group-hover:text-blue-600 transition min-h-[3.5rem]">
             {product.name}
           </h3>
           <div className="flex items-baseline gap-2 mb-4">
@@ -147,7 +147,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Action Buttons at Bottom */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-auto">
             <button
               onClick={handleAddToCart}
               className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"

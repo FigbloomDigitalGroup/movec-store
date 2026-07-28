@@ -115,6 +115,7 @@ export default function Navbar() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
               <img src={logo} alt="Movec" className="h-10 w-auto object-contain" />
+              <span className="text-sm font-bold text-gray-800 tracking-wide">Store</span>
             </Link>
 
             {/* Search bar — desktop */}

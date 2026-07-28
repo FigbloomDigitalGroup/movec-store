@@ -100,7 +100,7 @@ function ProductCard({ product }: { product: Product }) {
       <div className="p-4 flex flex-col flex-1">
         <p className="text-gray-500 text-xs mb-1">{product.brand?.name}</p>
         <Link to={`/products/${product.slug}`}>
-          <h3 className="text-gray-900 font-semibold text-sm line-clamp-2 mb-2 hover:text-blue-600 transition-colors">
+          <h3 className="text-gray-900 font-semibold text-sm line-clamp-2 mb-2 hover:text-blue-600 transition-colors min-h-[2.5rem]">
             {product.name}
           </h3>
         </Link>
