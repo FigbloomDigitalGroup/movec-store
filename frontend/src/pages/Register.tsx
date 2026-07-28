@@ -25,7 +25,8 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await register(form);
+      const { confirmPassword: _, ...payload } = form;
+      await register(payload);
       setSuccess('Registration successful!');
     } catch (err: any) {
       setError(getErrorMessage(err));
