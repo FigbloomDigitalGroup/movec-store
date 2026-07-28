@@ -12,8 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -51,13 +50,7 @@ export class AdminProductsController {
 
   @Post(':id/images')
   @UseInterceptors(FilesInterceptor('files', 10, {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
-      },
-    }),
+    storage: memoryStorage(),
   }))
   uploadImages(@Param('id') id: string, @UploadedFiles() files: any[]) {
     return this.productsService.uploadImages(id, files);
