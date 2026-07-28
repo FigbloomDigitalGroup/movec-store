@@ -113,6 +113,7 @@ const heroSlides = [
   },
 ];
 
+
 const sidebarCategories = [
   { label: 'Starlink Kits', icon: <FiWifi size={16} />, to: '/solutions/starlink' },
   { label: 'Starlink Accessories', icon: <FiPackage size={16} />, to: '/products?category=starlink-accessories' },
