@@ -75,12 +75,11 @@ export class ProductsService {
         orderBy,
         include: {
           images: { take: 1, orderBy: { sortOrder: 'asc' } },
-          brand: { select: { id: true, name: true, slug: true } },
+          brand: true,
           categories: {
-            take: 1,
-            include: { category: { select: { id: true, name: true, slug: true } } },
+            include: { category: true },
           },
-          inventory: { select: { quantity: true } },
+          inventory: true,
         },
       }),
       this.prisma.product.count({ where }),
