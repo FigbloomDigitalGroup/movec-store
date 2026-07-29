@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getModule, getModuleProducts } from '../lib/api';
-import { FiSearch, FiFilter, FiArrowLeft, FiChevronRight, FiShoppingCart, FiShoppingBag, FiHeart, FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiActivity, FiMap, FiGlobe, FiZap, FiWifi, FiTool, FiMonitor, FiHelpCircle, FiLock, FiTruck, FiPhone, FiStar, FiMessageSquare, FiBox, FiMonitor as FiBuilding, FiBookOpen as FiBook, FiSun, FiCloud, FiPlay, FiMonitor as FiLaptop, FiUpload, FiDownload, FiUsers, FiLink, FiArrowUp } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiArrowLeft, FiChevronLeft, FiChevronRight, FiShoppingCart, FiShoppingBag, FiHeart, FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiActivity, FiMap, FiGlobe, FiZap, FiWifi, FiTool, FiMonitor, FiHelpCircle, FiLock, FiTruck, FiPhone, FiStar, FiMessageSquare, FiBox, FiMonitor as FiBuilding, FiBookOpen as FiBook, FiSun, FiCloud, FiPlay, FiMonitor as FiLaptop, FiUpload, FiDownload, FiUsers, FiLink, FiArrowUp } from 'react-icons/fi';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import AnimatedContent from '../components/AnimatedContent';
@@ -60,10 +60,27 @@ const DEFAULT_THEME = {
 };
 
 function ProductCard({ product }: { product: Product }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const images = product.images || [];
   const addToCart = useCartStore((s) => s.addItem);
   const addToWishlist = useWishlistStore((s) => s.addItem);
   const totalStock = product.inventory.reduce((s, i) => s + i.quantity, 0);
-  const image = product.images?.[0];
+
+  const goNext = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (images.length > 1) {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }
+  };
+
+  const goPrev = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (images.length > 1) {
+      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+  };
 
   return (
     <div
@@ -72,10 +89,10 @@ function ProductCard({ product }: { product: Product }) {
     >
       <Link to={`/products/${product.slug}`} className="block relative overflow-hidden">
         <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative">
-          {image ? (
+          {images.length > 0 ? (
             <img
-              src={image.url}
-              alt={image.alt || product.name}
+              src={images[currentIndex]?.url}
+              alt={images[currentIndex]?.alt || product.name}
               className="h-full w-full object-cover group-hover:scale-108"
               style={{ transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)' }}
             />
@@ -84,13 +101,54 @@ function ProductCard({ product }: { product: Product }) {
               <FiPackage size={48} />
             </div>
           )}
+          
+          {/* Image Navigation */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={goPrev}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
+                aria-label="Previous image"
+              >
+                <FiChevronLeft size={16} />
+              </button>
+              <button
+                onClick={goNext}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
+                aria-label="Next image"
+              >
+                <FiChevronRight size={16} />
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentIndex(i);
+                    }}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white/80'
+                    }`}
+                    aria-label={`View image ${i + 1}`}
+                  />
+                ))}
+              </div>
+              {/* Image counter */}
+              <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                {currentIndex + 1} / {images.length}
+              </div>
+            </>
+          )}
+          
           {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full z-10">
               SALE
             </span>
           )}
           {totalStock === 0 && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
               <span className="text-white/70 text-sm font-medium">Out of Stock</span>
             </div>
           )}
@@ -114,7 +172,7 @@ function ProductCard({ product }: { product: Product }) {
 
         <div className="flex gap-2">
           <button
-            onClick={() => addToCart({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: image?.url ?? null, quantity: 1 })}
+            onClick={() => addToCart({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null, quantity: 1 })}
             disabled={totalStock === 0}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2 rounded-xl transition-colors"
           >
@@ -122,7 +180,7 @@ function ProductCard({ product }: { product: Product }) {
             Add to Cart
           </button>
           <button
-            onClick={() => addToWishlist({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: image?.url ?? null })}
+            onClick={() => addToWishlist({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null })}
             className="p-2 border border-gray-200 hover:border-gray-300 rounded-xl text-gray-400 hover:text-red-500 transition-colors"
           >
             <FiHeart size={15} />
