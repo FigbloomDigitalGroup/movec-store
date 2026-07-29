@@ -8,13 +8,25 @@ export class CloudinaryService {
 
   async uploadImage(file: any): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
-      this.cloudinary.uploader.upload_stream(
-        { folder: 'products' },
+      const uploadStream = this.cloudinary.uploader.upload_stream(
+        { 
+          folder: 'products',
+          resource_type: 'auto'
+        },
         (error: UploadApiErrorResponse, result: UploadApiResponse) => {
-          if (error) return reject(error);
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            return reject(error);
+          }
           resolve(result);
         },
-      ).end(file.buffer);
+      );
+
+      if (!file.buffer) {
+        return reject(new Error('File buffer is missing'));
+      }
+
+      uploadStream.end(file.buffer);
     });
   }
 

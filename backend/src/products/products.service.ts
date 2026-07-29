@@ -227,19 +227,34 @@ export class ProductsService {
     const product = await this.prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files provided');
+    }
+
     const uploaded = [];
     for (const file of files) {
-      const result = await this.cloudinary.uploadImage(file);
-      const image = await this.prisma.productImage.create({
-        data: {
-          productId,
-          url: result.secure_url,
-          alt: file.originalname || 'Product image',
-          sortOrder: 0,
-          isPrimary: false,
-        },
-      });
-      uploaded.push(image);
+      try {
+        if (!file.buffer) {
+          throw new BadRequestException(`File ${file.originalname} has no buffer`);
+        }
+        
+        const result = await this.cloudinary.uploadImage(file);
+        const image = await this.prisma.productImage.create({
+          data: {
+            productId,
+            url: result.secure_url,
+            alt: file.originalname || 'Product image',
+            sortOrder: 0,
+            isPrimary: false,
+          },
+        });
+        uploaded.push(image);
+      } catch (error) {
+        console.error(`Error uploading file ${file.originalname}:`, error);
+        throw new BadRequestException(
+          `Failed to upload ${file.originalname}: ${error.message}`,
+        );
+      }
     }
     return uploaded;
   }
