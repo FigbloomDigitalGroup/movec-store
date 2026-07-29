@@ -110,25 +110,37 @@ export default function ProductCard({ product }: ProductCardProps) {
             <>
               <button
                 onClick={goPrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition hover:bg-black/70"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
+                aria-label="Previous image"
               >
-                <FiChevronLeft size={18} />
+                <FiChevronLeft size={16} />
               </button>
               <button
                 onClick={goNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition hover:bg-black/70"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
+                aria-label="Next image"
               >
-                <FiChevronRight size={18} />
+                <FiChevronRight size={16} />
               </button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
                 {images.map((_, i) => (
-                  <span
+                  <button
                     key={i}
-                    className={`w-2 h-2 rounded-full transition ${
-                      i === currentIndex ? 'bg-white' : 'bg-white/50'
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentIndex(i);
+                    }}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white/80'
                     }`}
+                    aria-label={`View image ${i + 1}`}
                   />
                 ))}
+              </div>
+              {/* Image counter */}
+              <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                {currentIndex + 1} / {images.length}
               </div>
             </>
           )}
