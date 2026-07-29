@@ -1,8 +1,87 @@
 import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import type { Product } from '../../types';
-import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+
+// Mini image carousel for the product list rows
+function ImageCarousel({ images, onDelete }: { images: Product['images']; onDelete: (id: string) => void }) {
+  const [idx, setIdx] = useState(0);
+  if (!images || images.length === 0) return null;
+
+  const prev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx(i => (i - 1 + images.length) % images.length);
+  };
+  const next = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx(i => (i + 1) % images.length);
+  };
+
+  return (
+    <div className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border border-gray-200 group/carousel">
+      <img
+        src={images[idx].url}
+        alt={`image ${idx + 1}`}
+        className="w-full h-full object-cover"
+      />
+
+      {/* Delete button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(images[idx].id); }}
+        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 hidden group-hover/carousel:flex items-center justify-center z-10"
+      >
+        <FiX size={10} />
+      </button>
+
+      {/* Main badge */}
+      {idx === 0 && (
+        <span className="absolute bottom-1 left-1 bg-yellow-500 text-white text-[10px] px-1 rounded font-medium">
+          Main
+        </span>
+      )}
+
+      {/* Counter */}
+      {images.length > 1 && (
+        <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+          {idx + 1}/{images.length}
+        </span>
+      )}
+
+      {/* Prev / Next */}
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-0.5 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-0.5 shadow opacity-0 group-hover/carousel:opacity-100 transition z-10"
+          >
+            <FiChevronLeft size={12} />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-0.5 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-0.5 shadow opacity-0 group-hover/carousel:opacity-100 transition z-10"
+          >
+            <FiChevronRight size={12} />
+          </button>
+        </>
+      )}
+
+      {/* Dots */}
+      {images.length > 1 && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover/carousel:opacity-100 transition">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={(e) => { e.stopPropagation(); setIdx(i); }}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? 'bg-white w-3' : 'bg-white/60'}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminProducts() {
   const queryClient = useQueryClient();
@@ -253,7 +332,37 @@ export default function AdminProducts() {
           </div>
 
           <div className="mt-4">
-            <p className="text-sm font-medium mb-2">Product Images</p>
+            <p className="text-sm font-medium mb-2">
+              Product Images
+              {previews.length > 0 && (
+                <span className="ml-2 text-xs text-gray-400 font-normal">{previews.length} image{previews.length > 1 ? 's' : ''} selected</span>
+              )}
+              {editing && editing.images && editing.images.length > 0 && (
+                <span className="ml-2 text-xs text-blue-500 font-normal">{editing.images.length} already uploaded</span>
+              )}
+            </p>
+
+            {/* Already uploaded images (when editing) */}
+            {editing && editing.images && editing.images.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs text-gray-500 mb-2">Uploaded images:</p>
+                <div className="flex gap-2 flex-wrap">
+                  {editing.images.map((img, i) => (
+                    <div key={img.id} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 group/img">
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={(e) => { e.preventDefault(); deleteImage.mutate(img.id); }}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 hidden group-hover/img:flex items-center justify-center"
+                      >
+                        <FiX size={10} />
+                      </button>
+                      {i === 0 && <span className="absolute bottom-1 left-1 bg-yellow-500 text-white text-[10px] px-1 rounded font-medium">Main</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
@@ -266,15 +375,35 @@ export default function AdminProducts() {
                 or click to browse
               </button>
             </div>
+
+            {/* New image previews */}
             {previews.length > 0 && (
-              <div className="flex gap-3 mt-4 flex-wrap">
-                {previews.map((preview, i) => (
-                  <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border">
-                    <img src={preview} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => removePreview(i)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"><FiX size={12} /></button>
-                    {i === 0 && <span className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded">Main</span>}
-                  </div>
-                ))}
+              <div className="mt-4">
+                <p className="text-xs text-gray-500 mb-2">New images to upload ({previews.length}):</p>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                  {previews.map((preview, i) => (
+                    <div key={i} className="relative rounded-lg overflow-hidden border-2 border-blue-200 group/preview aspect-square">
+                      <img src={preview} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => removePreview(i)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      >
+                        <FiX size={10} />
+                      </button>
+                      {i === 0 && <span className="absolute bottom-1 left-1 bg-yellow-500 text-white text-[10px] px-1 rounded font-medium">Main</span>}
+                      <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1 rounded">{i + 1}</span>
+                    </div>
+                  ))}
+                  {/* Add more button */}
+                  <button
+                    type="button"
+                    onClick={() => { setImageProductId(null); fileInputRef.current?.click(); }}
+                    className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 flex flex-col items-center justify-center gap-1 transition"
+                  >
+                    <FiPlus size={18} className="text-gray-400" />
+                    <span className="text-[10px] text-gray-400">Add</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -301,18 +430,17 @@ export default function AdminProducts() {
           )}
           {data?.data?.map((p: Product) => (
             <div key={p.id} className="bg-white/80 backdrop-blur-sm rounded-xl shadow p-4 flex items-center gap-4 hover:shadow-md transition">
-              <div className="flex gap-2 flex-shrink-0">
-                {p.images?.map((img, i) => (
-                  <div key={img.id} className="relative group w-16 h-16">
-                    <img src={img.url} alt={p.name} className="w-16 h-16 object-cover rounded-lg" />
-                    {i === 0 && <FiStar className="absolute -top-1 -left-1 text-yellow-500" size={14} fill="currentColor" />}
-                    <button onClick={() => deleteImage.mutate(img.id)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs hidden group-hover:flex items-center justify-center">
-                      <FiX size={10} />
-                    </button>
-                  </div>
-                ))}
-                <button onClick={() => handleExistingImageUpload(p.id)} disabled={uploading && imageProductId === p.id} className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-300 transition flex-shrink-0">
-                  {uploading && imageProductId === p.id ? <span className="animate-spin text-xs">⟳</span> : <FiImage className="text-gray-400" size={18} />}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <ImageCarousel images={p.images} onDelete={(id) => deleteImage.mutate(id)} />
+                <button
+                  onClick={() => handleExistingImageUpload(p.id)}
+                  disabled={uploading && imageProductId === p.id}
+                  title="Add images"
+                  className="w-10 h-10 bg-gray-100 hover:bg-blue-50 hover:border-blue-400 border border-dashed border-gray-300 rounded-xl flex items-center justify-center transition flex-shrink-0"
+                >
+                  {uploading && imageProductId === p.id
+                    ? <span className="animate-spin text-blue-500 text-sm">⟳</span>
+                    : <FiImage className="text-gray-400" size={16} />}
                 </button>
               </div>
 
