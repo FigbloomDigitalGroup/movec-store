@@ -89,6 +89,7 @@ const heroSlides = [
     bg: 'from-gray-900 via-gray-800 to-gray-900',
     icon: <FiWifi size={110} className="text-white/20" />,
   },
+  
   {
     badge: 'AI-POWERED',
     badgeBg: 'bg-[#fc6501]',
