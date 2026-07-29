@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from 'react';
-import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import type { Product } from '../../types';
