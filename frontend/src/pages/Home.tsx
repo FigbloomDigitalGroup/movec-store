@@ -163,6 +163,46 @@ export default function Home() {
     heroApi.on('select', () => setHeroIndex(heroApi.selectedScrollSnap()));
   }, [heroApi]);
 
+  // Best Sellers carousel
+  const [bestSellersRef, bestSellersApi] = useEmblaCarousel({
+    loop: false,
+    align: 'start',
+    slidesToScroll: 1,
+  });
+  const scrollBestSellersPrev = useCallback(() => bestSellersApi?.scrollPrev(), [bestSellersApi]);
+  const scrollBestSellersNext = useCallback(() => bestSellersApi?.scrollNext(), [bestSellersApi]);
+  const [canScrollBestSellersPrev, setCanScrollBestSellersPrev] = useState(false);
+  const [canScrollBestSellersNext, setCanScrollBestSellersNext] = useState(false);
+  useEffect(() => {
+    if (!bestSellersApi) return;
+    const onSelect = () => {
+      setCanScrollBestSellersPrev(bestSellersApi.canScrollPrev());
+      setCanScrollBestSellersNext(bestSellersApi.canScrollNext());
+    };
+    bestSellersApi.on('select', onSelect);
+    onSelect();
+  }, [bestSellersApi]);
+
+  // Featured Products carousel
+  const [featuredRef, featuredApi] = useEmblaCarousel({
+    loop: false,
+    align: 'start',
+    slidesToScroll: 1,
+  });
+  const scrollFeaturedPrev = useCallback(() => featuredApi?.scrollPrev(), [featuredApi]);
+  const scrollFeaturedNext = useCallback(() => featuredApi?.scrollNext(), [featuredApi]);
+  const [canScrollFeaturedPrev, setCanScrollFeaturedPrev] = useState(false);
+  const [canScrollFeaturedNext, setCanScrollFeaturedNext] = useState(false);
+  useEffect(() => {
+    if (!featuredApi) return;
+    const onSelect = () => {
+      setCanScrollFeaturedPrev(featuredApi.canScrollPrev());
+      setCanScrollFeaturedNext(featuredApi.canScrollNext());
+    };
+    featuredApi.on('select', onSelect);
+    onSelect();
+  }, [featuredApi]);
+
   // Testimonials carousel
   const [testimonialRef] = useEmblaCarousel(
     { loop: true, dragFree: true, align: 'start' },
@@ -379,30 +419,55 @@ export default function Home() {
               <span className="w-1 h-6 bg-[#fc6501] rounded-full inline-block" />
               <h2 className="text-xl font-black text-gray-900 uppercase tracking-wide">Best Sellers</h2>
             </div>
-            <Link to="/products" className="text-[#10b982] text-sm font-semibold hover:underline flex items-center gap-1">
-              View All <FiArrowRight size={14} />
-            </Link>
+            <div className="flex items-center gap-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={scrollBestSellersPrev}
+                  disabled={!canScrollBestSellersPrev}
+                  className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <FiChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={scrollBestSellersNext}
+                  disabled={!canScrollBestSellersNext}
+                  className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <FiChevronRight size={18} />
+                </button>
+              </div>
+              <Link to="/products" className="text-[#10b982] text-sm font-semibold hover:underline flex items-center gap-1">
+                View All <FiArrowRight size={14} />
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            {/* Products Grid */}
-            <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {(bestSellers ?? Array(4).fill(null)).slice(0, 4).map((product, idx) =>
-                product ? (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.35, delay: idx * 0.07 }}
-                    className="h-full"
-                  >
-                    <ProductCard product={product} />
-                  </motion.div>
-                ) : (
-                  <div key={idx} className="bg-white rounded-xl border border-gray-200 h-64 animate-pulse" />
-                )
-              )}
+            {/* Products Carousel */}
+            <div className="lg:col-span-4 relative overflow-hidden">
+              <div className="embla" ref={bestSellersRef}>
+                <div className="embla__container flex gap-4">
+                  {(bestSellers ?? Array(4).fill(null)).map((product, idx) =>
+                    product ? (
+                      <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_50%] min-w-0">
+                        <motion.div
+                          initial={{ opacity: 0, y: 15 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.35, delay: idx * 0.07 }}
+                          className="h-full"
+                        >
+                          <ProductCard product={product} />
+                        </motion.div>
+                      </div>
+                    ) : (
+                      <div key={idx} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_50%] min-w-0">
+                        <div className="bg-white rounded-xl border border-gray-200 h-64 animate-pulse" />
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Need Help Card */}
@@ -501,23 +566,46 @@ export default function Home() {
                 <span className="w-1 h-6 bg-[#10b982] rounded-full inline-block" />
                 <h2 className="text-xl font-black text-gray-900 uppercase tracking-wide">Featured Products</h2>
               </div>
-              <Link to="/products" className="text-[#10b982] text-sm font-semibold hover:underline flex items-center gap-1">
-                View All <FiArrowRight size={14} />
-              </Link>
+              <div className="flex items-center gap-3">
+                <div className="flex gap-2">
+                  <button
+                    onClick={scrollFeaturedPrev}
+                    disabled={!canScrollFeaturedPrev}
+                    className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <FiChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={scrollFeaturedNext}
+                    disabled={!canScrollFeaturedNext}
+                    className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <FiChevronRight size={18} />
+                  </button>
+                </div>
+                <Link to="/products" className="text-[#10b982] text-sm font-semibold hover:underline flex items-center gap-1">
+                  View All <FiArrowRight size={14} />
+                </Link>
+              </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-              {featured.slice(0, 10).map((product, idx) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.35, delay: idx * 0.05 }}
-                  className="h-full"
-                >
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
+            <div className="relative overflow-hidden">
+              <div className="embla" ref={featuredRef}>
+                <div className="embla__container flex gap-4">
+                  {featured.slice(0, 10).map((product, idx) => (
+                    <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_20%] min-w-0">
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.35, delay: idx * 0.05 }}
+                        className="h-full"
+                      >
+                        <ProductCard product={product} />
+                      </motion.div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
