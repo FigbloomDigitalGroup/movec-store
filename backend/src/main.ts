@@ -16,8 +16,20 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
+  const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+  // Support comma-separated list of allowed origins (e.g. production + preview URLs)
+  const allowedOrigins = frontendUrl.split(',').map((url) => url.trim());
+
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL', 'http://localhost:5173'),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow any Vercel preview deployment for this project
+      if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   });
 
