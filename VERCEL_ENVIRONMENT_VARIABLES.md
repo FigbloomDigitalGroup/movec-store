@@ -137,8 +137,11 @@ Update `VITE_STRIPE_PUBLIC_KEY` if:
 ## Current Configuration
 
 ✅ **Backend API**: https://movec-api.fly.dev (Fly.io)
-✅ **Frontend**: Vercel (your-domain.vercel.app)
+✅ **Frontend (Vercel)**: Will be deployed to vercel.app subdomain
+✅ **Custom Domain**: movecstore.movecconnect.com (configure after deployment)
 ✅ **Stripe**: Test mode
+
+See `CUSTOM_DOMAIN_SETUP.md` for custom domain configuration instructions.
 
 ---
 
@@ -147,16 +150,17 @@ Update `VITE_STRIPE_PUBLIC_KEY` if:
 Make sure your backend `.env` on Fly.io has:
 
 ```env
-FRONTEND_URL=https://your-vercel-domain.vercel.app
+FRONTEND_URL=https://movecstore.movecconnect.com
 ```
 
-Or update it to allow your Vercel domain:
+Or update it to allow your custom domain:
 
 ```bash
-fly secrets set FRONTEND_URL="https://your-vercel-domain.vercel.app" --app movec-api
-```
+fly secrets set FRONTEND_URL="https://movecstore.movecconnect.com" --app movec-api
 
-Replace `your-vercel-domain.vercel.app` with your actual Vercel deployment URL.
+# Or allow both custom domain and Vercel preview URLs:
+fly secrets set FRONTEND_URL="https://movecstore.movecconnect.com,https://your-vercel-url.vercel.app" --app movec-api
+```
 
 ---
 

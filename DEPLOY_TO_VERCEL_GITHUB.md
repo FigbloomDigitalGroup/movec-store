@@ -90,13 +90,36 @@ git push origin main
 
 ---
 
-## Step 5: Update Backend CORS
+## Step 5: Add Custom Domain
 
-Once you have your Vercel production URL, update the backend:
+After initial deployment:
+
+1. **Go to Project Settings** → **Domains**
+2. Click **"Add Domain"**
+3. Enter: `movecstore.movecconnect.com`
+4. Follow DNS configuration instructions
+5. Add CNAME record in your DNS provider:
+   ```
+   Type: CNAME
+   Name: movecstore
+   Value: cname.vercel-dns.com.
+   ```
+6. Wait for DNS propagation and SSL provisioning
+
+**See `CUSTOM_DOMAIN_SETUP.md` for detailed instructions.**
+
+---
+
+## Step 6: Update Backend CORS
+
+Once your custom domain is configured:
 
 ```powershell
-# Replace YOUR_VERCEL_URL with your actual Vercel URL
-fly secrets set FRONTEND_URL="https://YOUR_VERCEL_URL.vercel.app" --app movec-api
+# Set your custom domain as the frontend URL
+fly secrets set FRONTEND_URL="https://movecstore.movecconnect.com" --app movec-api
+
+# Or include both custom and Vercel URLs
+fly secrets set FRONTEND_URL="https://movecstore.movecconnect.com,https://YOUR_VERCEL_URL.vercel.app" --app movec-api
 ```
 
 ---
@@ -205,14 +228,19 @@ After deployment, you can modify settings:
 
 ---
 
-## Custom Domain (Optional)
+## Custom Domain
 
-After deployment, you can add a custom domain:
+Your custom domain: **movecstore.movecconnect.com**
+
+After deployment, add your custom domain:
 
 1. Go to **Project Settings** → **Domains**
-2. Add your domain (e.g., `movec.store` or `shop.movec.com`)
-3. Update DNS records as instructed by Vercel
-4. Update backend `FRONTEND_URL` to your custom domain
+2. Add domain: `movecstore.movecconnect.com`
+3. Configure DNS CNAME record in your DNS provider
+4. Wait for SSL certificate provisioning
+5. Update backend `FRONTEND_URL` to `https://movecstore.movecconnect.com`
+
+**See `CUSTOM_DOMAIN_SETUP.md` for complete setup guide.**
 
 ---
 

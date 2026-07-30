@@ -75,17 +75,37 @@ Environments: ✓ Production ✓ Preview ✓ Development
 - [ ] Build successful ✅
 - [ ] Copy your production URL: `https://_____________.vercel.app`
 
+**Your Custom Domain**: `movecstore.movecconnect.com` (configure after deployment)
+
 ---
 
-### 5. Update Backend CORS
+### 5. Add Custom Domain
 
-Once you have your Vercel URL, run this command:
+After deployment, add your custom domain:
+
+- [ ] Go to **Project Settings** → **Domains**
+- [ ] Click **"Add Domain"**
+- [ ] Enter: `movecstore.movecconnect.com`
+- [ ] Follow DNS configuration instructions
+- [ ] Wait for DNS propagation (can take up to 48 hours, usually minutes)
+- [ ] Verify domain is active
+
+---
+
+### 6. Update Backend CORS
+
+Once your custom domain is configured, run this command:
 
 ```powershell
-fly secrets set FRONTEND_URL="https://YOUR_VERCEL_URL.vercel.app" --app movec-api
+fly secrets set FRONTEND_URL="https://movecstore.movecconnect.com" --app movec-api
 ```
 
-- [ ] Command executed
+**Note**: You can also add the Vercel preview URL as a backup:
+```powershell
+fly secrets set FRONTEND_URL="https://movecstore.movecconnect.com,https://YOUR_VERCEL_URL.vercel.app" --app movec-api
+```
+
+- [ ] Command executed with custom domain
 - [ ] Backend restarted with new FRONTEND_URL
 
 ---
@@ -139,6 +159,7 @@ Visit your Vercel URL and test:
 **GitHub Repository**: https://github.com/Joseph-Wachira/movec-store
 **Backend API**: https://movec-api.fly.dev
 **Vercel Dashboard**: https://vercel.com/dashboard
+**Custom Domain**: movecstore.movecconnect.com
 
 **Environment Variables**:
 ```
