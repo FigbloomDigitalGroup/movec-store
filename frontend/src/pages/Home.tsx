@@ -436,7 +436,10 @@ export default function Home() {
                   <FiChevronRight size={18} />
                 </button>
               </div>
-              <Link to="/products" className="text-[#10b982] text-sm font-semibold hover:underline flex items-center gap-1">
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-[#10b982] hover:bg-[#0ca072] px-4 py-2 rounded-lg transition"
+              >
                 View All <FiArrowRight size={14} />
               </Link>
             </div>
@@ -583,7 +586,10 @@ export default function Home() {
                     <FiChevronRight size={18} />
                   </button>
                 </div>
-                <Link to="/products" className="text-[#10b982] text-sm font-semibold hover:underline flex items-center gap-1">
+                <Link
+                  to="/products"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-[#10b982] hover:bg-[#0ca072] px-4 py-2 rounded-lg transition"
+                >
                   View All <FiArrowRight size={14} />
                 </Link>
               </div>
@@ -610,6 +616,63 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* ══════════════════════════════════════
+          VIEW ALL PRODUCTS BANNER
+      ══════════════════════════════════════ */}
+      <section className="py-10 bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#10b982] via-[#0ca072] to-[#059669] px-8 py-12 md:px-14 md:py-14 flex flex-col md:flex-row items-center justify-between gap-8"
+          >
+            {/* Background decoration */}
+            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+              <FiPackage size={220} className="absolute -right-8 -top-8 text-white/5" />
+              <FiWifi size={140} className="absolute right-48 -bottom-10 text-white/5" />
+              <FiCamera size={100} className="absolute right-96 top-4 text-white/5 hidden lg:block" />
+            </div>
+
+            {/* Text */}
+            <div className="relative z-10 text-center md:text-left">
+              <span className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
+                Full Catalog
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
+                Browse All Products
+              </h2>
+              <p className="text-white/80 text-base md:text-lg max-w-md">
+                Starlink kits, CCTV systems, networking gear, accessories and more — all in one place.
+              </p>
+              <div className="flex flex-wrap items-center gap-4 mt-5 text-white/70 text-sm">
+                <span className="flex items-center gap-1.5"><span className="text-white">✓</span> Genuine products</span>
+                <span className="flex items-center gap-1.5"><span className="text-white">✓</span> Competitive prices</span>
+                <span className="flex items-center gap-1.5"><span className="text-white">✓</span> Fast nationwide delivery</span>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="relative z-10 flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              <Link
+                to="/products"
+                className="inline-flex items-center justify-center gap-2 bg-white text-[#10b982] font-black text-base px-8 py-4 rounded-xl hover:bg-gray-100 transition shadow-lg"
+              >
+                View All Products
+                <FiArrowRight size={18} />
+              </Link>
+              <Link
+                to="/categories"
+                className="inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white font-bold text-base px-8 py-4 rounded-xl transition border border-white/30"
+              >
+                Browse Categories
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* ══════════════════════════════════════
           TESTIMONIALS
