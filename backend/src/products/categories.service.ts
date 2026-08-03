@@ -10,7 +10,14 @@ export class CategoriesService {
   async findAll(moduleSlug?: string) {
     return this.prisma.category.findMany({
       where: moduleSlug ? { module: { slug: moduleSlug } } : undefined,
-      include: { children: true, parent: true, module: true },
+      include: { 
+        children: true, 
+        parent: true, 
+        module: true,
+        _count: {
+          select: { products: true }
+        }
+      },
       orderBy: { name: 'asc' },
     });
   }

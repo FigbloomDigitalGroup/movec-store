@@ -111,17 +111,17 @@ export default function Navbar() {
       {/* ── Main Navbar ── */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 h-16">
+          <div className="flex items-center justify-between gap-4 h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
               <img src={logo} alt="Movec" className="h-10 w-auto object-contain" />
               <span className="text-sm font-bold text-gray-800 tracking-wide">Store</span>
             </Link>
 
-            {/* Search bar — desktop */}
+            {/* Search bar — desktop (centered) */}
             <form
               onSubmit={handleSearch}
-              className="hidden md:flex flex-1 max-w-xl relative"
+              className="hidden md:flex flex-1 max-w-2xl mx-auto relative"
             >
               <input
                 type="text"
@@ -140,7 +140,35 @@ export default function Navbar() {
             </form>
 
             {/* Right actions */}
-            <div className="hidden md:flex items-center gap-1 ml-auto">
+            <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+              {/* Wishlist */}
+              <Link
+                to="/wishlist"
+                className="relative flex flex-col items-center px-3 py-1.5 text-gray-700 hover:text-[#10b982] transition"
+              >
+                <FiHeart size={18} />
+                <span className="text-xs mt-0.5 font-medium">Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="absolute top-0.5 right-1 bg-[#fc6501] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Cart */}
+              <Link
+                to="/cart"
+                className="relative flex flex-col items-center px-3 py-1.5 text-gray-700 hover:text-[#10b982] transition"
+              >
+                <FiShoppingCart size={18} />
+                <span className="text-xs mt-0.5 font-medium">Cart</span>
+                {cartCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 bg-[#fc6501] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
               {/* Account */}
               <div className="relative">
                 <button
@@ -214,34 +242,6 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-
-              {/* Wishlist */}
-              <Link
-                to="/wishlist"
-                className="relative flex flex-col items-center px-3 py-1.5 text-gray-700 hover:text-[#10b982] transition"
-              >
-                <FiHeart size={18} />
-                <span className="text-xs mt-0.5 font-medium">Wishlist</span>
-                {wishlistCount > 0 && (
-                  <span className="absolute top-0.5 right-1 bg-[#fc6501] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* Cart */}
-              <Link
-                to="/cart"
-                className="relative flex flex-col items-center px-3 py-1.5 text-gray-700 hover:text-[#10b982] transition"
-              >
-                <FiShoppingCart size={18} />
-                <span className="text-xs mt-0.5 font-medium">Cart</span>
-                {cartCount > 0 && (
-                  <span className="absolute top-0.5 right-0.5 bg-[#fc6501] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
             </div>
 
             {/* Mobile buttons */}

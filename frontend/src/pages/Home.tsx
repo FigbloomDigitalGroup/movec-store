@@ -120,9 +120,7 @@ const sidebarCategories = [
   { label: 'CCTV Cameras', icon: <FiCamera size={16} />, to: '/solutions/cctv' },
   { label: 'NVRs & DVRs', icon: <FiMonitor size={16} />, to: '/products?category=nvr-dvr' },
   { label: 'Networking', icon: <FiZap size={16} />, to: '/products?category=networking' },
-  { label: 'Mounting Kits', icon: <FiTool size={16} />, to: '/products?category=mounting' },
-  { label: 'Solar Power', icon: <FiZap size={16} />, to: '/products?category=solar' },
-  { label: 'Smart Home', icon: <FiMonitor size={16} />, to: '/products?category=smart-home' },
+  
 ];
 
 const brands = [

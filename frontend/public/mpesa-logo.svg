@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200">
+  <!-- M letter -->
+  <path d="M 30 160 L 30 40 L 55 40 L 55 125 L 80 40 L 105 40 L 130 125 L 130 40 L 155 40 L 155 160 L 115 160 L 92.5 75 L 70 160 Z" fill="#5DB741"/>
+  
+  <!-- Phone device -->
+  <g transform="translate(155, 30)">
+    <!-- Phone body -->
+    <rect x="10" y="0" width="90" height="140" rx="8" fill="#B8D88B"/>
+    
+    <!-- Phone screen -->
+    <rect x="20" y="15" width="70" height="100" rx="4" fill="#E8F5E1"/>
+    
+    <!-- Arrow on screen -->
+    <path d="M 30 62 L 72 62 L 72 50 L 90 67 L 72 84 L 72 72 L 30 72 Z" fill="#E53935"/>
+    
+    <!-- Phone bottom button -->
+    <circle cx="55" cy="125" r="6" fill="#8FAF6C"/>
+  </g>
+  
+  <!-- PESA text -->
+  <g transform="translate(265, 40)">
+    <text x="0" y="100" font-family="Arial, sans-serif" font-size="110" font-weight="bold" fill="#5DB741" letter-spacing="-3">PESA</text>
+  </g>
+</svg>

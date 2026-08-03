@@ -30,7 +30,7 @@ export class AdminProductsController {
 
   @Get()
   findAll(@Query() query: QueryProductDto) {
-    return this.productsService.findAll(query);
+    return this.productsService.findAllAdmin(query);
   }
 
   @Post()

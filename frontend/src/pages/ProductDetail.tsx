@@ -111,7 +111,7 @@ export default function ProductDetail() {
           <div>
             <div className="relative bg-white rounded-2xl h-96 flex items-center justify-center overflow-hidden border border-gray-200 group">
               {images.length > 0 ? (
-                <img src={images[currentImage]?.url} alt={product.name} className="h-full w-full object-contain" />
+                <img src={images[currentImage]?.url} alt={product.name} className="h-full w-full object-contain" loading="lazy" />
               ) : (
                 <div className="text-gray-400 text-xl">No image available</div>
               )}
@@ -135,7 +135,7 @@ export default function ProductDetail() {
               <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
                 {images.map((img: any, i: number) => (
                   <button key={img.id} onClick={() => setCurrentImage(i)} className={`w-20 h-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition ${i === currentImage ? 'border-blue-600' : 'border-gray-200 opacity-70 hover:opacity-100'}`}>
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>

@@ -203,6 +203,22 @@ export class ReportsService {
       where: { status: 'PENDING' },
     });
 
+    // Get total products count (active and inactive)
+    const totalProducts = await this.prisma.product.count();
+    const inStockProducts = await this.prisma.product.count({
+      where: {
+        inventory: {
+          some: {
+            quantity: { gt: 0 }
+          }
+        }
+      }
+    });
+    const outOfStockProducts = totalProducts - inStockProducts;
+
+    // Get total categories count
+    const totalCategories = await this.prisma.category.count();
+
     return {
       sales: {
         total: sales.totalSales,
@@ -218,7 +234,12 @@ export class ReportsService {
         newToday: customers.newToday,
       },
       products: {
-        total: products.totalProducts,
+        total: totalProducts,
+        inStock: inStockProducts,
+        outOfStock: outOfStockProducts,
+      },
+      categories: {
+        total: totalCategories,
       },
       pending: {
         orders: pendingOrders,

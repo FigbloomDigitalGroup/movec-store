@@ -212,15 +212,15 @@ export default function PaymentPage() {
                     {/* M-Pesa */}
                     <button
                         onClick={() => setMethod('MPESA')}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'MPESA' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-green-300'}`}
+                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'MPESA' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white backdrop-blur-sm hover:border-green-300'}`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <FiPhone className="text-green-600" size={24} />
+                            <div className="w-16 h-16 flex items-center justify-center">
+                                <img src="/image.png" alt="M-Pesa" className="w-full h-full object-contain mix-blend-multiply" />
                             </div>
                             <div>
-                                <p className="font-semibold text-lg">M-Pesa</p>
-                                <p className="text-sm text-gray-500">Pay via STK Push</p>
+                                <p className="font-semibold text-lg text-gray-900">M-Pesa</p>
+                                <p className="text-sm text-gray-600">Pay via STK Push</p>
                             </div>
                         </div>
                     </button>
@@ -231,8 +231,8 @@ export default function PaymentPage() {
                         className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'STRIPE' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-purple-300'}`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <FiCreditCard className="text-purple-600" size={24} />
+                            <div className="w-16 h-16 flex items-center justify-center">
+                                <img src="/visa-gold-800x450.png" alt="Visa" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <p className="font-semibold text-lg">Credit/Debit Card</p>
@@ -247,8 +247,8 @@ export default function PaymentPage() {
                         className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'PAYPAL' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-blue-300'}`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <FiDollarSign className="text-blue-600" size={24} />
+                            <div className="w-16 h-16 flex items-center justify-center">
+                                <img src="/paypal_PNG22.png" alt="PayPal" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <p className="font-semibold text-lg">PayPal</p>
@@ -381,16 +381,16 @@ export default function PaymentPage() {
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow p-6 h-fit sticky top-24">
                     <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
                     {order?.items?.map((item: any, i: number) => (
-                        <div key={i} className="flex justify-between py-2 border-b text-sm">
+                        <div key={i} className="flex justify-between py-2 border-b border-gray-200/30 text-sm">
                             <span>{item.productName} x {item.quantity}</span>
                             <span>KES {item.price.toLocaleString()}</span>
                         </div>
                     ))}
-                    <div className="flex justify-between font-bold text-lg mt-4 pt-4 border-t">
+                    <div className="flex justify-between font-bold text-lg mt-4 pt-4 border-t border-gray-300/40">
                         <span>Total</span>
                         <span>KES {order?.total?.toLocaleString()}</span>
                     </div>
-                    <div className="mt-4 pt-4 border-t">
+                    <div className="mt-4 pt-4 border-t border-gray-200/30">
                         <p className="text-sm text-gray-500">Status: <span className="font-semibold text-blue-600">{order?.status}</span></p>
                     </div>
                     <Link to={`/orders/${orderNumber}`} className="block text-center text-blue-600 text-sm mt-4 hover:underline">
@@ -398,7 +398,7 @@ export default function PaymentPage() {
                     </Link>
 
                     {/* Trust Badges */}
-                    <div className="mt-6 pt-6 border-t">
+                    <div className="mt-6 pt-6 border-t border-gray-200/30">
                         <p className="text-xs text-gray-500 mb-3 text-center">Secure Payment</p>
                         <div className="flex items-center justify-center gap-3">
                             <div className="bg-green-50 px-3 py-2 rounded-lg border border-green-200">

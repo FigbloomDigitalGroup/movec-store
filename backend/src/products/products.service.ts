@@ -18,7 +18,7 @@ export class ProductsService {
   ) {}
 
   private async generateSKU(brandId?: string): Promise<string> {
-    const prefix = brandId
+    const prefix = brandId && brandId.trim()
       ? ((await this.prisma.brand.findUnique({ where: { id: brandId } }))?.slug?.substring(0, 3).toUpperCase() ?? 'PRD')
       : 'PRD';
     const random = Math.floor(1000 + Math.random() * 9000);
@@ -96,6 +96,77 @@ export class ProductsService {
     };
   }
 
+  async findAllAdmin(query: QueryProductDto) {
+    const page = parseInt(query.page || '1', 10);
+    const limit = parseInt(query.limit || '20', 10);
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = {};
+
+    if (query.search) {
+      where.OR = [
+        { name: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+        { sku: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (query.category) {
+      where.categories = { some: { category: { slug: query.category } } };
+    }
+
+    if (query.module) {
+      where.module = { slug: query.module };
+    }
+
+    if (query.brand) {
+      where.brand = { slug: query.brand };
+    }
+
+    if (query.minPrice || query.maxPrice) {
+      where.price = {};
+      if (query.minPrice) where.price.gte = parseFloat(query.minPrice);
+      if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
+    }
+
+    if (query.featured === 'true') {
+      where.isFeatured = true;
+    }
+
+    const orderBy: any = {};
+    const sortBy = query.sortBy || 'createdAt';
+    const order = query.order === 'asc' ? 'asc' : 'desc';
+    orderBy[sortBy] = order;
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          images: { orderBy: { sortOrder: 'asc' } },
+          brand: true,
+          categories: {
+            include: { category: true },
+          },
+          inventory: true,
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data: products.map((p) => ({
+        ...p,
+        price: p.price.toNumber(),
+        compareAtPrice: p.compareAtPrice?.toNumber(),
+        categories: p.categories.map((pc) => pc.category),
+      })),
+      meta: { page, limit, total },
+    };
+  }
+
   async findBySlug(slug: string) {
     const product = await this.prisma.product.findUnique({
       where: { slug },
@@ -123,6 +194,26 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto) {
+    // Validate required fields
+    if (!dto.name?.trim()) {
+      throw new BadRequestException('Product name is required');
+    }
+    if (!dto.slug?.trim()) {
+      throw new BadRequestException('Product slug is required');
+    }
+    if (!dto.description?.trim()) {
+      throw new BadRequestException('Product description is required');
+    }
+    if (!dto.price || dto.price <= 0) {
+      throw new BadRequestException('Product price must be greater than 0');
+    }
+
+    // Check for duplicate slug
+    const existingBySlug = await this.prisma.product.findUnique({ where: { slug: dto.slug } });
+    if (existingBySlug) {
+      throw new BadRequestException('A product with this slug already exists');
+    }
+
     if (!dto.sku) {
       dto.sku = await this.generateSKU(dto.brandId);
     }
@@ -142,8 +233,8 @@ export class ProductsService {
         costPrice: dto.costPrice,
         isActive: dto.isActive ?? true,
         isFeatured: dto.isFeatured ?? false,
-        brandId: dto.brandId,
-        moduleId: dto.moduleId,
+        brandId: dto.brandId && dto.brandId.trim() ? dto.brandId : null,
+        moduleId: dto.moduleId && dto.moduleId.trim() ? dto.moduleId : null,
         metaTitle: dto.metaTitle,
         metaDescription: dto.metaDescription,
         categories: dto.categoryIds
@@ -184,6 +275,14 @@ export class ProductsService {
     delete data.warehouseId;
     delete data.initialQuantity;
     delete data.lowStockThreshold;
+
+    // Handle optional fields - convert empty strings to null
+    if (data.brandId !== undefined) {
+      data.brandId = data.brandId && data.brandId.trim() ? data.brandId : null;
+    }
+    if (data.moduleId !== undefined) {
+      data.moduleId = data.moduleId && data.moduleId.trim() ? data.moduleId : null;
+    }
 
     await this.prisma.product.update({ where: { id }, data });
 

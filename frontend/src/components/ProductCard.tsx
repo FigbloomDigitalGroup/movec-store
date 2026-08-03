@@ -97,6 +97,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <img
                 src={images[currentIndex]?.url}
                 alt={product.name}
+                loading="lazy"
                 className="h-full w-full object-cover group-hover:scale-108"
                 style={{ transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)' }}
               />
