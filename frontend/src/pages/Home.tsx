@@ -79,37 +79,43 @@ const testimonials: Testimonial[] = [
 
 const heroSlides = [
   {
-    badge: 'PREMIUM CCTV SYSTEMS',
+    badge: 'OFFICIAL STARLINK PARTNER',
     badgeBg: 'bg-[#10b982]',
     title: 'STARLINK GEN 3 KIT',
-    subtitle: 'High-speed internet anywhere\nfor homes, businesses & remote locations.',
-    price: 'FROM KSH 65,000',
-    cta: 'SHOP NOW',
+    subtitle: 'Ultra-fast satellite internet anywhere\nfor homes, businesses & remote locations.',
+    price: 'FROM',
+    priceAmount: 'KSH 65,000',
+    cta: 'SHOP STARLINK',
     ctaLink: '/solutions/starlink',
-    bg: 'from-gray-900 via-gray-800 to-gray-900',
-    icon: <FiWifi size={110} className="text-white/20" />,
+    bg: 'bg-[#1a2332]',
+    gradientFrom: '#1a2332',
+    imageUrl: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=800&q=80',
   },
   {
-    badge: 'AI-POWERED',
+    badge: 'AI POWERED SECURITY',
     badgeBg: 'bg-[#fc6501]',
-    title: 'CCTV SECURITY SYSTEMS',
-    subtitle: 'Complete surveillance for homes,\nbusinesses & remote properties.',
-    price: 'FROM KSH 18,500',
-    cta: 'SHOP NOW',
+    title: 'AI CCTV SURVEILLANCE',
+    subtitle: 'Professional HD and 4K security camera systems\nwith remote monitoring, night vision & smart detection.',
+    price: 'FROM',
+    priceAmount: 'KSH 18,500',
+    cta: 'SHOP CCTV',
     ctaLink: '/solutions/cctv',
-    bg: 'from-gray-900 via-slate-800 to-gray-900',
-    icon: <FiCamera size={110} className="text-white/20" />,
+    bg: 'bg-[#1a1f28]',
+    gradientFrom: '#1a1f28',
+    imageUrl: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&q=80',
   },
   {
-    badge: 'CERTIFIED TECHNICIANS',
+    badge: 'CERTIFIED INSTALLERS',
     badgeBg: 'bg-[#10b982]',
     title: 'PROFESSIONAL INSTALLATION',
-    subtitle: 'Fast, clean, guaranteed workmanship\nacross all 47 counties in Kenya.',
-    price: 'FROM KSH 3,500',
-    cta: 'BOOK NOW',
+    subtitle: 'Expert Starlink and CCTV installation with\nnationwide coverage, clean cabling & after-sales support.',
+    price: 'FROM',
+    priceAmount: 'KSH 3,500',
+    cta: 'BOOK INSTALLATION',
     ctaLink: '/installation',
-    bg: 'from-gray-900 via-zinc-800 to-gray-900',
-    icon: <FiTool size={110} className="text-white/20" />,
+    bg: 'bg-[#1a2230]',
+    gradientFrom: '#1a2230',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80',
   },
 ];
 
@@ -166,6 +172,8 @@ export default function Home() {
     loop: false,
     align: 'start',
     slidesToScroll: 1,
+    watchDrag: true,
+    dragFree: false,
   });
   const scrollBestSellersPrev = useCallback(() => bestSellersApi?.scrollPrev(), [bestSellersApi]);
   const scrollBestSellersNext = useCallback(() => bestSellersApi?.scrollNext(), [bestSellersApi]);
@@ -186,6 +194,8 @@ export default function Home() {
     loop: false,
     align: 'start',
     slidesToScroll: 1,
+    watchDrag: true,
+    dragFree: false,
   });
   const scrollFeaturedPrev = useCallback(() => featuredApi?.scrollPrev(), [featuredApi]);
   const scrollFeaturedNext = useCallback(() => featuredApi?.scrollNext(), [featuredApi]);
@@ -249,41 +259,53 @@ export default function Home() {
             </aside>
 
             {/* Hero Carousel */}
-            <div className="flex-1 relative overflow-hidden" style={{ minHeight: 320 }}>
+            <div className="flex-1 relative overflow-hidden rounded-lg" style={{ minHeight: 400 }}>
               <div className="embla overflow-hidden h-full" ref={heroRef}>
                 <div className="embla__container flex h-full">
                   {heroSlides.map((slide, idx) => (
                     <div
                       key={idx}
-                      className={`embla__slide flex-[0_0_100%] min-w-0 bg-gradient-to-r ${slide.bg} relative flex items-center px-8 md:px-14 py-10 md:py-16 overflow-hidden`}
+                      className={`embla__slide flex-[0_0_100%] min-w-0 ${slide.bg} relative flex items-center overflow-hidden`}
                     >
-                      {/* Background icon */}
-                      <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-100 pointer-events-none select-none">
-                        {slide.icon}
+                      {/* Product Image */}
+                      <div className="absolute right-0 top-0 bottom-0 w-3/5 flex items-center justify-center pointer-events-none select-none">
+                        <img
+                          src={slide.imageUrl}
+                          alt={slide.title}
+                          className="h-full w-full object-cover object-center"
+                        />
+                        {/* Smooth gradient overlay matching background */}
+                        <div 
+                          className="absolute inset-0"
+                          style={{
+                            background: `linear-gradient(to right, ${slide.gradientFrom} 0%, ${slide.gradientFrom}e6 15%, ${slide.gradientFrom}99 30%, ${slide.gradientFrom}4d 50%, ${slide.gradientFrom}1a 70%, transparent 100%)`
+                          }}
+                        />
                       </div>
 
-                      <div className="relative z-10 max-w-md">
-                        <span className={`inline-block ${slide.badgeBg} text-white text-xs font-bold px-3 py-1 rounded mb-4 tracking-wide uppercase`}>
+                      <div className="relative z-10 px-8 md:px-14 py-12 md:py-16 max-w-xl">
+                        <span className={`inline-block ${slide.badgeBg} text-white text-[10px] font-bold px-3 py-1.5 rounded mb-4 tracking-wider uppercase`}>
                           {slide.badge}
                         </span>
-                        <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
+                        <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
                           {slide.title}
                         </h1>
-                        <p className="text-gray-300 text-sm md:text-base mb-4 whitespace-pre-line leading-relaxed">
+                        <p className="text-gray-300 text-sm md:text-base mb-6 whitespace-pre-line leading-relaxed max-w-md">
                           {slide.subtitle}
                         </p>
-                        <p className="text-[#fc6501] text-2xl font-black mb-6">{slide.price}</p>
+                        
+                        <div className="mb-6">
+                          <p className="text-white text-xs font-semibold tracking-wide uppercase mb-1">{slide.price}</p>
+                          <p className="text-[#10b982] text-3xl md:text-4xl font-black">{slide.priceAmount}</p>
+                        </div>
+
                         <Link
                           to={slide.ctaLink}
-                          className="inline-block bg-white text-gray-900 font-bold px-8 py-3 rounded hover:bg-gray-100 transition text-sm tracking-wide"
+                          className="inline-flex items-center gap-2 bg-[#10b982] hover:bg-[#0ca072] text-white font-bold px-8 py-3.5 rounded-lg transition text-sm tracking-wide shadow-lg"
                         >
                           {slide.cta}
+                          <FiArrowRight size={16} />
                         </Link>
-                        <div className="flex flex-wrap gap-4 mt-6 text-gray-400 text-xs">
-                          <span className="flex items-center gap-1"><span className="text-[#10b982]">✓</span> Fast Delivery</span>
-                          <span className="flex items-center gap-1"><span className="text-[#10b982]">✓</span> Genuine Products</span>
-                          <span className="flex items-center gap-1"><span className="text-[#10b982]">✓</span> Expert Support</span>
-                        </div>
                       </div>
                     </div>
                   ))}
@@ -291,20 +313,29 @@ export default function Home() {
               </div>
 
               {/* Prev/Next */}
-              <button onClick={scrollPrev} className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition backdrop-blur-sm">
-                <FiChevronLeft size={18} />
+              <button 
+                onClick={scrollPrev} 
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition backdrop-blur-sm"
+                aria-label="Previous slide"
+              >
+                <FiChevronLeft size={20} />
               </button>
-              <button onClick={scrollNext} className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition backdrop-blur-sm">
-                <FiChevronRight size={18} />
+              <button 
+                onClick={scrollNext} 
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition backdrop-blur-sm"
+                aria-label="Next slide"
+              >
+                <FiChevronRight size={20} />
               </button>
 
               {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              <div className="absolute bottom-6 left-8 md:left-14 flex gap-2 z-20">
                 {heroSlides.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => heroApi?.scrollTo(i)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all ${i === heroIndex ? 'bg-[#fc6501] w-6' : 'bg-white/50'}`}
+                    className={`h-1.5 rounded-full transition-all ${i === heroIndex ? 'bg-[#10b982] w-8' : 'bg-white/40 w-1.5'}`}
+                    aria-label={`Go to slide ${i + 1}`}
                   />
                 ))}
               </div>
@@ -315,6 +346,86 @@ export default function Home() {
 
       {/* ══════════════════════════════════════
           SERVICE HIGHLIGHTS
+      ══════════════════════════════════════ */}
+      <section className="bg-[#0a1628] border-b border-gray-800 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+            {/* 100% Authentic Products */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
+                  100% AUTHENTIC PRODUCTS
+                </h3>
+                <p className="text-gray-400 text-xs">
+                  Official products with warranty
+                </p>
+              </div>
+            </div>
+
+            {/* Fast Nationwide Delivery */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
+                  FAST NATIONWIDE DELIVERY
+                </h3>
+                <p className="text-gray-400 text-xs">
+                  Across all 27 counties
+                </p>
+              </div>
+            </div>
+
+            {/* Expert Installation */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
+                  EXPERT INSTALLATION
+                </h3>
+                <p className="text-gray-400 text-xs">
+                  Certified & experienced technicians
+                </p>
+              </div>
+            </div>
+
+            {/* 24/7 Support */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
+                  24/7 SUPPORT
+                </h3>
+                <p className="text-gray-400 text-xs">
+                  We're here to help
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════
+          ADDITIONAL SERVICE HIGHLIGHTS
       ══════════════════════════════════════ */}
       <section className="bg-white border-b border-gray-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -447,10 +558,10 @@ export default function Home() {
             {/* Products Carousel */}
             <div className="lg:col-span-4 relative overflow-hidden">
               <div className="embla" ref={bestSellersRef}>
-                <div className="embla__container flex gap-4">
+                <div className="embla__container flex gap-4" style={{ cursor: 'default' }}>
                   {(bestSellers ?? Array(4).fill(null)).map((product, idx) =>
                     product ? (
-                      <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_50%] min-w-0">
+                      <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_50%] min-w-0" style={{ cursor: 'default' }}>
                         <motion.div
                           initial={{ opacity: 0, y: 15 }}
                           whileInView={{ opacity: 1, y: 0 }}
@@ -594,9 +705,9 @@ export default function Home() {
             </div>
             <div className="relative overflow-hidden">
               <div className="embla" ref={featuredRef}>
-                <div className="embla__container flex gap-4">
+                <div className="embla__container flex gap-4" style={{ cursor: 'default' }}>
                   {featured.slice(0, 10).map((product, idx) => (
-                    <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_20%] min-w-0">
+                    <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_20%] min-w-0" style={{ cursor: 'default' }}>
                       <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}

@@ -74,7 +74,7 @@ export class ProductsService {
         take: limit,
         orderBy,
         include: {
-          images: { take: 1, orderBy: { sortOrder: 'asc' } },
+          images: { orderBy: { sortOrder: 'asc' } },
           brand: true,
           categories: {
             include: { category: true },

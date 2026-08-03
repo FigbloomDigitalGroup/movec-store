@@ -106,24 +106,24 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Image Navigation */}
+          {/* Image Navigation - Always Visible */}
           {images.length > 1 && (
             <>
               <button
                 onClick={goPrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-gray-800 rounded-full p-2 shadow-lg hover:bg-gray-50 hover:scale-110 transition-all z-10 border border-gray-200"
                 aria-label="Previous image"
               >
-                <FiChevronLeft size={16} />
+                <FiChevronLeft size={18} />
               </button>
               <button
                 onClick={goNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-gray-800 rounded-full p-2 shadow-lg hover:bg-gray-50 hover:scale-110 transition-all z-10 border border-gray-200"
                 aria-label="Next image"
               >
-                <FiChevronRight size={16} />
+                <FiChevronRight size={18} />
               </button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
                 {images.map((_, i) => (
                   <button
                     key={i}
@@ -132,15 +132,15 @@ export default function ProductCard({ product }: ProductCardProps) {
                       e.stopPropagation();
                       setCurrentIndex(i);
                     }}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      i === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white/80'
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === currentIndex ? 'bg-[#10b982] w-6' : 'bg-white/70 hover:bg-white w-1.5'
                     }`}
                     aria-label={`View image ${i + 1}`}
                   />
                 ))}
               </div>
               {/* Image counter */}
-              <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+              <div className="absolute top-3 right-3 bg-black/70 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
                 {currentIndex + 1} / {images.length}
               </div>
             </>
