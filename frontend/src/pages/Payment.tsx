@@ -6,7 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripeCheckoutForm from '../components/StripeCheckoutForm';
 import api from '../lib/api';
-import { FiCreditCard, FiPhone, FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
+import { FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
