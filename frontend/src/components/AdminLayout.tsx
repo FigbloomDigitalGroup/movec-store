@@ -48,16 +48,16 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen flex overflow-hidden bg-gray-50">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-gray-900 text-white flex flex-col overflow-hidden transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-full bg-gray-900 text-white flex flex-col flex-shrink-0 transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         {/* Logo */}
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+        <div className="p-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
           <Link to="/admin" className="text-xl font-bold text-blue-400">Admin Panel</Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
             <FiX size={20} />
@@ -65,7 +65,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-3 space-y-0.5">
+        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
           {sidebarLinks.map((link) => (
             <Link
               key={link.to}
@@ -84,7 +84,7 @@ export default function AdminLayout() {
         </nav>
 
         {/* Bottom user + sign out */}
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-gray-800 flex-shrink-0">
           {/* User info */}
           <div className="flex items-center gap-3 mb-4 px-1">
             <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
@@ -109,9 +109,9 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 min-h-screen flex flex-col">
-        <header className="bg-white border-b sticky top-0 z-30">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        <header className="bg-white border-b flex-shrink-0 z-30">
           <div className="flex items-center justify-between px-4 py-3">
             {/* Left: mobile menu toggle */}
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 text-gray-500 hover:text-gray-800">
@@ -134,7 +134,7 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-6 bg-gray-50">
+        <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
           <Outlet />
         </main>
       </div>
