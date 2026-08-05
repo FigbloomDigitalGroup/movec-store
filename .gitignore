@@ -20,7 +20,7 @@ pnpm-debug.log*
 *.tsbuildinfo
 Thumbs.db
 .DS_Store
-backend/prisma/migrations/
+
 coverage/
 frontend/.vite/
 *.log
