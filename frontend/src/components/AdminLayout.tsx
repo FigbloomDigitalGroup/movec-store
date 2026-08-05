@@ -55,7 +55,7 @@ export default function AdminLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white flex flex-col transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-gray-900 text-white flex flex-col overflow-hidden transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         {/* Logo */}
         <div className="p-4 border-b border-gray-800 flex items-center justify-between">
           <Link to="/admin" className="text-xl font-bold text-blue-400">Admin Panel</Link>
