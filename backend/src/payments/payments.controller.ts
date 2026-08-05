@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { InitiateMpesaDto } from './dto/initiate-mpesa.dto';
-import { InitiateStripeDto } from './dto/initiate-stripe.dto';
+import { InitiatePaystackDto } from './dto/initiate-paystack.dto';
 import { InitiatePaypalDto } from './dto/initiate-paypal.dto';
 import { ConfirmBankTransferDto } from './dto/confirm-bank-transfer.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -23,9 +23,14 @@ export class PaymentsController {
     return this.paymentsService.initiateMpesa(dto.orderNumber, dto.phoneNumber);
   }
 
-  @Post('stripe/create-intent')
-  initiateStripe(@Req() req: Request, @Body() dto: InitiateStripeDto) {
-    return this.paymentsService.initiateStripe(dto.orderNumber);
+  @Post('paystack/initialize')
+  initiatePaystack(@Req() req: Request, @Body() dto: InitiatePaystackDto) {
+    return this.paymentsService.initiatePaystack(dto.orderNumber, dto.email);
+  }
+
+  @Post('paystack/verify')
+  verifyPaystack(@Body() dto: { reference: string }) {
+    return this.paymentsService.verifyPaystack(dto.reference);
   }
 
   @Post('paypal/create-order')
@@ -34,7 +39,7 @@ export class PaymentsController {
   }
 
   @Post('paypal/capture')
-  capturePaypal(@Req() req: Request, @Body() dto: { orderNumber: string, token: string }) {
+  capturePaypal(@Req() req: Request, @Body() dto: { orderNumber: string; token: string }) {
     return this.paymentsService.capturePaypal(dto.orderNumber, dto.token);
   }
 

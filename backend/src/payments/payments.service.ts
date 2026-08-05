@@ -3,23 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import axios from 'axios';
-import Stripe from 'stripe';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private stripe: Stripe;
+  private readonly paystackBaseUrl = 'https://api.paystack.co';
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
     private inventoryService: InventoryService,
-  ) {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (stripeKey) {
-      this.stripe = new Stripe(stripeKey);
-    }
-  }
+  ) {}
 
   private async findOrder(orderNumber: string) {
     const order = await this.prisma.order.findUnique({
@@ -29,6 +24,8 @@ export class PaymentsService {
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
+
+  // ─── M-Pesa ─────────────────────────────────────────────────────────────────
 
   async initiateMpesa(orderNumber: string, phoneNumber: string) {
     const order = await this.findOrder(orderNumber);
@@ -86,7 +83,7 @@ export class PaymentsService {
           amount: order.total,
           currency: 'KES',
           transactionReference: stkData.CheckoutRequestID,
-                   transactions: {
+          transactions: {
             create: {
               provider: 'MPESA',
               requestPayload: stkPayload as any,
@@ -107,47 +104,78 @@ export class PaymentsService {
     }
   }
 
-  async initiateStripe(orderNumber: string) {
+  // ─── Paystack ────────────────────────────────────────────────────────────────
+
+  async initiatePaystack(orderNumber: string, email: string) {
     const order = await this.findOrder(orderNumber);
 
     if (order.status !== 'PENDING') {
       throw new BadRequestException('Order is not pending payment');
     }
 
-    if (!this.stripe) {
-      throw new BadRequestException('Stripe is not configured');
+    const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+    if (!secretKey) {
+      throw new BadRequestException('Paystack is not configured');
     }
 
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: Math.round(Number(order.total) * 100),
-      currency: 'kes',
-      metadata: { orderNumber },
-    });
-
-    await this.prisma.payment.create({
-      data: {
-        orderId: order.id,
-        method: 'STRIPE',
-        status: 'PENDING',
-        amount: order.total,
-        currency: 'KES',
-        transactionReference: paymentIntent.id,
-               transactions: {
-          create: {
-            provider: 'STRIPE',
-            requestPayload: { orderNumber } as any,
-            responsePayload: paymentIntent as any,
-            status: 'PENDING',
+    try {
+      const { data } = await axios.post(
+        `${this.paystackBaseUrl}/transaction/initialize`,
+        {
+          email,
+          amount: Math.round(Number(order.total) * 100), // Paystack uses kobo (1 KES = 100 kobo)
+          currency: 'KES',
+          reference: `${orderNumber}-${Date.now()}`,
+          metadata: { orderNumber },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
           },
         },
-      },
-    });
+      );
 
-    return {
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
-    };
+      const { authorization_url, access_code, reference } = data.data;
+
+      await this.prisma.payment.create({
+        data: {
+          orderId: order.id,
+          method: 'PAYSTACK',
+          status: 'PENDING',
+          amount: order.total,
+          currency: 'KES',
+          transactionReference: reference,
+          transactions: {
+            create: {
+              provider: 'PAYSTACK',
+              requestPayload: { orderNumber, email } as any,
+              responsePayload: data.data as any,
+              status: 'PENDING',
+            },
+          },
+        },
+      });
+
+      return { authorizationUrl: authorization_url, accessCode: access_code, reference };
+    } catch (error) {
+      this.logger.error('Paystack error:', error.response?.data || error.message);
+      throw new BadRequestException('Failed to initiate Paystack payment');
+    }
   }
+
+  async verifyPaystack(reference: string) {
+    const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+
+    const { data } = await axios.get(
+      `${this.paystackBaseUrl}/transaction/verify/${reference}`,
+      { headers: { Authorization: `Bearer ${secretKey}` } },
+    );
+
+    return data.data;
+  }
+
+  // ─── PayPal ──────────────────────────────────────────────────────────────────
 
   async initiatePaypal(orderNumber: string) {
     const order = await this.findOrder(orderNumber);
@@ -191,8 +219,8 @@ export class PaymentsService {
         application_context: {
           return_url: `${frontendUrl}/payment/${orderNumber}?paypal=return`,
           cancel_url: `${frontendUrl}/payment/${orderNumber}`,
-          user_action: 'PAY_NOW'
-        }
+          user_action: 'PAY_NOW',
+        },
       },
       { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } },
     );
@@ -205,7 +233,7 @@ export class PaymentsService {
         amount: order.total,
         currency: 'USD',
         transactionReference: paypalOrder.id,
-               transactions: {
+        transactions: {
           create: {
             provider: 'PAYPAL',
             requestPayload: { orderNumber } as any,
@@ -226,7 +254,7 @@ export class PaymentsService {
     const order = await this.findOrder(orderNumber);
 
     const payment = order.payments.find(
-      (p) => p.method === 'PAYPAL' && p.transactionReference === token && p.status === 'PENDING'
+      (p) => p.method === 'PAYPAL' && p.transactionReference === token && p.status === 'PENDING',
     );
 
     if (!payment) {
@@ -250,39 +278,33 @@ export class PaymentsService {
       const { data: captureData } = await axios.post(
         `${baseUrl}/v2/checkout/orders/${token}/capture`,
         {},
-        { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } }
+        { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } },
       );
 
       if (captureData.status === 'COMPLETED') {
         await this.prisma.payment.update({
           where: { id: payment.id },
-          data: {
-            status: 'COMPLETED',
-            paidAt: new Date(),
-          },
+          data: { status: 'COMPLETED', paidAt: new Date() },
         });
 
         await this.prisma.order.update({
           where: { id: order.id },
           data: {
             status: 'CONFIRMED',
-            statusHistory: {
-              create: { status: 'CONFIRMED', changedBy: 'system' },
-            },
+            statusHistory: { create: { status: 'CONFIRMED', changedBy: 'system' } },
           },
         });
 
         await this.inventoryService.fulfillOrder(order.id);
 
-        // Update the transaction record
         const transaction = await this.prisma.transaction.findFirst({
-          where: { paymentId: payment.id, provider: 'PAYPAL' }
+          where: { paymentId: payment.id, provider: 'PAYPAL' },
         });
-        
+
         if (transaction) {
           await this.prisma.transaction.update({
             where: { id: transaction.id },
-            data: { status: 'COMPLETED', responsePayload: captureData as any }
+            data: { status: 'COMPLETED', responsePayload: captureData as any },
           });
         }
 
@@ -295,6 +317,8 @@ export class PaymentsService {
       throw new BadRequestException('Failed to capture PayPal payment');
     }
   }
+
+  // ─── Bank Transfer ───────────────────────────────────────────────────────────
 
   async initiateBankTransfer(orderNumber: string) {
     const order = await this.findOrder(orderNumber);
@@ -310,7 +334,7 @@ export class PaymentsService {
         status: 'PENDING',
         amount: order.total,
         currency: 'KES',
-               transactions: {
+        transactions: {
           create: {
             provider: 'BANK_TRANSFER',
             requestPayload: { orderNumber } as any,
@@ -323,9 +347,10 @@ export class PaymentsService {
     return {
       message: 'Please transfer to the bank account details provided.',
       bankDetails: {
-        bankName: 'Example Bank',
-        accountName: 'Starlink CCTV Ltd',
+        bankName: 'NCBA Bank',
+        accountName: 'Movec Store Ltd',
         accountNumber: '1234567890',
+        branch: 'Nairobi CBD',
         reference: orderNumber,
       },
     };
@@ -343,19 +368,14 @@ export class PaymentsService {
 
     await this.prisma.payment.update({
       where: { id: payment.id },
-      data: {
-        status: 'COMPLETED',
-        paidAt: new Date(),
-      },
+      data: { status: 'COMPLETED', paidAt: new Date() },
     });
 
     await this.prisma.order.update({
       where: { id: order.id },
       data: {
         status: 'CONFIRMED',
-        statusHistory: {
-          create: { status: 'CONFIRMED', changedBy: 'admin' },
-        },
+        statusHistory: { create: { status: 'CONFIRMED', changedBy: 'admin' } },
       },
     });
 
@@ -364,10 +384,21 @@ export class PaymentsService {
     return { message: 'Payment confirmed. Order is now confirmed.' };
   }
 
+  // ─── Admin ───────────────────────────────────────────────────────────────────
+
   async getTransactions() {
     return this.prisma.transaction.findMany({
       include: { payment: { include: { order: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  // ─── Paystack HMAC verification ──────────────────────────────────────────────
+
+  verifyPaystackSignature(rawBody: string, signature: string): boolean {
+    const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+    if (!secretKey) return false;
+    const hash = crypto.createHmac('sha512', secretKey).update(rawBody).digest('hex');
+    return hash === signature;
   }
 }

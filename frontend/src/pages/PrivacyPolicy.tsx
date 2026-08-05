@@ -33,7 +33,7 @@ export default function PrivacyPolicy() {
                 <li><strong>Account information:</strong> first name, last name, email address, phone number, password (stored as a secure hash), and optional profile photo.</li>
                 <li><strong>Address information:</strong> shipping and billing addresses used for delivery and installation scheduling.</li>
                 <li><strong>Order information:</strong> products purchased, order history, quantities, prices, coupon usage, and reviews you submit.</li>
-                <li><strong>Payment information:</strong> when you pay via M-Pesa, Stripe, PayPal, or bank transfer, payment is processed directly by that provider. We store limited transaction metadata (amount, status, reference number) but we do not store your full card number, M-Pesa PIN, or bank credentials.</li>
+                <li><strong>Payment information:</strong> when you pay via M-Pesa, Paystack, PayPal, or bank transfer, payment is processed directly by that provider. We store limited transaction metadata (amount, status, reference number) but we do not store your full card number, M-Pesa PIN, or bank credentials.</li>
                 <li><strong>Installation information:</strong> preferred dates, installation address, and notes you provide when booking a Starlink or CCTV installation.</li>
                 <li><strong>Support information:</strong> messages, attachments, and details you share when you raise a support ticket or contact us.</li>
                 <li><strong>Technical information:</strong> IP address, browser type, device information, and usage data collected automatically via cookies and similar technologies.</li>
@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">3. How We Share Your Information</h2>
               <p className="text-gray-700 mb-4">We do not sell your personal information. We share information only with:</p>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
-                <li><strong>Payment processors:</strong> Safaricom M-Pesa (Daraja API), Stripe, and PayPal, solely to process your payment.</li>
+                <li><strong>Payment processors:</strong> Safaricom M-Pesa (Daraja API), Paystack, and PayPal, solely to process your payment.</li>
                 <li><strong>Cloudinary:</strong> to store and deliver product images and other media.</li>
                 <li><strong>Delivery and logistics partners:</strong> to fulfil and track shipments.</li>
                 <li><strong>Installation technicians:</strong> your installation address, contact details, and job notes, solely to carry out a booked installation.</li>

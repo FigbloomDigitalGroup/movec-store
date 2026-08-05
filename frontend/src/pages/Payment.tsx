@@ -2,13 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-import StripeCheckoutForm from '../components/StripeCheckoutForm';
 import api from '../lib/api';
 import { FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
@@ -17,7 +12,6 @@ export default function PaymentPage() {
     const [processing, setProcessing] = useState(false);
     const [completed, setCompleted] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
 
     const { data: order } = useQuery({
         queryKey: ['order', orderNumber],
@@ -41,13 +35,31 @@ export default function PaymentPage() {
         },
     });
 
-    const initiateStripe = useMutation({
-        mutationFn: () => api.post('/payments/stripe/create-intent', { orderNumber }).then(r => r.data),
+    const initiatePaystack = useMutation({
+        mutationFn: () => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com' }).then(r => r.data),
         onSuccess: (data) => {
-            setClientSecret(data.clientSecret);
+            const paystack = new (window as any).PaystackPop();
+            paystack.newTransaction({
+                key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+                email: order?.user?.email || 'customer@example.com',
+                amount: Math.round(Number(order?.total) * 100),
+                ref: data.reference,
+                onSuccess: (transaction: any) => {
+                    api.post('/payments/paystack/verify', { reference: transaction.reference }).then(() => {
+                        setCompleted(true);
+                    }).catch(() => {
+                        // Even if verification call fails client side, webhook handles it
+                        setCompleted(true);
+                    });
+                },
+                onCancel: () => {
+                    setProcessing(false);
+                }
+            });
         },
         onError: (err: any) => {
-            alert(err.response?.data?.message || 'Failed to initialize Stripe');
+            alert(err.response?.data?.message || 'Failed to initialize Paystack');
+            setProcessing(false);
         }
     });
 
@@ -225,18 +237,18 @@ export default function PaymentPage() {
                         </div>
                     </button>
 
-                    {/* Stripe */}
+                    {/* Paystack */}
                     <button
-                        onClick={() => setMethod('STRIPE')}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'STRIPE' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-purple-300'}`}
+                        onClick={() => setMethod('PAYSTACK')}
+                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'PAYSTACK' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-purple-300'}`}
                     >
                         <div className="flex items-center gap-3">
                             <div className="w-16 h-16 flex items-center justify-center">
-                                <img src="/visa-gold-800x450.png" alt="Visa" className="w-full h-full object-contain" />
+                                <img src="/visa-gold-800x450.png" alt="Visa/Mastercard" className="w-full h-full object-contain mix-blend-multiply" />
                             </div>
                             <div>
                                 <p className="font-semibold text-lg">Credit/Debit Card</p>
-                                <p className="text-sm text-gray-500">Pay securely via Stripe</p>
+                                <p className="text-sm text-gray-500">Pay securely via Paystack</p>
                             </div>
                         </div>
                     </button>
@@ -296,23 +308,16 @@ export default function PaymentPage() {
                                 </div>
                             )}
 
-                            {method === 'STRIPE' && (
+                            {method === 'PAYSTACK' && (
                                 <div>
-                                    {!clientSecret ? (
-                                        <button
-                                            onClick={() => initiateStripe.mutate()}
-                                            disabled={initiateStripe.isPending}
-                                            className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold disabled:opacity-50"
-                                        >
-                                            {initiateStripe.isPending ? 'Loading secure payment...' : 'Proceed to Card Payment'}
-                                        </button>
-                                    ) : (
-                                        <div className="bg-white p-4 rounded-xl border border-gray-100">
-                                            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                                                <StripeCheckoutForm onSuccess={() => setCompleted(true)} amount={order?.total || 0} />
-                                            </Elements>
-                                        </div>
-                                    )}
+                                    <p className="text-gray-600 mb-4">Pay securely with your credit or debit card.</p>
+                                    <button
+                                        onClick={() => { setProcessing(true); initiatePaystack.mutate(); }}
+                                        disabled={initiatePaystack.isPending || processing}
+                                        className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold disabled:opacity-50"
+                                    >
+                                        {(initiatePaystack.isPending || (processing && method === 'PAYSTACK')) ? 'Loading secure payment...' : 'Proceed to Card Payment'}
+                                    </button>
                                 </div>
                             )}
 
@@ -405,7 +410,7 @@ export default function PaymentPage() {
                                 <span className="text-xs font-medium text-green-700">M-Pesa</span>
                             </div>
                             <div className="bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
-                                <span className="text-xs font-medium text-purple-700">Stripe</span>
+                                <span className="text-xs font-medium text-purple-700">Paystack</span>
                             </div>
                             <div className="bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
                                 <span className="text-xs font-medium text-blue-700">PayPal</span>

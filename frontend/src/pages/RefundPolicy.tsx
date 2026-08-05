@@ -78,7 +78,7 @@ export default function RefundPolicy() {
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">5. Refund Method</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 <li><strong>M-Pesa:</strong> refunded to the originating M-Pesa number.</li>
-                <li><strong>Stripe (card payments):</strong> refunded to the original card, typically reflecting within 5–10 business days depending on your bank.</li>
+                <li><strong>Paystack (card payments):</strong> refunded to the original card, typically reflecting within 5–10 business days depending on your bank.</li>
                 <li><strong>PayPal:</strong> refunded to your PayPal account.</li>
                 <li><strong>Bank transfer:</strong> refunded via bank transfer to the account the payment originated from.</li>
               </ul>

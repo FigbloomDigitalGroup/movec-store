@@ -54,7 +54,7 @@ export default function TermsOfService() {
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">3. Orders & Payment</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 <li>Placing an order is an offer to purchase, which we may accept or decline at our discretion (for example, in cases of suspected fraud or pricing errors).</li>
-                <li>We accept payment via M-Pesa, Stripe (card payments), PayPal, and bank transfer.</li>
+                <li>We accept payment via M-Pesa, Paystack (card payments), PayPal, and bank transfer.</li>
                 <li>For bank transfer orders, your order is marked "awaiting payment" until we confirm receipt of funds.</li>
                 <li>You are responsible for ensuring payment details you provide are accurate and that you are authorized to use the selected payment method.</li>
                 <li>An order is confirmed once payment is successfully verified and you receive a confirmation email with your order number.</li>
@@ -150,7 +150,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">12. Third-Party Services</h2>
               <p className="text-gray-700">
-                The Service integrates third-party providers, including Safaricom M-Pesa, Stripe, PayPal, and delivery partners. We are not responsible for the acts, omissions, or service interruptions of these third parties, which are governed by their own terms.
+                The Service integrates third-party providers, including Safaricom M-Pesa, Paystack, PayPal, and delivery partners. We are not responsible for the acts, omissions, or service interruptions of these third parties, which are governed by their own terms.
               </p>
             </section>
             </AnimatedContent>

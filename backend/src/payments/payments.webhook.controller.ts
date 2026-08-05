@@ -1,28 +1,25 @@
-import { Controller, Post, Body, Headers, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Post, Body, Headers, Logger, Req } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
-import Stripe from 'stripe';
+import { PaymentsService } from './payments.service';
+import type { Request } from 'express';
 
 @Controller('payments')
 export class PaymentsWebhookController {
   private readonly logger = new Logger(PaymentsWebhookController.name);
-  private stripe: Stripe;
 
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService,
     private inventoryService: InventoryService,
-  ) {
-    const stripeKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (stripeKey) {
-      this.stripe = new Stripe(stripeKey);
-    }
-  }
+    private paymentsService: PaymentsService,
+  ) {}
+
+  // ─── M-Pesa Callback ─────────────────────────────────────────────────────────
 
   @Post('mpesa/callback')
   async mpesaCallback(@Body() body: any) {
-    this.logger.log('M-Pesa callback:', body);
+    this.logger.log('M-Pesa callback received');
 
     if (body.Body?.stkCallback) {
       const callback = body.Body.stkCallback;
@@ -70,14 +67,32 @@ export class PaymentsWebhookController {
     return { ResultCode: 0, ResultDesc: 'Accepted' };
   }
 
-  @Post('stripe/webhook')
-  async stripeWebhook(@Body() body: any, @Headers('stripe-signature') signature: string) {
-    this.logger.log('Stripe webhook received');
+  // ─── Paystack Webhook ────────────────────────────────────────────────────────
 
-    if (body.type === 'payment_intent.succeeded') {
-      const paymentIntent = body.data.object;
+  @Post('paystack/webhook')
+  async paystackWebhook(
+    @Req() req: RawBodyRequest<Request>,
+    @Body() body: any,
+    @Headers('x-paystack-signature') signature: string,
+  ) {
+    this.logger.log(`Paystack webhook: ${body.event}`);
+
+    // Verify signature using raw body
+    const rawBody = req.rawBody?.toString() ?? JSON.stringify(body);
+    const isValid = this.paymentsService.verifyPaystackSignature(rawBody, signature);
+
+    if (!isValid) {
+      this.logger.warn('Invalid Paystack webhook signature');
+      return { received: false };
+    }
+
+    if (body.event === 'charge.success') {
+      const data = body.data;
+      const reference = data.reference;
+      const orderNumber = data.metadata?.orderNumber;
+
       const payment = await this.prisma.payment.findFirst({
-        where: { transactionReference: paymentIntent.id },
+        where: { transactionReference: reference },
       });
 
       if (payment) {
@@ -97,11 +112,22 @@ export class PaymentsWebhookController {
         });
 
         await this.inventoryService.fulfillOrder(payment.orderId);
+
+        // Update transaction record
+        const transaction = await this.prisma.transaction.findFirst({
+          where: { paymentId: payment.id, provider: 'PAYSTACK' },
+        });
+        if (transaction) {
+          await this.prisma.transaction.update({
+            where: { id: transaction.id },
+            data: { status: 'COMPLETED', responsePayload: data },
+          });
+        }
+
+        this.logger.log(`Order ${orderNumber} confirmed via Paystack`);
       }
     }
 
     return { received: true };
   }
-
-
 }

@@ -31,7 +31,7 @@ enum OrderStatus {
 
 enum PaymentMethod {
   MPESA
-  STRIPE
+  PAYSTACK
   PAYPAL
   BANK_TRANSFER
 }
