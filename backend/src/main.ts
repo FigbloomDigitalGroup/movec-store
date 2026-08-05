@@ -4,7 +4,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
-import { resolve } from 'path';
 import cookieParser from 'cookie-parser';
 import * as express from 'express';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -37,7 +36,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-  app.useStaticAssets(resolve(process.cwd(), 'uploads'), { prefix: '/uploads/' });
+  // NOTE: Local /uploads/ folder removed — use Cloudinary for all media storage.
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor(), new AuditInterceptor());
