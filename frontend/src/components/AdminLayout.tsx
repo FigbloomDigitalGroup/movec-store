@@ -65,13 +65,13 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 space-y-0.5">
           {sidebarLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                 location.pathname === link.to
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white'
