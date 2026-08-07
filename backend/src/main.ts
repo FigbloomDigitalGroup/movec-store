@@ -6,14 +6,17 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import * as express from 'express';
+import { Reflector } from '@nestjs/core';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
+import { CacheControlInterceptor } from './common/interceptors/cache-control.interceptor';
 
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
+  const reflector = app.get(Reflector);
   const logger = new Logger('Bootstrap');
 
   const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
@@ -40,7 +43,11 @@ async function bootstrap() {
   // NOTE: Local /uploads/ folder removed — use Cloudinary for all media storage.
 
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor(), new AuditInterceptor());
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new AuditInterceptor(),
+    new CacheControlInterceptor(reflector),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({

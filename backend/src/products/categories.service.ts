@@ -1,14 +1,26 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: any,
+  ) {}
+
+  private async clearCategoryCache() {
+    await this.cacheManager.del('categories:all');
+  }
 
   async findAll(moduleSlug?: string) {
-    return this.prisma.category.findMany({
+    const cacheKey = moduleSlug ? `categories:module:${moduleSlug}` : 'categories:all';
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.prisma.category.findMany({
       where: moduleSlug ? { module: { slug: moduleSlug } } : undefined,
       include: { 
         children: true, 
@@ -20,6 +32,9 @@ export class CategoriesService {
       },
       orderBy: { name: 'asc' },
     });
+
+    await this.cacheManager.set(cacheKey, data, 15 * 60 * 1000);
+    return data;
   }
 
   async findOne(id: string) {
@@ -34,17 +49,22 @@ export class CategoriesService {
   async create(dto: CreateCategoryDto) {
     const existing = await this.prisma.category.findUnique({ where: { slug: dto.slug } });
     if (existing) throw new ConflictException('Slug already exists');
-    return this.prisma.category.create({ data: dto });
+    const created = await this.prisma.category.create({ data: dto });
+    await this.clearCategoryCache();
+    return created;
   }
 
   async update(id: string, dto: UpdateCategoryDto) {
     await this.findOne(id);
-    return this.prisma.category.update({ where: { id }, data: dto });
+    const updated = await this.prisma.category.update({ where: { id }, data: dto });
+    await this.clearCategoryCache();
+    return updated;
   }
 
   async remove(id: string) {
     await this.findOne(id);
     await this.prisma.category.delete({ where: { id } });
+    await this.clearCategoryCache();
     return { message: 'Category deleted' };
   }
 }

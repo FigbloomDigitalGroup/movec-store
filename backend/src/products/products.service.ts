@@ -1,8 +1,10 @@
 import {
   Injectable,
+  Inject,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -15,6 +17,7 @@ export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private cloudinary: CloudinaryService,
+    @Inject(CACHE_MANAGER) private cacheManager: any,
   ) {}
 
   private async generateSKU(brandId?: string): Promise<string> {
@@ -167,7 +170,21 @@ export class ProductsService {
     };
   }
 
+  private getProductCacheKey(slug: string) {
+    return `product:${slug}`;
+  }
+
+  private async clearProductCache(slug?: string) {
+    if (slug) {
+      await this.cacheManager.del(this.getProductCacheKey(slug));
+    }
+  }
+
   async findBySlug(slug: string) {
+    const cacheKey = this.getProductCacheKey(slug);
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
     const product = await this.prisma.product.findUnique({
       where: { slug },
       include: {
@@ -185,12 +202,15 @@ export class ProductsService {
 
     if (!product) throw new NotFoundException('Product not found');
 
-    return {
+    const result = {
       ...product,
       price: product.price.toNumber(),
       compareAtPrice: product.compareAtPrice?.toNumber(),
       categories: product.categories.map((pc) => pc.category),
     };
+
+    await this.cacheManager.set(cacheKey, result, 10 * 60 * 1000);
+    return result;
   }
 
   async create(dto: CreateProductDto) {
@@ -312,13 +332,20 @@ export class ProductsService {
       });
     }
 
-    return this.findBySlug((await this.prisma.product.findUnique({ where: { id } }))!.slug);
+    await this.clearProductCache(product.slug);
+    if (dto.slug && dto.slug !== product.slug) {
+      await this.clearProductCache(dto.slug);
+    }
+
+    const updatedProduct = await this.prisma.product.findUnique({ where: { id } });
+    return this.findBySlug(updatedProduct!.slug);
   }
 
   async remove(id: string) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
     await this.prisma.product.delete({ where: { id } });
+    await this.clearProductCache(product.slug);
     return { message: 'Product deleted' };
   }
 
@@ -355,13 +382,20 @@ export class ProductsService {
         );
       }
     }
+    await this.clearProductCache(product.slug);
     return uploaded;
   }
 
   async deleteImage(imageId: string) {
-    const image = await this.prisma.productImage.findUnique({ where: { id: imageId } });
+    const image = await this.prisma.productImage.findUnique({ 
+      where: { id: imageId },
+      include: { product: true },
+    });
     if (!image) throw new NotFoundException('Image not found');
     await this.prisma.productImage.delete({ where: { id: imageId } });
+    if (image.product) {
+      await this.clearProductCache(image.product.slug);
+    }
     return { message: 'Image deleted' };
   }
 }

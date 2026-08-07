@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ModulesService } from './modules.service';
+import { CacheControl } from '../common/decorators/cache-control.decorator';
 
 @Controller('modules')
 export class ModulesController {
@@ -7,12 +8,14 @@ export class ModulesController {
 
   /** GET /modules — list all active store modules */
   @Get()
+  @CacheControl('public, max-age=300, s-maxage=600')
   findAll() {
     return this.modulesService.findAll();
   }
 
   /** GET /modules/:slug — get one module with its categories */
   @Get(':slug')
+  @CacheControl('public, max-age=300, s-maxage=600')
   findOne(@Param('slug') slug: string) {
     return this.modulesService.findOne(slug);
   }
