@@ -286,12 +286,53 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
     sortOrder: banner?.sortOrder ?? 0,
   });
 
+  const [uploading, setUploading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(banner?.imageUrl || '');
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const { data } = await api.post('/cloudinary/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    
+    return data.url;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Upload image first if there's a new one
+      let imageUrl = data.imageUrl;
+      if (imageFile) {
+        setUploading(true);
+        try {
+          imageUrl = await uploadImage(imageFile);
+        } finally {
+          setUploading(false);
+        }
+      }
+
+      const payload = { ...data, imageUrl };
+      
       if (banner) {
-        await api.put(`/promo-banners/${banner.id}`, data);
+        await api.put(`/promo-banners/${banner.id}`, payload);
       } else {
-        await api.post('/promo-banners', data);
+        await api.post('/promo-banners', payload);
       }
     },
     onSuccess: () => {
@@ -414,18 +455,51 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
               </div>
             </div>
 
-            {/* Image URL */}
+            {/* Image Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
+                Banner Image
               </label>
-              <input
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="https://example.com/image.jpg"
-              />
+              
+              {imagePreview ? (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Banner preview"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview('');
+                      setFormData({ ...formData, imageUrl: '' });
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <FiImage size={40} className="text-gray-400 mb-2" />
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG or WEBP (MAX. 10MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                  />
+                </label>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Recommended size: 1200 × 400px for best results
+              </p>
             </div>
 
             {/* Product (for live pricing) */}
@@ -519,10 +593,10 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
             </button>
             <button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={saveMutation.isPending || uploading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
             >
-              {saveMutation.isPending ? 'Saving...' : banner ? 'Update' : 'Create'}
+              {uploading ? 'Uploading image...' : saveMutation.isPending ? 'Saving...' : banner ? 'Update' : 'Create'}
             </button>
           </div>
         </form>

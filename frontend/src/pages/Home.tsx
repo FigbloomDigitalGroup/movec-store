@@ -34,6 +34,28 @@ interface Testimonial {
   review: string;
 }
 
+interface PromoBanner {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  badge: string | null;
+  badgeColor: string | null;
+  ctaText: string;
+  ctaLink: string;
+  imageUrl: string | null;
+  productId: string | null;
+  bgColor: string;
+  textColor: string;
+  isActive: boolean;
+  sortOrder: number;
+  product?: {
+    id: string;
+    name: string;
+    price: number;
+    compareAtPrice: number | null;
+  } | null;
+}
+
 const testimonials: Testimonial[] = [
   {
     name: 'James K.',
@@ -155,6 +177,33 @@ export default function Home() {
     },
   });
 
+  // Fetch dynamic promo banners
+  const { data: promoBanners } = useQuery<PromoBanner[]>({
+    queryKey: ['promo-banners'],
+    queryFn: async () => {
+      const { data } = await api.get('/promo-banners');
+      return data;
+    },
+  });
+
+  // Use dynamic banners if available, fallback to hardcoded
+  const activeSlides = promoBanners && promoBanners.length > 0 
+    ? promoBanners.map(banner => ({
+        badge: banner.badge || '',
+        badgeBg: `bg-[${banner.badgeColor || '#10b982'}]`,
+        title: banner.title,
+        subtitle: banner.subtitle || '',
+        price: banner.product ? 'FROM' : '',
+        priceAmount: banner.product ? `KSH ${banner.product.price.toLocaleString()}` : '',
+        cta: banner.ctaText,
+        ctaLink: banner.ctaLink,
+        bg: `bg-[${banner.bgColor}]`,
+        gradientFrom: banner.bgColor,
+        imageUrl: banner.imageUrl || '',
+        textColor: banner.textColor,
+      }))
+    : heroSlides.map(slide => ({ ...slide, textColor: '#ffffff' }));
+
   // Hero carousel
   const [heroRef, heroApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 4500, stopOnInteraction: true }),
@@ -262,10 +311,11 @@ export default function Home() {
             <div className="flex-1 relative overflow-hidden rounded-lg" style={{ minHeight: 400 }}>
               <div className="embla overflow-hidden h-full" ref={heroRef}>
                 <div className="embla__container flex h-full">
-                  {heroSlides.map((slide, idx) => (
+                  {activeSlides.map((slide, idx) => (
                     <div
                       key={idx}
-                      className={`embla__slide flex-[0_0_100%] min-w-0 ${slide.bg} relative flex items-center overflow-hidden`}
+                      className={`embla__slide flex-[0_0_100%] min-w-0 relative flex items-center overflow-hidden`}
+                      style={{ backgroundColor: slide.gradientFrom }}
                     >
                       {/* Product Image */}
                       <div className="absolute right-0 top-0 bottom-0 w-3/5 flex items-center justify-center pointer-events-none select-none">
@@ -284,20 +334,38 @@ export default function Home() {
                       </div>
 
                       <div className="relative z-10 px-8 md:px-14 py-12 md:py-16 max-w-xl">
-                        <span className={`inline-block ${slide.badgeBg} text-white text-[10px] font-bold px-3 py-1.5 rounded mb-4 tracking-wider uppercase`}>
-                          {slide.badge}
-                        </span>
-                        <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
+                        {slide.badge && (
+                          <span 
+                            className={`inline-block text-white text-[10px] font-bold px-3 py-1.5 rounded mb-4 tracking-wider uppercase`}
+                            style={{ backgroundColor: slide.badgeBg.replace('bg-[', '').replace(']', '') }}
+                          >
+                            {slide.badge}
+                          </span>
+                        )}
+                        <h1 
+                          className="text-3xl md:text-5xl font-black leading-tight mb-4"
+                          style={{ color: slide.textColor || '#ffffff' }}
+                        >
                           {slide.title}
                         </h1>
-                        <p className="text-gray-300 text-sm md:text-base mb-6 whitespace-pre-line leading-relaxed max-w-md">
+                        <p 
+                          className="text-sm md:text-base mb-6 whitespace-pre-line leading-relaxed max-w-md opacity-90"
+                          style={{ color: slide.textColor || '#ffffff' }}
+                        >
                           {slide.subtitle}
                         </p>
                         
-                        <div className="mb-6">
-                          <p className="text-white text-xs font-semibold tracking-wide uppercase mb-1">{slide.price}</p>
-                          <p className="text-[#10b982] text-3xl md:text-4xl font-black">{slide.priceAmount}</p>
-                        </div>
+                        {slide.priceAmount && (
+                          <div className="mb-6">
+                            <p 
+                              className="text-xs font-semibold tracking-wide uppercase mb-1 opacity-75"
+                              style={{ color: slide.textColor || '#ffffff' }}
+                            >
+                              {slide.price}
+                            </p>
+                            <p className="text-[#10b982] text-3xl md:text-4xl font-black">{slide.priceAmount}</p>
+                          </div>
+                        )}
 
                         <Link
                           to={slide.ctaLink}
