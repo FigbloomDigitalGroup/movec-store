@@ -13,6 +13,10 @@ export class InventoryService {
     });
   }
 
+  async findWarehouses() {
+    return this.prisma.warehouse.findMany({ orderBy: { name: 'asc' } });
+  }
+
   async findByProduct(productId: string) {
     const inventory = await this.prisma.inventory.findMany({
       where: { productId },

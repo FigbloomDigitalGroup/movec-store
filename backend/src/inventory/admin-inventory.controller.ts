@@ -26,6 +26,11 @@ export class AdminInventoryController {
     return this.inventoryService.findAll();
   }
 
+  @Get('warehouses')
+  findWarehouses() {
+    return this.inventoryService.findWarehouses();
+  }
+
   @Get('low-stock')
   lowStock() {
     return this.inventoryService.lowStock();
