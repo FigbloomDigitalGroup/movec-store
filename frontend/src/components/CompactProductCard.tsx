@@ -50,7 +50,8 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
 
   // Format stock/delivery message
   const getStockMessage = () => {
-    if (product.stock && product.stock > 0) {
+    const totalStock = product.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
+    if (totalStock > 0) {
       return 'In Stock';
     }
     return 'Out of Stock';
@@ -65,6 +66,8 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
   };
 
   const discount = getDiscountPercentage();
+  const totalStock = product.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
+  const inStock = totalStock > 0;
 
   return (
     <Link
@@ -144,10 +147,10 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
 
         {/* Stock/Delivery Info */}
         <div className="flex items-center gap-1 mb-1">
-          <span className={`text-xs ${product.stock && product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+          <span className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
             ●
           </span>
-          <p className={`text-xs ${product.stock && product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+          <p className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
             {getStockMessage()}
           </p>
         </div>
