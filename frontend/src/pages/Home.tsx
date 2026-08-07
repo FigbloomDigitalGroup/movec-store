@@ -16,7 +16,7 @@ import {
   FiPackage,
 } from 'react-icons/fi';
 import { FaWhatsapp, FaBuilding } from 'react-icons/fa';
-import ProductCard from '../components/ProductCard';
+import CompactProductCard from '../components/CompactProductCard';
 import { motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -558,10 +558,10 @@ export default function Home() {
             {/* Products Carousel */}
             <div className="lg:col-span-4 relative overflow-hidden">
               <div className="embla" ref={bestSellersRef}>
-                <div className="embla__container flex gap-4" style={{ cursor: 'default' }}>
+                <div className="embla__container flex gap-2" style={{ cursor: 'default' }}>
                   {(bestSellers ?? Array(4).fill(null)).map((product, idx) =>
                     product ? (
-                      <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_50%] min-w-0" style={{ cursor: 'default' }}>
+                      <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ cursor: 'default' }}>
                         <motion.div
                           initial={{ opacity: 0, y: 15 }}
                           whileInView={{ opacity: 1, y: 0 }}
@@ -569,12 +569,12 @@ export default function Home() {
                           transition={{ duration: 0.35, delay: idx * 0.07 }}
                           className="h-full"
                         >
-                          <ProductCard product={product} />
+                          <CompactProductCard product={product} />
                         </motion.div>
                       </div>
                     ) : (
-                      <div key={idx} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_50%] min-w-0">
-                        <div className="bg-white rounded-xl border border-gray-200 h-64 animate-pulse" />
+                      <div key={idx} className="embla__slide flex-[0_0_140px] min-w-0">
+                        <div className="bg-white rounded-lg border border-gray-200 h-52 animate-pulse" />
                       </div>
                     )
                   )}
@@ -705,9 +705,9 @@ export default function Home() {
             </div>
             <div className="relative overflow-hidden">
               <div className="embla" ref={featuredRef}>
-                <div className="embla__container flex gap-4" style={{ cursor: 'default' }}>
+                <div className="embla__container flex gap-2" style={{ cursor: 'default' }}>
                   {featured.slice(0, 10).map((product, idx) => (
-                    <div key={product.id} className="embla__slide flex-[0_0_100%] sm:flex-[0_0_50%] md:flex-[0_0_33.333%] lg:flex-[0_0_20%] min-w-0" style={{ cursor: 'default' }}>
+                    <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ cursor: 'default' }}>
                       <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -715,7 +715,7 @@ export default function Home() {
                         transition={{ duration: 0.35, delay: idx * 0.05 }}
                         className="h-full"
                       >
-                        <ProductCard product={product} />
+                        <CompactProductCard product={product} />
                       </motion.div>
                     </div>
                   ))}

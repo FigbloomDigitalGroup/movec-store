@@ -1,0 +1,532 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { FiPlus, FiEdit2, FiTrash2, FiMove, FiImage, FiEye, FiEyeOff } from 'react-icons/fi';
+import api, { getErrorMessage } from '../../lib/api';
+import toast from 'react-hot-toast';
+import type { Product } from '../../types';
+
+interface PromoBanner {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  badge: string | null;
+  badgeColor: string | null;
+  ctaText: string;
+  ctaLink: string;
+  imageUrl: string | null;
+  productId: string | null;
+  bgColor: string;
+  textColor: string;
+  isActive: boolean;
+  sortOrder: number;
+  product?: Product | null;
+}
+
+export default function AdminBanners() {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<PromoBanner | null>(null);
+
+  // Fetch banners
+  const { data: banners, isLoading } = useQuery<PromoBanner[]>({
+    queryKey: ['admin-banners'],
+    queryFn: async () => {
+      const { data } = await api.get('/promo-banners/admin/all');
+      return data;
+    },
+  });
+
+  // Fetch products for dropdown
+  const { data: productsData } = useQuery({
+    queryKey: ['products-for-banners'],
+    queryFn: async () => {
+      const { data } = await api.get('/products?limit=100');
+      return data;
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/promo-banners/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['promo-banners'] });
+      toast.success('Banner deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  // Toggle active mutation
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      await api.put(`/promo-banners/${id}`, { isActive: !isActive });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['promo-banners'] });
+      toast.success('Banner status updated');
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  const handleEdit = (banner: PromoBanner) => {
+    setEditingBanner(banner);
+    setIsModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingBanner(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleToggleActive = (id: string, isActive: boolean) => {
+    toggleActiveMutation.mutate({ id, isActive });
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading banners...</div>;
+  }
+
+  const products = productsData?.data || [];
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Homepage Banners</h1>
+          <p className="text-gray-500 text-sm">Manage hero carousel banners on the homepage</p>
+        </div>
+        <button
+          onClick={handleCreate}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+        >
+          <FiPlus size={18} />
+          Add Banner
+        </button>
+      </div>
+
+      {/* Banners Grid */}
+      <div className="grid grid-cols-1 gap-4">
+        {banners && banners.length > 0 ? (
+          banners
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((banner) => (
+              <div
+                key={banner.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
+                  {/* Preview */}
+                  <div className="md:col-span-1">
+                    <div
+                      className="h-32 rounded-lg flex items-center justify-center relative overflow-hidden"
+                      style={{ backgroundColor: banner.bgColor }}
+                    >
+                      {banner.imageUrl ? (
+                        <img
+                          src={banner.imageUrl}
+                          alt={banner.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <FiImage size={32} className="text-white/50" />
+                      )}
+                      {!banner.isActive && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">Inactive</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="md:col-span-2">
+                    <div className="flex items-start gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <FiMove className="text-gray-400" size={16} />
+                        <span className="text-xs text-gray-500 font-medium">#{banner.sortOrder}</span>
+                      </div>
+                      {banner.badge && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded text-white font-medium"
+                          style={{ backgroundColor: banner.badgeColor || '#10b982' }}
+                        >
+                          {banner.badge}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <h3 className="font-bold text-lg mb-1" style={{ color: banner.textColor }}>
+                      {banner.title}
+                    </h3>
+                    
+                    {banner.subtitle && (
+                      <p className="text-sm text-gray-600 mb-2">{banner.subtitle}</p>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                      <span className="bg-gray-100 px-2 py-1 rounded">
+                        CTA: {banner.ctaText}
+                      </span>
+                      <span className="bg-gray-100 px-2 py-1 rounded">
+                        Link: {banner.ctaLink}
+                      </span>
+                      {banner.product && (
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          Product: {banner.product.name} (KES {banner.product.price.toLocaleString()})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="md:col-span-1 flex md:flex-col gap-2 justify-end">
+                    <button
+                      onClick={() => handleToggleActive(banner.id, banner.isActive)}
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition font-medium text-sm ${
+                        banner.isActive
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                      title={banner.isActive ? 'Deactivate' : 'Activate'}
+                    >
+                      {banner.isActive ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+                      {banner.isActive ? 'Active' : 'Inactive'}
+                    </button>
+                    
+                    <button
+                      onClick={() => handleEdit(banner)}
+                      className="flex items-center justify-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 transition font-medium text-sm"
+                    >
+                      <FiEdit2 size={16} />
+                      Edit
+                    </button>
+                    
+                    <button
+                      onClick={() => handleDelete(banner.id, banner.title)}
+                      className="flex items-center justify-center gap-2 bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition font-medium text-sm"
+                    >
+                      <FiTrash2 size={16} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <FiImage size={48} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No banners yet</h3>
+            <p className="text-gray-500 mb-4">Create your first homepage banner to get started</p>
+            <button
+              onClick={handleCreate}
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+            >
+              <FiPlus size={18} />
+              Add Banner
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <BannerModal
+          banner={editingBanner}
+          products={products}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingBanner(null);
+          }}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+            queryClient.invalidateQueries({ queryKey: ['promo-banners'] });
+            setIsModalOpen(false);
+            setEditingBanner(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+interface BannerModalProps {
+  banner: PromoBanner | null;
+  products: Product[];
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps) {
+  const [formData, setFormData] = useState({
+    title: banner?.title || '',
+    subtitle: banner?.subtitle || '',
+    badge: banner?.badge || '',
+    badgeColor: banner?.badgeColor || '#10b982',
+    ctaText: banner?.ctaText || 'Shop Now',
+    ctaLink: banner?.ctaLink || '/products',
+    imageUrl: banner?.imageUrl || '',
+    productId: banner?.productId || '',
+    bgColor: banner?.bgColor || '#10b982',
+    textColor: banner?.textColor || '#ffffff',
+    isActive: banner?.isActive ?? true,
+    sortOrder: banner?.sortOrder ?? 0,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (banner) {
+        await api.put(`/promo-banners/${banner.id}`, data);
+      } else {
+        await api.post('/promo-banners', data);
+      }
+    },
+    onSuccess: () => {
+      toast.success(banner ? 'Banner updated successfully' : 'Banner created successfully');
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveMutation.mutate({
+      ...formData,
+      productId: formData.productId || null,
+      subtitle: formData.subtitle || null,
+      badge: formData.badge || null,
+      badgeColor: formData.badgeColor || null,
+      imageUrl: formData.imageUrl || null,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit}>
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+            <h2 className="text-xl font-bold">
+              {banner ? 'Edit Banner' : 'Create Banner'}
+            </h2>
+          </div>
+
+          {/* Form */}
+          <div className="p-6 space-y-4">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Title *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g., Starlink Gen 3 Now Available!"
+              />
+            </div>
+
+            {/* Subtitle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                value={formData.subtitle}
+                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g., Get high-speed internet anywhere"
+              />
+            </div>
+
+            {/* Badge */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Badge Text
+                </label>
+                <input
+                  type="text"
+                  value={formData.badge}
+                  onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., NEW ARRIVAL"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Badge Color
+                </label>
+                <input
+                  type="color"
+                  value={formData.badgeColor}
+                  onChange={(e) => setFormData({ ...formData, badgeColor: e.target.value })}
+                  className="w-full h-10 px-1 py-1 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Button Text *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.ctaText}
+                  onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., Shop Now"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Button Link *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.ctaLink}
+                  onChange={(e) => setFormData({ ...formData, ctaLink: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., /products/starlink"
+                />
+              </div>
+            </div>
+
+            {/* Image URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image URL
+              </label>
+              <input
+                type="url"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+
+            {/* Product (for live pricing) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Linked Product (Optional - for live pricing)
+              </label>
+              <select
+                value={formData.productId}
+                onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">None - manual price</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} - KES {product.price.toLocaleString()}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Link a product to show its live price on the banner
+              </p>
+            </div>
+
+            {/* Colors */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Background Color *
+                </label>
+                <input
+                  type="color"
+                  value={formData.bgColor}
+                  onChange={(e) => setFormData({ ...formData, bgColor: e.target.value })}
+                  className="w-full h-10 px-1 py-1 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Text Color *
+                </label>
+                <input
+                  type="color"
+                  value={formData.textColor}
+                  onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
+                  className="w-full h-10 px-1 py-1 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Sort Order & Active Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sort Order *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={formData.sortOrder}
+                  onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Active (visible on homepage)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saveMutation.isPending}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
+            >
+              {saveMutation.isPending ? 'Saving...' : banner ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

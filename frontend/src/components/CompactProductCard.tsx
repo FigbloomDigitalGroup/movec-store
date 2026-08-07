@@ -73,17 +73,17 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
     <Link
       to={`/products/${product.slug}`}
       className="block bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200 flex-shrink-0 relative"
-      style={{ width: '180px' }}
+      style={{ width: '140px' }}
     >
       {/* Discount Badge */}
       {discount > 0 && (
-        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
-          {discount}% OFF
+        <div className="absolute top-1 left-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded z-10">
+          -{discount}%
         </div>
       )}
 
       {/* Fixed Image Container */}
-      <div className="relative bg-white" style={{ height: '160px', padding: '12px' }}>
+      <div className="relative bg-white" style={{ height: '120px', padding: '8px' }}>
         <div className="w-full h-full flex items-center justify-center">
           {mainImage ? (
             <img
@@ -91,78 +91,77 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
               alt={product.name}
               loading="lazy"
               className="max-w-full max-h-full object-contain"
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
             />
           ) : (
-            <FiShoppingCart className="text-gray-300" size={48} />
+            <FiShoppingCart className="text-gray-300" size={32} />
           )}
         </div>
 
         {/* Add to Cart Button - Bottom Right Corner */}
         <button
           onClick={handleAddToCart}
-          className="absolute bottom-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-sm transition-colors duration-200 z-10"
+          className="absolute bottom-1 right-1 w-6 h-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-sm transition-colors duration-200 z-10"
           aria-label="Add to cart"
         >
-          <FiPlus size={16} strokeWidth={3} />
+          <FiPlus size={12} strokeWidth={3} />
         </button>
       </div>
 
       {/* Product Info */}
-      <div className="px-3 pb-3 pt-2">
+      <div className="px-2 pb-2 pt-1.5">
         {/* Product Name - Truncated to 2 lines */}
-        <h3 className="text-sm font-medium text-gray-900 mb-1 leading-tight" style={{ 
+        <h3 className="text-xs font-medium text-gray-900 mb-0.5 leading-tight" style={{ 
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
-          minHeight: '2.5rem'
+          minHeight: '2rem'
         }}>
           {product.name}
         </h3>
 
         {/* Brand/Category - if available */}
         {product.brand && (
-          <p className="text-xs text-gray-500 mb-1 truncate">
+          <p className="text-[10px] text-gray-500 mb-0.5 truncate">
             {product.brand.name}
           </p>
         )}
 
         {/* Price Section */}
-        <div className="mb-1">
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-base font-bold text-gray-900">
-              {product.price.toLocaleString()}
+        <div className="mb-0.5">
+          <div className="flex items-baseline gap-1 flex-wrap">
+            <span className="text-sm font-bold text-gray-900">
+              KES {product.price.toLocaleString()}
             </span>
-            <span className="text-xs text-gray-600">KES</span>
           </div>
           {product.compareAtPrice && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-400 line-through">
-                {product.compareAtPrice.toLocaleString()}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-gray-400 line-through">
+                KES {product.compareAtPrice.toLocaleString()}
               </span>
-              <span className="text-xs text-gray-600">KES</span>
             </div>
           )}
         </div>
 
         {/* Stock/Delivery Info */}
-        <div className="flex items-center gap-1 mb-1">
-          <span className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+        <div className="flex items-center gap-0.5 mb-0.5">
+          <span className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>
             ●
           </span>
-          <p className={`text-xs ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+          <p className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>
             {getStockMessage()}
           </p>
         </div>
 
         {/* Rating - if available (placeholder for now) */}
-        <div className="flex items-center gap-1 text-xs">
+        <div className="flex items-center gap-0.5 text-[10px]">
           <div className="flex items-center gap-0.5 text-yellow-400">
-            <FiStar size={12} className="fill-yellow-400" />
-            <FiStar size={12} className="fill-yellow-400" />
-            <FiStar size={12} className="fill-yellow-400" />
-            <FiStar size={12} className="fill-yellow-400" />
-            <FiStar size={12} className="text-gray-300" />
+            <FiStar size={10} className="fill-yellow-400" />
+            <FiStar size={10} className="fill-yellow-400" />
+            <FiStar size={10} className="fill-yellow-400" />
+            <FiStar size={10} className="fill-yellow-400" />
+            <FiStar size={10} className="text-gray-300" />
           </div>
           <span className="text-gray-500">(4.0)</span>
         </div>

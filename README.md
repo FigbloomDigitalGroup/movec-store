@@ -1,61 +1,79 @@
 # Movec Store
 
-Movec Store is a modern e-commerce platform for technology products and services, including Starlink internet solutions, CCTV surveillance systems, networking equipment, and smart devices.
+E-commerce platform for Starlink and CCTV products built with NestJS and React.
 
-## Project Structure
+## 🚀 Quick Start
 
-```
-movec-store/
-├── backend/     # NestJS API (Node.js + Prisma + PostgreSQL)
-└── frontend/    # React + Vite frontend
-```
-
-## Tech Stack
-
-### Frontend
-- React 19 + TypeScript
-- Vite
-- TailwindCSS
-- React Router DOM
-- Zustand (state management)
-- Framer Motion + GSAP (animations)
-- React Query
-
-### Backend
-- NestJS (Node.js)
-- Prisma ORM
-- PostgreSQL
-- Stripe, M-Pesa, PayPal payments
-- Brevo / Nodemailer (email)
-- Cloudinary (image uploads)
-- JWT authentication
-
-## Getting Started
-
-### Backend
 ```bash
+# Clone repository
+git clone <repository-url>
+cd movec-store
+
+# Backend setup
 cd backend
 npm install
-npx prisma migrate dev
+npx prisma migrate deploy
+npx prisma generate
+npx prisma db seed
 npm run start:dev
-```
 
-### Frontend
-```bash
+# Frontend setup (new terminal)
 cd frontend
 npm install
 npm run dev
 ```
 
-## Features
-- Product catalog (Starlink kits, CCTV systems, networking equipment, accessories)
-- Shopping cart & wishlist
-- Multiple payment methods (M-Pesa, Stripe, PayPal, bank transfer)
-- Order management & tracking
-- Installation service booking
-- Admin dashboard with reports & inventory management
-- User authentication & profiles
-- Email notifications
+Visit:
+- **Frontend:** http://localhost:5173
+- **Backend:** http://localhost:3000
+- **Admin:** http://localhost:5173/admin
 
-## License
-UNLICENSED — Proprietary
+Default admin: `admin@movec.co.ke` / `admin123`
+
+## 📚 Documentation
+
+Complete documentation is in the [`docs/`](./docs) folder:
+
+- **[Project Setup](./docs/01-PROJECT-SETUP.md)** - Installation & configuration
+- **[Deployment](./docs/02-DEPLOYMENT.md)** - Production deployment
+- **[Homepage Banners](./docs/03-HOMEPAGE-BANNERS.md)** - Banner management
+- **[Product Cards](./docs/04-PRODUCT-CARDS.md)** - Product UI components
+- **[Database](./docs/06-DATABASE.md)** - Schema & migrations
+
+## 🛠️ Tech Stack
+
+### Backend
+- NestJS - REST API framework
+- PostgreSQL - Database
+- Prisma - ORM
+- JWT - Authentication
+- Cloudinary - Image storage
+
+### Frontend
+- React 18 + TypeScript
+- React Router - Navigation
+- React Query - Data fetching
+- Tailwind CSS - Styling
+- Framer Motion - Animations
+
+## ✨ Features
+
+- 🛍️ Product catalog with categories
+- 🛒 Shopping cart & wishlist
+- 💳 Multiple payment methods (M-Pesa, Paystack, PayPal)
+- 📦 Order tracking
+- 👤 User authentication
+- 🎨 Admin dashboard
+- 📱 Responsive design
+- 🎯 Dynamic homepage banners
+- 📸 Image management with Cloudinary
+- 🔍 Product search & filters
+
+## 🌐 Live Sites
+
+- **Frontend:** https://your-site.vercel.app
+- **Backend:** https://your-api.onrender.com
+
+## 📝 License
+
+Proprietary - All rights reserved
