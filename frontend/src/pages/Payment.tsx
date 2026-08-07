@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import { FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
 
 export default function PaymentPage() {
@@ -31,7 +32,7 @@ export default function PaymentPage() {
             setCompleted(true);
         },
         onError: (err: any) => {
-            alert(err.response?.data?.error?.message || 'M-Pesa payment failed. Please try again.');
+            toast.error(getErrorMessage(err));
         },
     });
 
@@ -58,7 +59,7 @@ export default function PaymentPage() {
             });
         },
         onError: (err: any) => {
-            alert(err.response?.data?.message || 'Failed to initialize Paystack');
+            toast.error(getErrorMessage(err));
             setProcessing(false);
         }
     });
@@ -71,7 +72,7 @@ export default function PaymentPage() {
             }
         },
         onError: (err: any) => {
-            alert(err.response?.data?.message || 'Failed to initialize PayPal');
+            toast.error(getErrorMessage(err));
             setProcessing(false);
         }
     });

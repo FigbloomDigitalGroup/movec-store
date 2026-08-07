@@ -158,9 +158,10 @@ export class PaymentsService {
       });
 
       return { authorizationUrl: authorization_url, accessCode: access_code, reference };
-    } catch (error) {
+    } catch (error: any) {
+      const paystackMsg = error.response?.data?.message || error.message || 'Unknown error';
       this.logger.error('Paystack error:', error.response?.data || error.message);
-      throw new BadRequestException('Failed to initiate Paystack payment');
+      throw new BadRequestException(`Paystack error: ${paystackMsg}`);
     }
   }
 
