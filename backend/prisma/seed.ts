@@ -485,6 +485,69 @@ async function main() {
       isActive: true,
     },
   });
+
+  // ─── Promo Banners ─────────────────────────────────────────────
+  console.log('🎨 Seeding promo banners...');
+  
+  await prisma.promoBanner.upsert({
+    where: { id: 'banner-starlink-gen3' },
+    update: {},
+    create: {
+      id: 'banner-starlink-gen3',
+      title: 'STARLINK GEN 3 KIT',
+      subtitle: 'Ultra-fast satellite internet anywhere\nfor homes, businesses & remote locations.',
+      badge: 'OFFICIAL STARLINK PARTNER',
+      badgeColor: '#10b982',
+      ctaText: 'SHOP STARLINK',
+      ctaLink: '/solutions/starlink',
+      bgColor: '#1a2332',
+      textColor: '#ffffff',
+      imageUrl: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=800&q=80',
+      productId: prod1.id,
+      isActive: true,
+      sortOrder: 0,
+    },
+  });
+
+  await prisma.promoBanner.upsert({
+    where: { id: 'banner-cctv-ai' },
+    update: {},
+    create: {
+      id: 'banner-cctv-ai',
+      title: 'AI CCTV SURVEILLANCE',
+      subtitle: 'Professional HD and 4K security camera systems\nwith remote monitoring, night vision & smart detection.',
+      badge: 'AI POWERED SECURITY',
+      badgeColor: '#fc6501',
+      ctaText: 'SHOP CCTV',
+      ctaLink: '/solutions/cctv',
+      bgColor: '#1a1f28',
+      textColor: '#ffffff',
+      imageUrl: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&q=80',
+      isActive: true,
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.promoBanner.upsert({
+    where: { id: 'banner-installation' },
+    update: {},
+    create: {
+      id: 'banner-installation',
+      title: 'PROFESSIONAL INSTALLATION',
+      subtitle: 'Expert Starlink and CCTV installation with\nnationwide coverage, clean cabling & after-sales support.',
+      badge: 'CERTIFIED INSTALLERS',
+      badgeColor: '#10b982',
+      ctaText: 'BOOK INSTALLATION',
+      ctaLink: '/installation',
+      bgColor: '#1a2230',
+      textColor: '#ffffff',
+      imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80',
+      isActive: true,
+      sortOrder: 2,
+    },
+  });
+
+  console.log('✅ Promo banners seeded successfully!');
 }
 
 main()

@@ -31,6 +31,7 @@ enum OrderStatus {
 
 enum PaymentMethod {
   MPESA
+  STRIPE
   PAYSTACK
   PAYPAL
   BANK_TRANSFER
@@ -210,6 +211,7 @@ model Product {
   cartItems      CartItem[]
   wishlistItems  WishlistItem[]
   promotionProducts PromotionProduct[]
+  promoBanners   PromoBanner[]
 
   @@index([slug])
   @@index([brandId])
@@ -663,4 +665,28 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PromoBanner {
+  id          String   @id @default(uuid())
+  title       String
+  subtitle    String?
+  badge       String?
+  badgeColor  String?  @default("#10b982")
+  ctaText     String   @default("Shop Now")
+  ctaLink     String
+  imageUrl    String?
+  productId   String?
+  bgColor     String   @default("#1a2332")
+  textColor   String   @default("#ffffff")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([isActive])
+  @@index([sortOrder])
 }

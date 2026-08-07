@@ -39,13 +39,13 @@ export default function Products() {
     <div className="min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full px-4 py-8">
           <h1 className="text-3xl font-section-title text-gray-900 mb-2">Products</h1>
           <p className="text-gray-700">Browse our full catalog of Starlink and CCTV products</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 py-8">
         {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">

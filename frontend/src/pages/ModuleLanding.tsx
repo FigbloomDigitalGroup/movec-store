@@ -242,7 +242,7 @@ export default function ModuleLanding() {
         <div className={`absolute inset-0 bg-gradient-to-r ${theme.banner}`} />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(255,255,255,0.04),_transparent_60%)]" />
 
-        <div className="relative max-w-7xl mx-auto px-4 py-16">
+        <div className="relative w-full px-4 py-16">
           <Link to="/solutions" className="inline-flex items-center gap-1.5 text-white/50 hover:text-white/80 text-sm mb-6 transition-colors">
             <FiArrowLeft size={16} />
             All Solutions
@@ -346,7 +346,7 @@ export default function ModuleLanding() {
       {moduleSlug === 'cctv' && (
         <>
           {/* Product Grid */}
-          <div id="products-grid" className="max-w-7xl mx-auto px-4 py-8 bg-white">
+          <div id="products-grid" className="w-full px-4 py-8 bg-white">
             {/* Search + filter toggle */}
             <div className="flex gap-3 mb-6">
               <div className="relative flex-1 max-w-md">
@@ -477,7 +477,7 @@ export default function ModuleLanding() {
 
           {/* Key Benefits */}
           <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Key Benefits</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -552,7 +552,7 @@ export default function ModuleLanding() {
 
           {/* Why Choose Our CCTV Solutions */}
           <section className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Our CCTV Solutions?</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -586,7 +586,7 @@ export default function ModuleLanding() {
 
           {/* Perfect For */}
           <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perfect For</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -620,7 +620,7 @@ export default function ModuleLanding() {
 
           {/* Smart Features Table */}
           <section className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Smart Features Available</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -665,7 +665,7 @@ export default function ModuleLanding() {
 
           {/* Why Buy From Us */}
           <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl p-8 md:p-12 text-white">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>
@@ -731,7 +731,7 @@ export default function ModuleLanding() {
       {moduleSlug === 'starlink' && (
         <>
           {/* Product Grid */}
-          <div id="products-grid" className="max-w-7xl mx-auto px-4 py-8 bg-white">
+          <div id="products-grid" className="w-full px-4 py-8 bg-white">
             {/* Search + filter toggle */}
             <div className="flex gap-3 mb-6">
               <div className="relative flex-1 max-w-md">
@@ -862,7 +862,7 @@ export default function ModuleLanding() {
 
           {/* Why Choose Starlink */}
           <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Starlink?</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -917,7 +917,7 @@ export default function ModuleLanding() {
 
           {/* Perfect For */}
           <section className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perfect For</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -949,7 +949,7 @@ export default function ModuleLanding() {
 
           {/* What Can You Do */}
           <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Can You Do?</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -983,7 +983,7 @@ export default function ModuleLanding() {
 
           {/* What's Included */}
           <section className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What's Included</h2>
                 <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -1016,7 +1016,7 @@ export default function ModuleLanding() {
 
           {/* Why Buy From Us */}
           <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="bg-gradient-to-br from-orange-500 to-green-600 rounded-3xl p-8 md:p-12 text-white">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>
@@ -1112,7 +1112,7 @@ export default function ModuleLanding() {
 
           {/* Trust Signals */}
           <section className="py-16 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
                   { icon: FiLock, text: 'Secure Payments' },
@@ -1137,7 +1137,7 @@ export default function ModuleLanding() {
 
       {/* Product grid for other modules (not CCTV or Starlink) */}
       {moduleSlug !== 'cctv' && moduleSlug !== 'starlink' && (
-        <div id="products-grid" className="max-w-7xl mx-auto px-4 py-8">
+        <div id="products-grid" className="w-full px-4 py-8">
           {/* Search + filter toggle */}
           <div className="flex gap-3 mb-6">
             <div className="relative flex-1 max-w-md">

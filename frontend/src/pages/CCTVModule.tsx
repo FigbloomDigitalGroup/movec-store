@@ -7,7 +7,7 @@ export default function CCTVModule() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
@@ -51,7 +51,7 @@ export default function CCTVModule() {
 
       {/* Key Benefits */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Key Benefits</h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -126,7 +126,7 @@ export default function CCTVModule() {
 
       {/* Why Choose Our CCTV Solutions */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Our CCTV Solutions?</h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -160,7 +160,7 @@ export default function CCTVModule() {
 
       {/* Perfect For */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perfect For</h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -194,7 +194,7 @@ export default function CCTVModule() {
 
       {/* Smart Features Table */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Smart Features Available</h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
@@ -239,7 +239,7 @@ export default function CCTVModule() {
 
       {/* Why Buy From Us */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl p-8 md:p-12 text-white">
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>

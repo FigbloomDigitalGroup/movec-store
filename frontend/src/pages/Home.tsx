@@ -230,7 +230,7 @@ export default function Home() {
           HERO — Sidebar + Carousel
       ══════════════════════════════════════ */}
       <section className="bg-white border-b border-gray-200 pt-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <div className="flex gap-4">
 
             {/* Category Sidebar */}
@@ -348,7 +348,7 @@ export default function Home() {
           SERVICE HIGHLIGHTS
       ══════════════════════════════════════ */}
       <section className="bg-[#0a1628] border-b border-gray-800 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
             {/* 100% Authentic Products */}
@@ -428,7 +428,7 @@ export default function Home() {
           ADDITIONAL SERVICE HIGHLIGHTS
       ══════════════════════════════════════ */}
       <section className="bg-white border-b border-gray-200 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
             {/* Installation */}
@@ -497,7 +497,7 @@ export default function Home() {
           FEATURED BRANDS
       ══════════════════════════════════════ */}
       <section className="bg-white border-b border-gray-200 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <h2 className="text-center text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">
             Featured Brands
           </h2>
@@ -522,7 +522,7 @@ export default function Home() {
           BEST SELLERS + HELP SIDEBAR
       ══════════════════════════════════════ */}
       <section className="py-10 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <span className="w-1 h-6 bg-[#fc6501] rounded-full inline-block" />
@@ -616,7 +616,7 @@ export default function Home() {
           CATEGORY SHOP CARDS
       ══════════════════════════════════════ */}
       <section className="py-10 bg-white border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
             <Link to="/solutions/starlink" className="group bg-gray-50 hover:bg-[#10b982]/5 border border-gray-200 hover:border-[#10b982] rounded-xl p-5 transition flex flex-col justify-between min-h-[130px]">
@@ -672,7 +672,7 @@ export default function Home() {
       ══════════════════════════════════════ */}
       {featured && featured.length > 0 && (
         <section className="py-10 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <span className="w-1 h-6 bg-[#10b982] rounded-full inline-block" />
@@ -730,7 +730,7 @@ export default function Home() {
           VIEW ALL PRODUCTS BANNER
       ══════════════════════════════════════ */}
       <section className="py-10 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -787,7 +787,7 @@ export default function Home() {
           TESTIMONIALS
       ══════════════════════════════════════ */}
       <section className="py-12 bg-white border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">What Our Customers Say</h2>
             <div className="flex items-center justify-center gap-6 mt-4 text-center">

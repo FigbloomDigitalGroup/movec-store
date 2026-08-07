@@ -20,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { EmailModule } from './email/email.module';
 import { StoreModulesModule } from './modules/modules.module';
+import { PromoBannersModule } from './promo-banners/promo-banners.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -58,6 +59,7 @@ import { AppService } from './app.service';
     ReportsModule,
     EmailModule,
     StoreModulesModule,
+    PromoBannersModule,
   ],
 })
 export class AppModule {}

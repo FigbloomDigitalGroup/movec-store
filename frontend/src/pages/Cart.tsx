@@ -42,12 +42,12 @@ export default function CartPage() {
     return (
       <div className="min-h-screen">
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="w-full px-4 py-8">
             <Skeleton className="h-10 w-48 mb-2" />
             <Skeleton className="h-5 w-96" />
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
               {[1, 2, 3].map((i) => (
@@ -97,7 +97,7 @@ export default function CartPage() {
     <div className="min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full px-4 py-8">
           <h1 className="text-3xl font-section-title text-gray-900 mb-2">Shopping Cart</h1>
           {!isAuthenticated && (
             <p className="text-gray-700 text-sm">
@@ -111,7 +111,7 @@ export default function CartPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 py-8">
         {!items.length ? (
           <Card>
             <CardBody className="text-center py-16">

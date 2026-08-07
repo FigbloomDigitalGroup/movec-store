@@ -129,7 +129,7 @@ export default function Modules() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-blue-700">
               <FiGrid size={18} />
@@ -145,7 +145,7 @@ export default function Modules() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
         {isError && (
           <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-800">
             Could not load the latest catalog. Showing available solutions — product counts may update when you open each module.
