@@ -5,9 +5,10 @@ import { FiShoppingCart, FiHeart, FiChevronLeft, FiChevronRight } from 'react-ic
 import Card, { CardBody } from './ui/Card';
 import { useAuthStore } from '../store/authStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
+import toast from 'react-hot-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -27,6 +28,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast.success(`Added ${product.name} to cart`);
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -36,6 +41,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+      toast.success(`Added ${product.name} to wishlist`);
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
     },
   });
 

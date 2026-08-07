@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
@@ -36,6 +37,10 @@ export default function ProductDetail() {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       setAddedToCart(true);
       setTimeout(() => setAddedToCart(false), 2000);
+      toast.success(`Added ${product.name} to cart`);
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -45,6 +50,10 @@ export default function ProductDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+      toast.success('Wishlist updated');
+    },
+    onError: (error: any) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
