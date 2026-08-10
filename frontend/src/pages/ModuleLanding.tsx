@@ -741,6 +741,75 @@ export default function ModuleLanding() {
             </div>
           </section>
 
+          {/* CCTV FAQ Section */}
+          <section className="py-20 bg-white">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+                <p className="text-xl text-gray-700">
+                  Everything you need to know about our CCTV security systems
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    question: 'What is an intelligent CCTV system?',
+                    answer: 'An intelligent CCTV system uses features such as motion detection, person and vehicle recognition, intrusion alerts, remote viewing, and recording to improve security monitoring.'
+                  },
+                  {
+                    question: 'Can I view my CCTV cameras remotely?',
+                    answer: 'Yes. Most of our CCTV systems support secure remote viewing through a mobile app or computer, provided the system has an internet connection.'
+                  },
+                  {
+                    question: 'Do CCTV cameras record at night?',
+                    answer: 'Yes. Many models include infrared night vision, while selected models offer full-colour night vision for clearer low-light footage.'
+                  },
+                  {
+                    question: 'How long is CCTV footage stored?',
+                    answer: 'Storage time depends on the number of cameras, video quality, recording schedule, and hard-drive capacity. We can recommend the right storage size for your needs.'
+                  },
+                  {
+                    question: 'Do you provide CCTV installation?',
+                    answer: 'Yes. We offer professional installation, configuration, testing, and user guidance for homes, shops, offices, schools, and other premises.'
+                  },
+                  {
+                    question: 'What products do you sell?',
+                    answer: 'We supply Starlink internet kits, accessories, mounting solutions, and intelligent CCTV systems including cameras, NVRs, storage devices, and installation accessories.'
+                  },
+                  {
+                    question: 'What payment methods do you accept?',
+                    answer: 'We accept the payment options displayed at checkout. For large installations or business orders, please contact us for a quotation.'
+                  },
+                  {
+                    question: 'How long does delivery take?',
+                    answer: 'Delivery times depend on product availability and your location. Estimated delivery details are provided during checkout or upon confirmation of your order.'
+                  },
+                  {
+                    question: 'What is your return and warranty policy?',
+                    answer: 'Eligible products may be returned according to our return policy. Products are covered by applicable manufacturer warranties; please retain your receipt and original packaging.'
+                  },
+                  {
+                    question: 'Can I get a quotation for multiple items or a full installation?',
+                    answer: 'Yes. Send us your requirements, location, and preferred products, and we will prepare a tailored quotation.'
+                  },
+                  {
+                    question: 'How can I get technical support?',
+                    answer: 'Contact our support team with your order number, product model, and a brief description of the issue. We will guide you through troubleshooting or arrange further assistance.'
+                  }
+                ].map((faq, index) => (
+                  <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                    <h3 className="font-semibold text-lg mb-2 text-gray-900 flex items-center gap-2">
+                      <FiHelpCircle className="text-blue-600" />
+                      {faq.question}
+                    </h3>
+                    <p className="text-gray-700 text-sm leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
           {/* CTA Section */}
           <section className="py-20 bg-gray-900 text-white">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -1091,27 +1160,47 @@ export default function ModuleLanding() {
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
                 <p className="text-xl text-gray-700">
-                  Common questions about Starlink
+                  Common questions about Starlink satellite internet
                 </p>
               </div>
 
               <div className="space-y-4">
                 {[
                   {
-                    question: 'Do I need fiber?',
-                    answer: 'No. Starlink connects via satellites, so it doesn\'t require fiber or fixed-line infrastructure.'
+                    question: 'What products do you sell?',
+                    answer: 'We supply Starlink internet kits, accessories, mounting solutions, and intelligent CCTV systems including cameras, NVRs, storage devices, and installation accessories.'
                   },
                   {
-                    question: 'Can I use it in rural areas?',
-                    answer: 'Yes. Starlink is designed to provide internet access in areas where traditional broadband is limited.'
+                    question: 'Do you sell genuine Starlink equipment?',
+                    answer: 'Yes. We provide genuine Starlink hardware and compatible accessories. Product availability may vary by location.'
                   },
                   {
-                    question: 'Can multiple devices connect?',
-                    answer: 'Yes. The included Wi-Fi router supports multiple connected devices.'
+                    question: 'Does Starlink work in my area?',
+                    answer: 'Starlink coverage depends on your service address. Contact us with your location and we will help you confirm availability before purchase.'
                   },
                   {
-                    question: 'Is it suitable for business?',
-                    answer: 'Yes. Many businesses use Starlink for reliable connectivity, especially in remote or hard-to-reach locations.'
+                    question: 'Is installation included with Starlink purchases?',
+                    answer: 'Installation can be arranged as an additional service. We can assist with setup, mounting, cable routing, and network configuration.'
+                  },
+                  {
+                    question: 'What payment methods do you accept?',
+                    answer: 'We accept the payment options displayed at checkout. For large installations or business orders, please contact us for a quotation.'
+                  },
+                  {
+                    question: 'How long does delivery take?',
+                    answer: 'Delivery times depend on product availability and your location. Estimated delivery details are provided during checkout or upon confirmation of your order.'
+                  },
+                  {
+                    question: 'What is your return and warranty policy?',
+                    answer: 'Eligible products may be returned according to our return policy. Products are covered by applicable manufacturer warranties; please retain your receipt and original packaging.'
+                  },
+                  {
+                    question: 'Can I get a quotation for multiple items or a full installation?',
+                    answer: 'Yes. Send us your requirements, location, and preferred products, and we will prepare a tailored quotation.'
+                  },
+                  {
+                    question: 'How can I get technical support?',
+                    answer: 'Contact our support team with your order number, product model, and a brief description of the issue. We will guide you through troubleshooting or arrange further assistance.'
                   }
                 ].map((faq, index) => (
                   <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
@@ -1119,7 +1208,7 @@ export default function ModuleLanding() {
                       <FiHelpCircle className="text-orange-500" />
                       {faq.question}
                     </h3>
-                    <p className="text-gray-700">{faq.answer}</p>
+                    <p className="text-gray-700 text-sm leading-relaxed">{faq.answer}</p>
                   </div>
                 ))}
               </div>

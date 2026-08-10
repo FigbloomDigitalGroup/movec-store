@@ -548,6 +548,149 @@ async function main() {
   });
 
   console.log('✅ Promo banners seeded successfully!');
+
+  // ─── FAQs ──────────────────────────────────────────────────────
+  console.log('❓ Seeding FAQs...');
+
+  const catFaqGeneral = await prisma.fAQCategory.upsert({
+    where: { slug: 'general' },
+    update: { name: 'General & Products' },
+    create: { id: 'faq-cat-general', name: 'General & Products', slug: 'general' },
+  });
+
+  const catFaqStarlink = await prisma.fAQCategory.upsert({
+    where: { slug: 'starlink' },
+    update: { name: 'Starlink Internet' },
+    create: { id: 'faq-cat-starlink', name: 'Starlink Internet', slug: 'starlink' },
+  });
+
+  const catFaqCCTV = await prisma.fAQCategory.upsert({
+    where: { slug: 'cctv' },
+    update: { name: 'CCTV & Security' },
+    create: { id: 'faq-cat-cctv', name: 'CCTV & Security', slug: 'cctv' },
+  });
+
+  const catFaqSupport = await prisma.fAQCategory.upsert({
+    where: { slug: 'support' },
+    update: { name: 'Installation & Support' },
+    create: { id: 'faq-cat-support', name: 'Installation & Support', slug: 'support' },
+  });
+
+  const faqsToSeed = [
+    {
+      id: 'faq-1',
+      question: 'What products do you sell?',
+      answer: 'We supply Starlink internet kits, accessories, mounting solutions, and intelligent CCTV systems including cameras, NVRs, storage devices, and installation accessories.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 1,
+    },
+    {
+      id: 'faq-2',
+      question: 'Do you sell genuine Starlink equipment?',
+      answer: 'Yes. We provide genuine Starlink hardware and compatible accessories. Product availability may vary by location.',
+      categoryId: catFaqStarlink.id,
+      sortOrder: 2,
+    },
+    {
+      id: 'faq-3',
+      question: 'Does Starlink work in my area?',
+      answer: 'Starlink coverage depends on your service address. Contact us with your location and we will help you confirm availability before purchase.',
+      categoryId: catFaqStarlink.id,
+      sortOrder: 3,
+    },
+    {
+      id: 'faq-4',
+      question: 'Is installation included with Starlink purchases?',
+      answer: 'Installation can be arranged as an additional service. We can assist with setup, mounting, cable routing, and network configuration.',
+      categoryId: catFaqStarlink.id,
+      sortOrder: 4,
+    },
+    {
+      id: 'faq-5',
+      question: 'What is an intelligent CCTV system?',
+      answer: 'An intelligent CCTV system uses features such as motion detection, person and vehicle recognition, intrusion alerts, remote viewing, and recording to improve security monitoring.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 5,
+    },
+    {
+      id: 'faq-6',
+      question: 'Can I view my CCTV cameras remotely?',
+      answer: 'Yes. Most of our CCTV systems support secure remote viewing through a mobile app or computer, provided the system has an internet connection.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 6,
+    },
+    {
+      id: 'faq-7',
+      question: 'Do CCTV cameras record at night?',
+      answer: 'Yes. Many models include infrared night vision, while selected models offer full-colour night vision for clearer low-light footage.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 7,
+    },
+    {
+      id: 'faq-8',
+      question: 'How long is CCTV footage stored?',
+      answer: 'Storage time depends on the number of cameras, video quality, recording schedule, and hard-drive capacity. We can recommend the right storage size for your needs.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 8,
+    },
+    {
+      id: 'faq-9',
+      question: 'Do you provide CCTV installation?',
+      answer: 'Yes. We offer professional installation, configuration, testing, and user guidance for homes, shops, offices, schools, and other premises.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 9,
+    },
+    {
+      id: 'faq-10',
+      question: 'What payment methods do you accept?',
+      answer: 'We accept the payment options displayed at checkout. For large installations or business orders, please contact us for a quotation.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 10,
+    },
+    {
+      id: 'faq-11',
+      question: 'How long does delivery take?',
+      answer: 'Delivery times depend on product availability and your location. Estimated delivery details are provided during checkout or upon confirmation of your order.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 11,
+    },
+    {
+      id: 'faq-12',
+      question: 'What is your return and warranty policy?',
+      answer: 'Eligible products may be returned according to our return policy. Products are covered by applicable manufacturer warranties; please retain your receipt and original packaging.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 12,
+    },
+    {
+      id: 'faq-13',
+      question: 'Can I get a quotation for multiple items or a full installation?',
+      answer: 'Yes. Send us your requirements, location, and preferred products, and we will prepare a tailored quotation.',
+      categoryId: catFaqSupport.id,
+      sortOrder: 13,
+    },
+    {
+      id: 'faq-14',
+      question: 'How can I get technical support?',
+      answer: 'Contact our support team with your order number, product model, and a brief description of the issue. We will guide you through troubleshooting or arrange further assistance.',
+      categoryId: catFaqSupport.id,
+      sortOrder: 14,
+    },
+  ];
+
+  for (const faq of faqsToSeed) {
+    await prisma.fAQ.upsert({
+      where: { id: faq.id },
+      update: {
+        question: faq.question,
+        answer: faq.answer,
+        categoryId: faq.categoryId,
+        sortOrder: faq.sortOrder,
+      },
+      create: faq,
+    });
+  }
+
+  console.log('✅ 14 FAQs seeded successfully!');
 }
 
 main()
