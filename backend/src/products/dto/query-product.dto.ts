@@ -38,6 +38,14 @@ export class QueryProductDto {
   featured?: string;
 
   @IsOptional()
+  @IsString()
+  isActive?: string;
+
+  @IsOptional()
+  @IsString()
+  inStock?: string;
+
+  @IsOptional()
   @IsNumberString()
   page?: string;
 

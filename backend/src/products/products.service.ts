@@ -136,6 +136,16 @@ export class ProductsService {
       where.isFeatured = true;
     }
 
+    if (query.isActive === 'true') {
+      where.isActive = true;
+    } else if (query.isActive === 'false') {
+      where.isActive = false;
+    }
+
+    if (query.inStock === 'true') {
+      where.inventory = { some: { quantity: { gt: 0 } } };
+    }
+
     const orderBy: any = {};
     const sortBy = query.sortBy || 'createdAt';
     const order = query.order === 'asc' ? 'asc' : 'desc';

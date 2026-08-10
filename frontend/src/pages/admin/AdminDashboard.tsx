@@ -18,8 +18,8 @@ export default function AdminDashboard() {
   });
 
   const { data: recentProducts } = useQuery({
-    queryKey: ['admin-recent-products'],
-    queryFn: () => api.get('/admin/products?limit=5&sortBy=createdAt&order=desc').then(r => r.data),
+    queryKey: ['admin-recent-products', 'active', 'inStock'],
+    queryFn: () => api.get('/admin/products?limit=5&sortBy=createdAt&order=desc&isActive=true&inStock=true').then(r => r.data),
   });
 
   if (isLoading) return <p className="text-center py-8">Loading dashboard...</p>;
