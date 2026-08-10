@@ -65,129 +65,142 @@ function ProductCard({ product }: { product: Product }) {
   const addToCart = useCartStore((s) => s.addItem);
   const addToWishlist = useWishlistStore((s) => s.addItem);
   const totalStock = product.inventory.reduce((s, i) => s + i.quantity, 0);
+  const inStock = totalStock > 0;
+
+  const discount =
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : 0;
 
   const goNext = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (images.length > 1) {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }
+    if (images.length > 1) setCurrentIndex((prev) => (prev + 1) % images.length);
   };
 
   const goPrev = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (images.length > 1) {
-      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-    }
+    if (images.length > 1) setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
-    <div
-      className="group bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:-translate-y-2 hover:shadow-xl"
-      style={{ transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
+    <Link
+      to={`/products/${product.slug}`}
+      className="group block bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200 relative"
     >
-      <Link to={`/products/${product.slug}`} className="block relative overflow-hidden">
-        <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative">
+      {/* Discount Badge */}
+      {discount > 0 && (
+        <div className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded z-10">
+          -{discount}%
+        </div>
+      )}
+
+      {/* Image Container — white bg, object-contain, padded */}
+      <div className="relative bg-white rounded-t-lg overflow-hidden" style={{ height: '200px', padding: '12px' }}>
+        <div className="w-full h-full flex items-center justify-center">
           {images.length > 0 ? (
             <img
               src={images[currentIndex]?.url}
               alt={images[currentIndex]?.alt || product.name}
-              className="h-full w-full object-cover group-hover:scale-108"
-              style={{ transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)' }}
+              loading="lazy"
+              className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center text-gray-400 opacity-30">
-              <FiPackage size={48} />
-            </div>
-          )}
-          
-          {/* Image Navigation */}
-          {images.length > 1 && (
-            <>
-              <button
-                onClick={goPrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
-                aria-label="Previous image"
-              >
-                <FiChevronLeft size={16} />
-              </button>
-              <button
-                onClick={goNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all z-10"
-                aria-label="Next image"
-              >
-                <FiChevronRight size={16} />
-              </button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                {images.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setCurrentIndex(i);
-                    }}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      i === currentIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white/80'
-                    }`}
-                    aria-label={`View image ${i + 1}`}
-                  />
-                ))}
-              </div>
-              {/* Image counter */}
-              <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                {currentIndex + 1} / {images.length}
-              </div>
-            </>
-          )}
-          
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full z-10">
-              SALE
-            </span>
-          )}
-          {totalStock === 0 && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-              <span className="text-white/70 text-sm font-medium">Out of Stock</span>
-            </div>
-          )}
-        </div>
-      </Link>
-
-      <div className="p-4 flex flex-col flex-1">
-        <p className="text-gray-500 text-xs mb-1">{product.brand?.name}</p>
-        <Link to={`/products/${product.slug}`}>
-          <h3 className="text-gray-900 font-semibold text-sm line-clamp-2 mb-2 hover:text-blue-600 transition-colors min-h-[2.5rem]">
-            {product.name}
-          </h3>
-        </Link>
-
-        <div className="flex items-baseline gap-2 mt-auto mb-4">
-          <span className="text-xl font-bold text-gray-900">KES {product.price.toLocaleString()}</span>
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <span className="text-gray-400 text-sm line-through">KES {product.compareAtPrice.toLocaleString()}</span>
+            <FiPackage className="text-gray-300" size={40} />
           )}
         </div>
 
-        <div className="flex gap-2">
+        {/* Image navigation */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={goPrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-gray-700 rounded-full p-1.5 shadow hover:bg-gray-50 transition z-10 border border-gray-200"
+              aria-label="Previous image"
+            >
+              <FiChevronLeft size={14} />
+            </button>
+            <button
+              onClick={goNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-gray-700 rounded-full p-1.5 shadow hover:bg-gray-50 transition z-10 border border-gray-200"
+              aria-label="Next image"
+            >
+              <FiChevronRight size={14} />
+            </button>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentIndex(i); }}
+                  className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'bg-blue-600 w-4' : 'bg-gray-300 w-1.5'}`}
+                  aria-label={`View image ${i + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Out of Stock overlay */}
+        {!inStock && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t-lg z-10">
+            <span className="text-white text-xs font-semibold">Out of Stock</span>
+          </div>
+        )}
+      </div>
+
+      {/* Product info */}
+      <div className="px-3 pb-3 pt-2">
+        {product.brand && (
+          <p className="text-[10px] text-gray-500 mb-0.5 truncate">{product.brand.name}</p>
+        )}
+        <h3
+          className="text-xs font-medium text-gray-900 mb-1 leading-tight group-hover:text-blue-600 transition-colors"
+          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2rem' }}
+        >
+          {product.name}
+        </h3>
+
+        <div className="mb-1">
+          <span className="text-sm font-bold text-gray-900">KES {product.price.toLocaleString()}</span>
+          {product.compareAtPrice && (
+            <span className="text-[10px] text-gray-400 line-through ml-1">KES {product.compareAtPrice.toLocaleString()}</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 mb-1.5">
+          <span className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>●</span>
+          <p className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+            {inStock ? 'In Stock' : 'Out of Stock'}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-0.5 text-[10px] mb-2.5">
+          <div className="flex items-center gap-0.5 text-yellow-400">
+            {[1,2,3,4].map(i => <FiStar key={i} size={10} className="fill-yellow-400" />)}
+            <FiStar size={10} className="text-gray-300" />
+          </div>
+          <span className="text-gray-500">(4.0)</span>
+        </div>
+
+        <div className="flex gap-1.5">
           <button
-            onClick={() => addToCart({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null, quantity: 1 })}
-            disabled={totalStock === 0}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2 rounded-xl transition-colors"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null, quantity: 1 }); }}
+            disabled={!inStock}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium py-2 rounded-lg transition-colors"
           >
-            <FiShoppingCart size={15} />
+            <FiShoppingCart size={13} />
             Add to Cart
           </button>
           <button
-            onClick={() => addToWishlist({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null })}
-            className="p-2 border border-gray-200 hover:border-gray-300 rounded-xl text-gray-400 hover:text-red-500 transition-colors"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToWishlist({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null }); }}
+            className="p-2 border border-gray-200 hover:border-red-300 hover:text-red-500 rounded-lg text-gray-400 transition-colors"
           >
-            <FiHeart size={15} />
+            <FiHeart size={14} />
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
