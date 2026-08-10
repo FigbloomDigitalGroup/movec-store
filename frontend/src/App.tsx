@@ -99,7 +99,7 @@ export default function App() {
         <ScrollToTop />
         <BackToTop />
 
-        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+        <Toaster position="top-right" toastOptions={{ duration: 1800 }} />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<Layout />}>

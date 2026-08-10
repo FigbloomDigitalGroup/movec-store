@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
+import api from '../lib/api';
 
 interface GuestWishlistItem {
   productId: string;
@@ -11,10 +12,12 @@ interface GuestWishlistItem {
 
 interface WishlistState {
   items: GuestWishlistItem[];
+  isSyncing: boolean;
   addItem: (item: GuestWishlistItem) => void;
   removeItem: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   toggleItem: (item: GuestWishlistItem) => void;
+  syncWishlist: (queryClient: any) => Promise<void>;
 }
 
 const loadWishlist = (): GuestWishlistItem[] => {
@@ -32,6 +35,7 @@ const saveWishlist = (items: GuestWishlistItem[]) => {
 
 export const useWishlistStore = create<WishlistState>((set, get) => ({
   items: loadWishlist(),
+  isSyncing: false,
 
   addItem: (item) => {
     set((state) => {
@@ -67,4 +71,23 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
       addItem(item);
     }
   },
-}));
+
+  syncWishlist: async (queryClient: any) => {
+    const items = get().items;
+    if (items.length === 0 || get().isSyncing) return;
+    set({ isSyncing: true });
+    try {
+      for (const item of items) {
+        await api.post('/wishlist', { productId: item.productId });
+      }
+      localStorage.removeItem('guestWishlist');
+      set({ items: [], isSyncing: false });
+      if (queryClient) {
+        await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+      }
+    } catch (err) {
+      console.error('Failed to sync wishlist:', err);
+      set({ isSyncing: false });
+    }
+  },
+}));

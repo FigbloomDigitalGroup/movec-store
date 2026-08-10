@@ -14,11 +14,11 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const guestCart = useCartStore();
+  const isSyncing = useCartStore((s) => s.isSyncing);
   const [shippingId, setShippingId] = useState('');
   const [billingId] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [notes, setNotes] = useState('');
-  const [syncing, setSyncing] = useState(false);
 
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [line1, setLine1] = useState('');
@@ -67,24 +67,6 @@ export default function CheckoutPage() {
     }
   });
 
-  useEffect(() => {
-    if (isAuthenticated && guestCart.items.length > 0) {
-      setSyncing(true);
-      const syncCart = async () => {
-        try {
-          for (const item of guestCart.items) {
-            await api.post('/cart/items', { productId: item.productId, quantity: item.quantity });
-          }
-          guestCart.clearCart();
-        } catch (err) {
-          console.error('Failed to sync cart:', err);
-        } finally {
-          setSyncing(false);
-        }
-      };
-      syncCart();
-    }
-  }, [isAuthenticated, guestCart.items]);
 
   const placeOrder = useMutation({
     mutationFn: async () => {
@@ -140,7 +122,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (syncing) return <div className="min-h-screen flex items-center justify-center text-gray-600">Syncing your cart...</div>;
+  if (isSyncing) return <div className="min-h-screen flex items-center justify-center text-gray-600">Syncing your cart...</div>;
 
   if (cartLoading || addressesLoading) {
     return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading checkout...</div>;

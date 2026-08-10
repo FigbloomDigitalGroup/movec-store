@@ -38,7 +38,7 @@ export default function CartPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
   });
 
-  if (isAuthenticated && isLoading) {
+  if ((isAuthenticated && isLoading) || guestCart.isSyncing) {
     return (
       <div className="min-h-screen">
         <div className="bg-white border-b border-gray-200">

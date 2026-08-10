@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
+import api from '../lib/api';
 
 interface GuestCartItem {
   productId: string;
@@ -12,12 +13,14 @@ interface GuestCartItem {
 
 interface CartState {
   items: GuestCartItem[];
+  isSyncing: boolean;
   addItem: (item: GuestCartItem) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   getTotal: () => number;
   getCount: () => number;
   clearCart: () => void;
+  syncCart: (queryClient: any) => Promise<void>;
 }
 
 const loadCart = (): GuestCartItem[] => {
@@ -35,6 +38,7 @@ const saveCart = (items: GuestCartItem[]) => {
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: loadCart(),
+  isSyncing: false,
 
   addItem: (item) => {
     set((state) => {
@@ -88,4 +92,23 @@ export const useCartStore = create<CartState>((set, get) => ({
     localStorage.removeItem('guestCart');
     set({ items: [] });
   },
-}));
+
+  syncCart: async (queryClient: any) => {
+    const items = get().items;
+    if (items.length === 0 || get().isSyncing) return;
+    set({ isSyncing: true });
+    try {
+      for (const item of items) {
+        await api.post('/cart/items', { productId: item.productId, quantity: item.quantity });
+      }
+      localStorage.removeItem('guestCart');
+      set({ items: [], isSyncing: false });
+      if (queryClient) {
+        await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      }
+    } catch (err) {
+      console.error('Failed to sync cart:', err);
+      set({ isSyncing: false });
+    }
+  },
+}));

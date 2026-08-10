@@ -11,7 +11,7 @@ export class WishlistService {
       include: {
         product: {
           include: {
-            images: { where: { isPrimary: true }, take: 1 },
+            images: { orderBy: { sortOrder: 'asc' }, take: 1 },
           },
         },
       },

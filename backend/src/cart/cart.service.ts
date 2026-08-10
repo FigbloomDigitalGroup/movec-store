@@ -15,7 +15,7 @@ export class CartService {
           include: {
             product: {
               include: {
-                images: { where: { isPrimary: true }, take: 1 },
+                images: { orderBy: { sortOrder: 'asc' }, take: 1 },
                 inventory: { include: { warehouse: true } },
               },
             },
@@ -32,7 +32,7 @@ export class CartService {
             include: {
               product: {
                 include: {
-                  images: { where: { isPrimary: true }, take: 1 },
+                  images: { orderBy: { sortOrder: 'asc' }, take: 1 },
                   inventory: { include: { warehouse: true } },
                 },
               },
