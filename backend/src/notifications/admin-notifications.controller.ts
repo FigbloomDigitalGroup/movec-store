@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { SendNotificationDto } from './dto/send-notification.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -11,6 +11,11 @@ import { RoleName } from '@prisma/client';
 @Roles(RoleName.ADMIN)
 export class AdminNotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
+
+  @Get()
+  getAll() {
+    return this.notificationsService.getAllNotifications();
+  }
 
   @Post('send')
   sendToUser(@Body() dto: SendNotificationDto) {
@@ -25,5 +30,10 @@ export class AdminNotificationsController {
   @Post('send-all')
   sendToAll(@Body() body: { type: string; title: string; message: string }) {
     return this.notificationsService.sendToAll(body.type, body.title, body.message);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.notificationsService.deleteNotification(id);
   }
 }

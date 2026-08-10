@@ -51,6 +51,13 @@ export class ReviewsService {
     });
   }
 
+  async rejectReview(reviewId: string) {
+    return this.prisma.review.update({
+      where: { id: reviewId },
+      data: { isApproved: false },
+    });
+  }
+
   async deleteReview(reviewId: string) {
     await this.prisma.review.delete({ where: { id: reviewId } });
     return { message: 'Review deleted' };

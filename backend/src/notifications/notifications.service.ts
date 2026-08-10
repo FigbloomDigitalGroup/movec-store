@@ -59,6 +59,21 @@ export class NotificationsService {
     return { sent: users.length };
   }
 
+  async getAllNotifications() {
+    return this.prisma.notification.findMany({
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+  }
+
+  async deleteNotification(id: string) {
+    await this.prisma.notification.delete({ where: { id } });
+    return { message: 'Notification deleted' };
+  }
+
   async getUnreadCount(userId: string) {
     return this.prisma.notification.count({
       where: { userId, isRead: false },

@@ -21,6 +21,11 @@ export class AdminReviewsController {
     return this.reviewsService.approveReview(id);
   }
 
+  @Patch(':id/reject')
+  reject(@Param('id') id: string) {
+    return this.reviewsService.rejectReview(id);
+  }
+
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.reviewsService.deleteReview(id);
