@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import type { Product } from '../../types';
@@ -52,9 +52,19 @@ export default function AdminProducts() {
     queryFn: () => api.get('/admin/inventory/warehouses').then(r => r.data),
   });
 
+  const invalidateAllProductQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+    queryClient.invalidateQueries({ queryKey: ['products'] });
+    queryClient.invalidateQueries({ queryKey: ['featured-products'] });
+    queryClient.invalidateQueries({ queryKey: ['best-sellers'] });
+  };
+
   const deleteProduct = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/products/${id}`),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-products'] }); toast.success('Product deleted'); },
+    onSuccess: () => {
+      invalidateAllProductQueries();
+      toast.success('Product deleted');
+    },
   });
 
   const saveProduct = useMutation({
@@ -81,7 +91,7 @@ export default function AdminProducts() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      invalidateAllProductQueries();
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
       setShowForm(false);
       setEditing(null);
@@ -99,7 +109,7 @@ export default function AdminProducts() {
     mutationFn: (body: { productId: string; warehouseId: string; quantity: number }) =>
       api.post('/admin/inventory/stock-in', { ...body, reference: 'Manual stock adjustment' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      invalidateAllProductQueries();
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
       setStockPanel(null);
       toast.success('Stock updated!');
@@ -117,7 +127,7 @@ export default function AdminProducts() {
       await api.post(`/admin/products/${productId}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      invalidateAllProductQueries();
       setUploading(false); setImageProductId(null); setSelectedFiles([]); setPreviews([]);
       toast.success('Images uploaded!');
     },
@@ -125,20 +135,20 @@ export default function AdminProducts() {
 
   const deleteImage = useMutation({
     mutationFn: (imageId: string) => api.delete(`/admin/products/images/${imageId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-products'] }),
+    onSuccess: () => invalidateAllProductQueries(),
   });
 
   const toggleFeatured = useMutation({
     mutationFn: ({ id, isFeatured }: { id: string; isFeatured: boolean }) =>
       api.patch(`/admin/products/${id}`, { isFeatured: !isFeatured }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-products'] }),
+    onSuccess: () => invalidateAllProductQueries(),
   });
 
   const toggleBestSeller = useMutation({
     mutationFn: ({ id, isBestSeller }: { id: string; isBestSeller: boolean }) =>
       api.patch(`/admin/products/${id}`, { isBestSeller: !isBestSeller }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      invalidateAllProductQueries();
       toast.success('Best seller status updated');
     },
   });

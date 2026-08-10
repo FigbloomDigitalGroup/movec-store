@@ -93,7 +93,10 @@ export class ModulesService {
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,
-      moduleId: mod.id,
+      OR: [
+        { moduleId: mod.id },
+        { categories: { some: { category: { moduleId: mod.id } } } },
+      ],
     };
 
     if (query.search) {

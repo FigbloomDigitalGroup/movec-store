@@ -221,6 +221,28 @@ export default function ModuleLanding() {
   const page = parseInt(searchParams.get('page') || '1', 10);
   const totalPages = data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 1;
 
+  const sortedCategories = mod?.categories
+    ? [...mod.categories].sort((a, b) => {
+        if (moduleSlug === 'starlink') {
+          const order = ['starlink-kits', 'starlink-accessories', 'starlink-mounts'];
+          const idxA = order.indexOf(a.slug);
+          const idxB = order.indexOf(b.slug);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+        }
+        if (moduleSlug === 'cctv') {
+          const order = ['dvr-nvr', 'surveillance-hard-drives', 'ip-cameras'];
+          const idxA = order.indexOf(a.slug);
+          const idxB = order.indexOf(b.slug);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+        }
+        return a.name.localeCompare(b.name);
+      })
+    : [];
+
   const handleSearch = () => {
     const params = new URLSearchParams(searchParams);
     if (search) params.set('search', search); else params.delete('search');
@@ -371,7 +393,7 @@ export default function ModuleLanding() {
             </div>
 
             {/* Category filter pills */}
-            {showFilters && mod?.categories && mod.categories.length > 0 && (
+            {sortedCategories.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <button
                   onClick={() => setCategory('')}
@@ -382,7 +404,7 @@ export default function ModuleLanding() {
                 >
                   All
                 </button>
-                {mod.categories.map((cat) => (
+                {sortedCategories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setCategory(cat.slug)}
@@ -756,7 +778,7 @@ export default function ModuleLanding() {
             </div>
 
             {/* Category filter pills */}
-            {showFilters && mod?.categories && mod.categories.length > 0 && (
+            {sortedCategories.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <button
                   onClick={() => setCategory('')}
@@ -767,7 +789,7 @@ export default function ModuleLanding() {
                 >
                   All
                 </button>
-                {mod.categories.map((cat) => (
+                {sortedCategories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setCategory(cat.slug)}
