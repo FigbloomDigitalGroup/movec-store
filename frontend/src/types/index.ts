@@ -17,6 +17,7 @@ export interface Product {
   compareAtPrice: number | null;
   isActive: boolean;
   isFeatured: boolean;
+  isBestSeller?: boolean;
   images: ProductImage[];
   brand: Brand | null;
   categories: Category[];

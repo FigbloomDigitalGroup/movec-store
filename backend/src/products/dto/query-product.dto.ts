@@ -39,6 +39,10 @@ export class QueryProductDto {
 
   @IsOptional()
   @IsString()
+  bestSeller?: string;
+
+  @IsOptional()
+  @IsString()
   isActive?: string;
 
   @IsOptional()

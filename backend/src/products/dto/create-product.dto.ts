@@ -51,6 +51,10 @@ export class CreateProductDto {
   isFeatured?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isBestSeller?: boolean;
+
+  @IsOptional()
   @IsString()
   brandId?: string;
 

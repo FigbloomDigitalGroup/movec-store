@@ -172,7 +172,7 @@ export default function Home() {
   const { data: bestSellers } = useQuery({
     queryKey: ['best-sellers'],
     queryFn: async () => {
-      const { data } = await api.get('/products?featured=true&limit=4');
+      const { data } = await api.get('/products?bestSeller=true&limit=4');
       return data.data as Product[];
     },
   });

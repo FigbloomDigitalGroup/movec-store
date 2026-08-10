@@ -194,6 +194,7 @@ model Product {
   costPrice       Decimal? @db.Decimal(10, 2)
   isActive        Boolean  @default(true)
   isFeatured      Boolean  @default(false)
+  isBestSeller    Boolean  @default(false)
   brandId         String?
   moduleId        String?
   metaTitle       String?
@@ -217,6 +218,8 @@ model Product {
   @@index([brandId])
   @@index([moduleId])
   @@index([isActive])
+  @@index([isFeatured])
+  @@index([isBestSeller])
   @@index([price])
 }
 

@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import type { Product } from '../../types';
-import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter, FiPackage, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter, FiPackage, FiChevronDown, FiChevronUp, FiTrendingUp } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function AdminProducts() {
@@ -11,7 +11,7 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({
     name: '', slug: '', description: '', price: 0, sku: '',
-    brandId: '', categoryIds: [] as string[], isFeatured: false,
+    brandId: '', categoryIds: [] as string[], isFeatured: false, isBestSeller: false,
   });
   const [invForm, setInvForm] = useState({ warehouseId: '', quantity: 0, lowStockThreshold: 5 });
 
@@ -134,15 +134,24 @@ export default function AdminProducts() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-products'] }),
   });
 
+  const toggleBestSeller = useMutation({
+    mutationFn: ({ id, isBestSeller }: { id: string; isBestSeller: boolean }) =>
+      api.patch(`/admin/products/${id}`, { isBestSeller: !isBestSeller }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success('Best seller status updated');
+    },
+  });
+
   const resetForm = () => {
-    setForm({ name: '', slug: '', description: '', price: 0, sku: '', brandId: '', categoryIds: [], isFeatured: false });
+    setForm({ name: '', slug: '', description: '', price: 0, sku: '', brandId: '', categoryIds: [], isFeatured: false, isBestSeller: false });
     setInvForm({ warehouseId: '', quantity: 0, lowStockThreshold: 5 });
     setSelectedFiles([]); setPreviews([]); setUploading(false);
   };
 
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, slug: p.slug, description: p.description, price: p.price, sku: p.sku, brandId: p.brand?.id || '', categoryIds: p.categories?.map(c => c.id) || [], isFeatured: p.isFeatured || false });
+    setForm({ name: p.name, slug: p.slug, description: p.description, price: p.price, sku: p.sku, brandId: p.brand?.id || '', categoryIds: p.categories?.map(c => c.id) || [], isFeatured: p.isFeatured || false, isBestSeller: (p as any).isBestSeller || false });
     setInvForm({ warehouseId: '', quantity: 0, lowStockThreshold: 5 });
     setSelectedFiles([]); setPreviews([]); setShowForm(true);
   };
@@ -238,6 +247,10 @@ export default function AdminProducts() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.isFeatured} onChange={e => setForm({ ...form, isFeatured: e.target.checked })} className="w-5 h-5 rounded" />
               <span className="text-sm font-medium">Featured Product</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.isBestSeller} onChange={e => setForm({ ...form, isBestSeller: e.target.checked })} className="w-5 h-5 rounded" />
+              <span className="text-sm font-medium">Best Seller</span>
             </label>
           </div>
 
@@ -381,6 +394,7 @@ export default function AdminProducts() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold truncate">{p.name}</h3>
                       {p.isFeatured && <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Featured</span>}
+                      {(p as any).isBestSeller && <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Best Seller</span>}
                       {!p.isActive && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Inactive</span>}
                     </div>
                     <p className="text-sm text-gray-500">{p.sku} · KES {p.price.toLocaleString()}</p>
@@ -395,6 +409,9 @@ export default function AdminProducts() {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button onClick={(e) => { e.stopPropagation(); toggleFeatured.mutate({ id: p.id, isFeatured: p.isFeatured || false }); }} title={p.isFeatured ? 'Remove from featured' : 'Mark as featured'} className={`p-2 rounded-lg transition ${p.isFeatured ? 'text-yellow-600 bg-yellow-100' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-50'}`}>
                       <FiStar size={18} fill={p.isFeatured ? 'currentColor' : 'none'} />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); toggleBestSeller.mutate({ id: p.id, isBestSeller: (p as any).isBestSeller || false }); }} title={(p as any).isBestSeller ? 'Remove from best sellers' : 'Mark as best seller'} className={`p-2 rounded-lg transition ${(p as any).isBestSeller ? 'text-orange-600 bg-orange-100' : 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'}`}>
+                      <FiTrendingUp size={18} />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); openEdit(p); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"><FiEdit size={18} /></button>
                     <button onClick={(e) => { e.stopPropagation(); if (confirm('Delete this product?')) deleteProduct.mutate(p.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"><FiTrash2 size={18} /></button>

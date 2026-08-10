@@ -65,6 +65,10 @@ export class ProductsService {
       where.isFeatured = true;
     }
 
+    if (query.bestSeller === 'true') {
+      where.isBestSeller = true;
+    }
+
     const orderBy: any = {};
     const sortBy = query.sortBy || 'createdAt';
     const order = query.order === 'asc' ? 'asc' : 'desc';
@@ -134,6 +138,10 @@ export class ProductsService {
 
     if (query.featured === 'true') {
       where.isFeatured = true;
+    }
+
+    if (query.bestSeller === 'true') {
+      where.isBestSeller = true;
     }
 
     if (query.isActive === 'true') {
