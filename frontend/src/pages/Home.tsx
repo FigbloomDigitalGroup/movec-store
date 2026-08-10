@@ -164,7 +164,7 @@ export default function Home() {
   const { data: featured } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
-      const { data } = await api.get('/products?featured=true&limit=8');
+      const { data } = await api.get('/products?featured=true&limit=100');
       return data.data as Product[];
     },
   });
@@ -172,7 +172,7 @@ export default function Home() {
   const { data: bestSellers } = useQuery({
     queryKey: ['best-sellers'],
     queryFn: async () => {
-      const { data } = await api.get('/products?bestSeller=true&limit=4');
+      const { data } = await api.get('/products?bestSeller=true&limit=100');
       return data.data as Product[];
     },
   });
@@ -222,7 +222,7 @@ export default function Home() {
     align: 'start',
     slidesToScroll: 1,
     watchDrag: true,
-    dragFree: false,
+    dragFree: true,
   });
   const scrollBestSellersPrev = useCallback(() => bestSellersApi?.scrollPrev(), [bestSellersApi]);
   const scrollBestSellersNext = useCallback(() => bestSellersApi?.scrollNext(), [bestSellersApi]);
@@ -244,7 +244,7 @@ export default function Home() {
     align: 'start',
     slidesToScroll: 1,
     watchDrag: true,
-    dragFree: false,
+    dragFree: true,
   });
   const scrollFeaturedPrev = useCallback(() => featuredApi?.scrollPrev(), [featuredApi]);
   const scrollFeaturedNext = useCallback(() => featuredApi?.scrollNext(), [featuredApi]);
@@ -774,7 +774,7 @@ export default function Home() {
             <div className="relative overflow-hidden">
               <div className="embla" ref={featuredRef}>
                 <div className="embla__container flex gap-2" style={{ cursor: 'default' }}>
-                  {featured.slice(0, 10).map((product, idx) => (
+                  {featured.map((product, idx) => (
                     <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ cursor: 'default' }}>
                       <motion.div
                         initial={{ opacity: 0, y: 15 }}
