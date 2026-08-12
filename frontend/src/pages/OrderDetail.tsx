@@ -327,6 +327,9 @@ export default function OrderDetailPage() {
                     Coupon: <span className="font-mono font-semibold text-gray-600">{order.coupon.code}</span>
                   </div>
                 )}
+                <div className="text-xs text-gray-500 mt-3">
+                  Calculation: KES {order.subtotal.toLocaleString()} + KES {order.shippingCost.toLocaleString()}{order.taxAmount > 0 ? ` + KES ${order.taxAmount.toLocaleString()}` : ' + KES 0'}{order.discountAmount > 0 ? ` - KES ${order.discountAmount.toLocaleString()}` : ''} = KES {order.total.toLocaleString()}
+                </div>
                 <div className="flex justify-between font-bold text-lg text-gray-900 pt-3 border-t border-gray-200 mt-2">
                   <span>Total</span>
                   <span>KES {order.total.toLocaleString()}</span>

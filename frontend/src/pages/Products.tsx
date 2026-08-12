@@ -7,6 +7,7 @@ import { FiSearch, FiChevronLeft, FiChevronRight, FiFilter } from 'react-icons/f
 import Button from '../components/ui/Button';
 import Skeleton from '../components/ui/Skeleton';
 import ProductCard from '../components/ProductCard';
+import SectionHero from '../components/ui/SectionHero';
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,12 +39,7 @@ export default function Products() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="w-full px-4 py-8">
-          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Products</h1>
-          <p className="text-gray-700">Browse our full catalog of Starlink and CCTV products</p>
-        </div>
-      </div>
+      <SectionHero title="Products" subtitle="Browse our full catalog of Starlink and CCTV products" />
 
       <div className="w-full px-4 py-8">
         {/* Search and Filters */}
@@ -119,7 +115,7 @@ export default function Products() {
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-gray-700">
-            {data?.meta ? `Showing ${data.meta.total} products` : 'Loading products...'}
+            {data?.meta ? `${data.meta.total} product${data.meta.total === 1 ? '' : 's'} found` : 'Loading products...'}
           </p>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-700">Sort by:</span>
@@ -147,6 +143,34 @@ export default function Products() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : data?.meta?.total === 0 ? (
+          <div className="rounded-3xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
+            <FiSearch size={48} className="mx-auto mb-4" />
+            <p className="text-lg font-semibold">No products match your search.</p>
+            <p className="mt-2 text-sm text-gray-500">Try changing your search term, clearing filters, or browsing another category.</p>
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams);
+                  params.delete('search');
+                  params.delete('category');
+                  params.delete('brand');
+                  setSearchParams(params);
+                }}
+                className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+              >
+                Clear filters
+              </button>
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                Browse categories
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

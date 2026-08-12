@@ -103,7 +103,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       to={`/products/${product.slug}`}
-      className="group block bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200 relative"
+      className="group block bg-transparent rounded-lg hover:shadow-md transition-shadow duration-200 relative"
     >
       {/* Discount Badge */}
       {discount > 0 && (
@@ -114,8 +114,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Image Container — white bg, object-contain, padded to match home page */}
       <div
-        className="relative bg-white rounded-t-lg overflow-hidden"
-        style={{ height: '200px', padding: '12px' }}
+        className="relative bg-gray-50 overflow-hidden flex items-center justify-center"
+        style={{ height: '200px' }}
       >
         <div className="w-full h-full flex items-center justify-center">
           {images.length > 0 ? (
@@ -183,7 +183,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Name */}
         <h3
-          className="text-xs font-medium text-gray-900 mb-1 leading-tight group-hover:text-blue-600 transition-colors"
+          className="text-sm font-medium text-gray-900 mb-1 leading-tight text-center group-hover:text-accent transition-colors"
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,
@@ -233,7 +233,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={!inStock}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium text-xs hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5"
+            className="flex-1 btn-accent text-xs rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5"
           >
             <FiShoppingCart size={13} />
             Add to Cart

@@ -21,6 +21,7 @@ import {
 } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import SectionHero from '../components/ui/SectionHero';
 
 /* ─── Star Picker Component ─────────────────────────────────── */
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -111,11 +112,11 @@ function ReviewForm({ productId, productName }: { productId: string; productName
     return (
       <div className="mt-10 border-t border-gray-200 pt-10">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <FiEdit3 className="text-blue-600" /> Write a Review
+          <FiEdit3 className="text-accent" /> Write a Review
         </h2>
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 text-center">
-          <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiLock className="text-blue-600" size={24} />
+        <div className="bg-accent-100 border border-accent rounded-2xl p-8 text-center">
+          <div className="w-14 h-14 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiLock className="text-accent" size={24} />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">Sign in to leave a review</h3>
           <p className="text-gray-600 text-sm mb-6 max-w-sm mx-auto">
@@ -125,7 +126,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
           <div className="flex items-center justify-center gap-3">
             <Link
               to="/login"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
+              className="btn-accent text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
             >
               Sign In
             </Link>
@@ -146,11 +147,11 @@ function ReviewForm({ productId, productName }: { productId: string; productName
     return (
       <div className="mt-10 border-t border-gray-200 pt-10">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <FiEdit3 className="text-blue-600" /> Write a Review
+          <FiEdit3 className="text-accent" /> Write a Review
         </h2>
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center">
-          <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiCheckCircle className="text-emerald-600" size={26} />
+        <div className="bg-accent-100 border border-accent rounded-2xl p-8 text-center">
+          <div className="w-14 h-14 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiCheckCircle className="text-accent" size={26} />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">Review submitted! Thank you.</h3>
           <p className="text-gray-600 text-sm max-w-sm mx-auto flex items-center justify-center gap-2">
@@ -166,7 +167,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   return (
     <div className="mt-10 border-t border-gray-200 pt-10">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <FiEdit3 className="text-blue-600" /> Write a Review
+            <FiEdit3 className="text-accent" /> Write a Review
       </h2>
 
       <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm">
@@ -219,7 +220,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
             <button
               type="submit"
               disabled={submitMutation.isPending}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold px-8 py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm shadow-blue-600/20"
+              className="w-full sm:w-auto btn-accent disabled:opacity-50 text-white font-semibold px-8 py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm"
             >
               <FiEdit3 size={15} />
               {submitMutation.isPending ? 'Submitting...' : 'Submit Review'}
@@ -296,8 +297,8 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
-                  <span className="text-blue-700 font-bold text-sm">
+                <div className="w-10 h-10 bg-accent-100 rounded-full flex items-center justify-center">
+                  <span className="text-accent font-bold text-sm">
                     {review.user?.firstName?.[0]}{review.user?.lastName?.[0]}
                   </span>
                 </div>
@@ -334,8 +335,8 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 
             {/* Verified badge */}
             <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1.5">
-              <FiCheck size={13} className="text-emerald-500" />
-              <span className="text-xs text-emerald-600 font-medium">Verified Review</span>
+              <FiCheck size={13} className="text-accent" />
+              <span className="text-xs text-accent font-medium">Verified Review</span>
             </div>
           </div>
         ))}
@@ -458,9 +459,11 @@ export default function ProductDetail() {
         </div>
       </div>
 
+      <SectionHero title={product.name} subtitle={product.brand?.name} />
       <div className="w-full px-4 py-8">
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="max-w-6xl mx-auto mt-8">
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images */}
           <div>
             <div className="relative bg-white rounded-2xl h-96 flex items-center justify-center overflow-hidden border border-gray-200 group">
@@ -494,7 +497,7 @@ export default function ProductDetail() {
                         key={i}
                         onClick={() => setCurrentImage(i)}
                         className={`w-3 h-3 rounded-full transition ${
-                          i === currentImage ? 'bg-blue-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'
+                          i === currentImage ? 'bg-accent scale-125' : 'bg-gray-300 hover:bg-gray-400'
                         }`}
                       />
                     ))}
@@ -509,8 +512,8 @@ export default function ProductDetail() {
                     key={img.id}
                     onClick={() => setCurrentImage(i)}
                     className={`w-20 h-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition ${
-                      i === currentImage
-                        ? 'border-blue-600'
+                      i === currentImage 
+                        ? 'border-accent'
                         : 'border-gray-200 opacity-70 hover:opacity-100'
                     }`}
                   >
@@ -553,7 +556,7 @@ export default function ProductDetail() {
             </div>
 
             <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-3xl font-price text-blue-600">
+              <span className="text-3xl font-price text-accent">
                 KES {product.price.toLocaleString()}
               </span>
               {product.compareAtPrice && (
@@ -640,8 +643,8 @@ export default function ProductDetail() {
             {/* Trust badges */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FiTruck className="text-blue-600" size={20} />
+                <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+                  <FiTruck className="text-accent" size={20} />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">Fast Delivery</p>
@@ -669,6 +672,7 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+      </div>
 
         {/* ── Reviews Section ───────────────────────────────────── */}
         <ReviewsDisplay reviews={approvedReviews} />

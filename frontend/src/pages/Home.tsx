@@ -5,22 +5,45 @@ import type { Product } from '../types';
 import {
   FiWifi,
   FiCamera,
-  FiTool,
-  FiArrowRight,
   FiStar,
   FiChevronLeft,
   FiChevronRight,
-  FiMessageSquare,
-  FiMonitor,
   FiZap,
   FiPackage,
 } from 'react-icons/fi';
-import { FaWhatsapp, FaBuilding } from 'react-icons/fa';
-import CompactProductCard from '../components/CompactProductCard';
+import { FaWhatsapp } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useCallback, useEffect, useState } from 'react';
+
+// Apple-style product tile component
+function AppleProductTile({ product }: { product: Product }) {
+  const images = product.images || [];
+  const mainImage = images[0]?.url;
+
+  return (
+    <Link to={`/products/${product.slug}`} className="block group">
+      <div className="mb-3">
+        {mainImage ? (
+          <img
+            src={mainImage}
+            alt={product.name}
+            loading="lazy"
+            className="w-full h-48 object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+            <FiPackage size={32} className="text-gray-300" />
+          </div>
+        )}
+      </div>
+      <p className="text-sm text-gray-900 text-center font-medium group-hover:text-accent transition-colors">
+        {product.name}
+      </p>
+    </Link>
+  );
+}
 
 const WHATSAPP_NUMBER = '254796285718';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
@@ -32,28 +55,6 @@ interface Testimonial {
   rating: number;
   date: string;
   review: string;
-}
-
-interface PromoBanner {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  badge: string | null;
-  badgeColor: string | null;
-  ctaText: string;
-  ctaLink: string;
-  imageUrl: string | null;
-  productId: string | null;
-  bgColor: string;
-  textColor: string;
-  isActive: boolean;
-  sortOrder: number;
-  product?: {
-    id: string;
-    name: string;
-    price: number;
-    compareAtPrice: number | null;
-  } | null;
 }
 
 const testimonials: Testimonial[] = [
@@ -81,84 +82,10 @@ const testimonials: Testimonial[] = [
     date: 'July 2026',
     review: 'Professional service and genuine products. Highly recommend Movec Store!',
   },
-  {
-    name: 'Sarah M.',
-    location: 'Mombasa',
-    product: 'Starlink + CCTV Bundle',
-    rating: 5,
-    date: 'April 2026',
-    review: 'Their team guided me to the right product for my home and installed it perfectly.',
-  },
-  {
-    name: 'Kevin K.',
-    location: 'Eldoret',
-    product: 'Dahua CCTV System',
-    rating: 4,
-    date: 'June 2026',
-    review: 'Solid system, excellent night vision. Great value for money and fast delivery.',
-  },
-];
-
-const heroSlides = [
-  {
-    badge: 'OFFICIAL STARLINK PARTNER',
-    badgeBg: 'bg-[#10b982]',
-    title: 'STARLINK GEN 3 KIT',
-    subtitle: 'Ultra-fast satellite internet anywhere\nfor homes, businesses & remote locations.',
-    price: 'FROM',
-    priceAmount: 'KSH 65,000',
-    cta: 'SHOP STARLINK',
-    ctaLink: '/solutions/starlink',
-    bg: 'bg-[#1a2332]',
-    gradientFrom: '#1a2332',
-    imageUrl: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=800&q=80',
-  },
-  {
-    badge: 'AI POWERED SECURITY',
-    badgeBg: 'bg-[#fc6501]',
-    title: 'AI CCTV SURVEILLANCE',
-    subtitle: 'Professional HD and 4K security camera systems\nwith remote monitoring, night vision & smart detection.',
-    price: 'FROM',
-    priceAmount: 'KSH 18,500',
-    cta: 'SHOP CCTV',
-    ctaLink: '/solutions/cctv',
-    bg: 'bg-[#1a1f28]',
-    gradientFrom: '#1a1f28',
-    imageUrl: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&q=80',
-  },
-  {
-    badge: 'CERTIFIED INSTALLERS',
-    badgeBg: 'bg-[#10b982]',
-    title: 'PROFESSIONAL INSTALLATION',
-    subtitle: 'Expert Starlink and CCTV installation with\nnationwide coverage, clean cabling & after-sales support.',
-    price: 'FROM',
-    priceAmount: 'KSH 3,500',
-    cta: 'BOOK INSTALLATION',
-    ctaLink: '/installation',
-    bg: 'bg-[#1a2230]',
-    gradientFrom: '#1a2230',
-    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80',
-  },
 ];
 
 
-const sidebarCategories = [
-  { label: 'Starlink Kits', icon: <FiWifi size={16} />, to: '/solutions/starlink' },
-  { label: 'Starlink Accessories', icon: <FiPackage size={16} />, to: '/products?category=starlink-accessories' },
-  { label: 'CCTV Cameras', icon: <FiCamera size={16} />, to: '/solutions/cctv' },
-  { label: 'NVRs & DVRs', icon: <FiMonitor size={16} />, to: '/products?category=nvr-dvr' },
-  { label: 'Networking', icon: <FiZap size={16} />, to: '/products?category=networking' },
-  
-];
 
-const brands = [
-  { name: 'Starlink', color: 'text-gray-900' },
-  { name: 'HIKVISION', color: 'text-red-600' },
-  { name: 'dahua', color: 'text-blue-600' },
-  { name: 'tp-link', color: 'text-green-600' },
-  { name: 'UBIQUITI', color: 'text-blue-800' },
-  { name: 'EZVIZ', color: 'text-purple-600' },
-];
 
 export default function Home() {
   const { data: featured } = useQuery({
@@ -177,44 +104,7 @@ export default function Home() {
     },
   });
 
-  // Fetch dynamic promo banners
-  const { data: promoBanners } = useQuery<PromoBanner[]>({
-    queryKey: ['promo-banners'],
-    queryFn: async () => {
-      const { data } = await api.get('/promo-banners');
-      return data;
-    },
-  });
 
-  // Use dynamic banners if available, fallback to hardcoded
-  const activeSlides = promoBanners && promoBanners.length > 0 
-    ? promoBanners.map(banner => ({
-        badge: banner.badge || '',
-        badgeBg: `bg-[${banner.badgeColor || '#10b982'}]`,
-        title: banner.title,
-        subtitle: banner.subtitle || '',
-        price: banner.product ? 'FROM' : '',
-        priceAmount: banner.product ? `KSH ${banner.product.price.toLocaleString()}` : '',
-        cta: banner.ctaText,
-        ctaLink: banner.ctaLink,
-        bg: `bg-[${banner.bgColor}]`,
-        gradientFrom: banner.bgColor,
-        imageUrl: banner.imageUrl || '',
-        textColor: banner.textColor,
-      }))
-    : heroSlides.map(slide => ({ ...slide, textColor: '#ffffff' }));
-
-  // Hero carousel
-  const [heroRef, heroApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 4500, stopOnInteraction: true }),
-  ]);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const scrollPrev = useCallback(() => heroApi?.scrollPrev(), [heroApi]);
-  const scrollNext = useCallback(() => heroApi?.scrollNext(), [heroApi]);
-  useEffect(() => {
-    if (!heroApi) return;
-    heroApi.on('select', () => setHeroIndex(heroApi.selectedScrollSnap()));
-  }, [heroApi]);
 
   // Best Sellers carousel
   const [bestSellersRef, bestSellersApi] = useEmblaCarousel({
@@ -266,516 +156,181 @@ export default function Home() {
     [Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })]
   );
 
-  // Brands carousel
-  const [brandsRef] = useEmblaCarousel(
-    { loop: true, dragFree: true, align: 'start' },
-    [Autoplay({ delay: 2500, stopOnInteraction: false })]
-  );
+
 
   return (
     <div className="bg-gray-50 min-h-screen">
 
       {/* ══════════════════════════════════════
-          HERO — Sidebar + Carousel
+          APPLE-STYLE HERO SECTION
       ══════════════════════════════════════ */}
-      <section className="bg-white border-b border-gray-200 pt-4">
-        <div className="w-full">
-          <div className="flex gap-4">
-
-            {/* Category Sidebar */}
-            <aside className="hidden lg:block w-52 flex-shrink-0 border-r border-gray-200 bg-white">
-              <ul className="py-2">
-                {sidebarCategories.map((cat) => (
-                  <li key={cat.label}>
-                    <Link
-                      to={cat.to}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#10b982] transition group"
-                    >
-                      <span className="text-gray-400 group-hover:text-[#10b982] transition">{cat.icon}</span>
-                      {cat.label}
-                    </Link>
-                  </li>
-                ))}
-                <li className="px-4 pt-3 pb-2">
-                  <Link
-                    to="/categories"
-                    className="flex items-center gap-1 text-[#10b982] text-sm font-semibold hover:underline"
-                  >
-                    <span className="text-lg">⊞</span> View All Categories
-                  </Link>
-                </li>
-              </ul>
-            </aside>
-
-            {/* Hero Carousel */}
-            <div className="flex-1 relative overflow-hidden rounded-lg" style={{ minHeight: 400 }}>
-              <div className="embla overflow-hidden h-full" ref={heroRef}>
-                <div className="embla__container flex h-full">
-                  {activeSlides.map((slide, idx) => (
-                    <div
-                      key={idx}
-                      className={`embla__slide flex-[0_0_100%] min-w-0 relative flex items-center overflow-hidden`}
-                      style={{ backgroundColor: slide.gradientFrom }}
-                    >
-                      {/* Product Image */}
-                      <div className="absolute right-0 top-0 bottom-0 w-3/5 flex items-center justify-center pointer-events-none select-none">
-                        <img
-                          src={slide.imageUrl}
-                          alt={slide.title}
-                          className="h-full w-full object-cover object-center"
-                        />
-                        {/* Smooth gradient overlay matching background */}
-                        <div 
-                          className="absolute inset-0"
-                          style={{
-                            background: `linear-gradient(to right, ${slide.gradientFrom} 0%, ${slide.gradientFrom}e6 15%, ${slide.gradientFrom}99 30%, ${slide.gradientFrom}4d 50%, ${slide.gradientFrom}1a 70%, transparent 100%)`
-                          }}
-                        />
-                      </div>
-
-                      <div className="relative z-10 px-8 md:px-14 py-12 md:py-16 max-w-xl">
-                        {slide.badge && (
-                          <span 
-                            className={`inline-block text-white text-[10px] font-bold px-3 py-1.5 rounded mb-4 tracking-wider uppercase`}
-                            style={{ backgroundColor: slide.badgeBg.replace('bg-[', '').replace(']', '') }}
-                          >
-                            {slide.badge}
-                          </span>
-                        )}
-                        <h1 
-                          className="text-3xl md:text-5xl font-black leading-tight mb-4"
-                          style={{ color: slide.textColor || '#ffffff' }}
-                        >
-                          {slide.title}
-                        </h1>
-                        <p 
-                          className="text-sm md:text-base mb-6 whitespace-pre-line leading-relaxed max-w-md opacity-90"
-                          style={{ color: slide.textColor || '#ffffff' }}
-                        >
-                          {slide.subtitle}
-                        </p>
-                        
-                        {slide.priceAmount && (
-                          <div className="mb-6">
-                            <p 
-                              className="text-xs font-semibold tracking-wide uppercase mb-1 opacity-75"
-                              style={{ color: slide.textColor || '#ffffff' }}
-                            >
-                              {slide.price}
-                            </p>
-                            <p className="text-[#10b982] text-3xl md:text-4xl font-black">{slide.priceAmount}</p>
-                          </div>
-                        )}
-
-                        <Link
-                          to={slide.ctaLink}
-                          className="inline-flex items-center gap-2 bg-[#10b982] hover:bg-[#0ca072] text-white font-bold px-8 py-3.5 rounded-lg transition text-sm tracking-wide shadow-lg"
-                        >
-                          {slide.cta}
-                          <FiArrowRight size={16} />
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Prev/Next */}
-              <button 
-                onClick={scrollPrev} 
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition backdrop-blur-sm"
-                aria-label="Previous slide"
-              >
-                <FiChevronLeft size={20} />
-              </button>
-              <button 
-                onClick={scrollNext} 
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition backdrop-blur-sm"
-                aria-label="Next slide"
-              >
-                <FiChevronRight size={20} />
-              </button>
-
-              {/* Dots */}
-              <div className="absolute bottom-6 left-8 md:left-14 flex gap-2 z-20">
-                {heroSlides.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => heroApi?.scrollTo(i)}
-                    className={`h-1.5 rounded-full transition-all ${i === heroIndex ? 'bg-[#10b982] w-8' : 'bg-white/40 w-1.5'}`}
-                    aria-label={`Go to slide ${i + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════
-          SERVICE HIGHLIGHTS
-      ══════════════════════════════════════ */}
-      <section className="bg-[#0a1628] border-b border-gray-800 py-6">
-        <div className="w-full">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-            {/* 100% Authentic Products */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
-                  100% AUTHENTIC PRODUCTS
-                </h3>
-                <p className="text-gray-400 text-xs">
-                  Official products with warranty
-                </p>
-              </div>
+      <section className="bg-gray-50 border-b border-gray-200/50 py-16 md:py-24">
+        <div className="w-full px-4 md:px-8">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-8 md:gap-16">
+            
+            {/* Left: Large, bold heading */}
+            <div className="flex-1">
+              <h1 className="text-5xl md:text-7xl font-bold text-gray-900 tracking-tight leading-none">
+                Store
+              </h1>
             </div>
 
-            {/* Fast Nationwide Delivery */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
-                  FAST NATIONWIDE DELIVERY
-                </h3>
-                <p className="text-gray-400 text-xs">
-                  Across all 27 counties
-                </p>
-              </div>
-            </div>
-
-            {/* Expert Installation */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
-                  EXPERT INSTALLATION
-                </h3>
-                <p className="text-gray-400 text-xs">
-                  Certified & experienced technicians
-                </p>
-              </div>
-            </div>
-
-            {/* 24/7 Support */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <svg className="w-10 h-10 text-[#10b982]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-sm uppercase tracking-wide mb-0.5">
-                  24/7 SUPPORT
-                </h3>
-                <p className="text-gray-400 text-xs">
-                  We're here to help
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════
-          ADDITIONAL SERVICE HIGHLIGHTS
-      ══════════════════════════════════════ */}
-      <section className="bg-white border-b border-gray-200 py-6">
-        <div className="w-full">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-            {/* Installation */}
-            <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-[#10b982] hover:shadow-sm transition group">
-              <div className="w-12 h-12 bg-[#fc6501]/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-[#fc6501]/20 transition">
-                <FiTool className="text-[#fc6501]" size={22} />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wide mb-1">
-                  Professional Installation Services
-                </h3>
-                <p className="text-gray-500 text-xs leading-relaxed">
-                  Expert installation by certified technicians
-                </p>
-                <Link to="/installation" className="inline-flex items-center gap-1 text-[#10b982] text-xs font-semibold mt-2 hover:underline">
-                  Learn More <FiArrowRight size={12} />
-                </Link>
-              </div>
-            </div>
-
-            {/* Business Solutions */}
-            <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-[#10b982] hover:shadow-sm transition group">
-              <div className="w-12 h-12 bg-[#10b982]/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-[#10b982]/20 transition">
-                <FaBuilding className="text-[#10b982]" size={20} />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wide mb-1">
-                  Business Solutions
-                </h3>
-                <p className="text-gray-500 text-xs leading-relaxed">
-                  Custom solutions for offices, farms, schools & enterprises
-                </p>
-                <Link to="/solutions" className="inline-flex items-center gap-1 text-[#10b982] text-xs font-semibold mt-2 hover:underline">
-                  Learn More <FiArrowRight size={12} />
-                </Link>
-              </div>
-            </div>
-
-            {/* WhatsApp */}
-            <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-[#25d366] hover:shadow-sm transition group">
-              <div className="w-12 h-12 bg-[#25d366]/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-[#25d366]/20 transition">
-                <FaWhatsapp className="text-[#25d366]" size={24} />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wide mb-1">
-                  Order via WhatsApp
-                </h3>
-                <p className="text-gray-500 text-xs leading-relaxed">
-                  Chat with us now on WhatsApp to order
-                </p>
-                <a
-                  href={WHATSAPP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[#25d366] text-xs font-semibold mt-2 hover:underline"
-                >
-                  Chat Now <FiArrowRight size={12} />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════
-          FEATURED BRANDS
-      ══════════════════════════════════════ */}
-      <section className="bg-white border-b border-gray-200 py-8">
-        <div className="w-full">
-          <h2 className="text-center text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">
-            Featured Brands
-          </h2>
-          <div className="embla overflow-hidden" ref={brandsRef}>
-            <div className="embla__container flex items-center">
-              {[...brands, ...brands].map((brand, i) => (
-                <div
-                  key={i}
-                  className="embla__slide flex-[0_0_auto] min-w-0 px-8 flex items-center justify-center"
-                >
-                  <span className={`text-xl font-black tracking-tight ${brand.color} opacity-70 hover:opacity-100 transition cursor-default select-none`}>
-                    {brand.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════
-          BEST SELLERS + HELP SIDEBAR
-      ══════════════════════════════════════ */}
-      <section className="py-10 bg-gray-50">
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <span className="w-1 h-6 bg-[#fc6501] rounded-full inline-block" />
-              <h2 className="text-xl font-black text-gray-900 uppercase tracking-wide">Best Sellers</h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex gap-2">
-                <button
-                  onClick={scrollBestSellersPrev}
-                  disabled={!canScrollBestSellersPrev}
-                  className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  <FiChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={scrollBestSellersNext}
-                  disabled={!canScrollBestSellersNext}
-                  className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  <FiChevronRight size={18} />
-                </button>
-              </div>
-              <Link
-                to="/products"
-                className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-[#10b982] hover:bg-[#0ca072] px-4 py-2 rounded-lg transition"
-              >
-                View All <FiArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            {/* Products Carousel */}
-            <div className="lg:col-span-4 relative overflow-hidden">
-              <div className="embla" ref={bestSellersRef}>
-                <div className="embla__container flex gap-2" style={{ cursor: 'default' }}>
-                  {(bestSellers ?? Array(4).fill(null)).map((product, idx) =>
-                    product ? (
-                      <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ cursor: 'default' }}>
-                        <motion.div
-                          initial={{ opacity: 0, y: 15 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.35, delay: idx * 0.07 }}
-                          className="h-full"
-                        >
-                          <CompactProductCard product={product} />
-                        </motion.div>
-                      </div>
-                    ) : (
-                      <div key={idx} className="embla__slide flex-[0_0_140px] min-w-0">
-                        <div className="bg-white rounded-lg border border-gray-200 h-52 animate-pulse" />
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Need Help Card */}
-            <div className="lg:col-span-1">
-              <div className="bg-[#10b982] rounded-xl p-6 text-white h-full flex flex-col justify-between min-h-[260px]">
-                <div>
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                    <FiMessageSquare size={22} className="text-white" />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2 leading-snug">Need Help Choosing?</h3>
-                  <p className="text-white/80 text-sm mb-4">Our experts are ready to help you.</p>
-                  <ul className="space-y-1.5 text-sm text-white/90">
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-white inline-block" /> Product Advice</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-white inline-block" /> Installation Support</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-white inline-block" /> After Sales Support</li>
-                  </ul>
-                </div>
-                <a
-                  href={WHATSAPP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-6 flex items-center justify-center gap-2 bg-white text-[#10b982] font-bold text-sm py-2.5 rounded-lg hover:bg-gray-100 transition"
-                >
-                  <FaWhatsapp size={18} />
-                  Chat With Us
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════
-          CATEGORY SHOP CARDS
-      ══════════════════════════════════════ */}
-      <section className="py-10 bg-white border-y border-gray-200">
-        <div className="w-full">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-            <Link to="/solutions/starlink" className="group bg-gray-50 hover:bg-[#10b982]/5 border border-gray-200 hover:border-[#10b982] rounded-xl p-5 transition flex flex-col justify-between min-h-[130px]">
-              <div>
-                <FiWifi className="text-[#10b982] mb-2" size={26} />
-                <h3 className="font-bold text-gray-900 text-sm group-hover:text-[#10b982] transition">Starlink Deals</h3>
-                <p className="text-gray-500 text-xs mt-1">High-speed internet anywhere</p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-[#10b982] text-xs font-semibold mt-3 group-hover:underline">
-                Shop Now <FiArrowRight size={12} />
-              </span>
-            </Link>
-
-            <Link to="/solutions/cctv" className="group bg-gray-50 hover:bg-[#10b982]/5 border border-gray-200 hover:border-[#10b982] rounded-xl p-5 transition flex flex-col justify-between min-h-[130px]">
-              <div>
-                <FiCamera className="text-[#fc6501] mb-2" size={26} />
-                <h3 className="font-bold text-gray-900 text-sm group-hover:text-[#10b982] transition">CCTV Bundles</h3>
-                <p className="text-gray-500 text-xs mt-1">Complete security systems</p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-[#10b982] text-xs font-semibold mt-3 group-hover:underline">
-                Shop Now <FiArrowRight size={12} />
-              </span>
-            </Link>
-
-            <Link to="/products?category=accessories" className="group bg-gray-50 hover:bg-[#10b982]/5 border border-gray-200 hover:border-[#10b982] rounded-xl p-5 transition flex flex-col justify-between min-h-[130px]">
-              <div>
-                <FiPackage className="text-[#10b982] mb-2" size={26} />
-                <h3 className="font-bold text-gray-900 text-sm group-hover:text-[#10b982] transition">Accessories</h3>
-                <p className="text-gray-500 text-xs mt-1">Cables, mounts, adapters & more</p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-[#10b982] text-xs font-semibold mt-3 group-hover:underline">
-                Shop Now <FiArrowRight size={12} />
-              </span>
-            </Link>
-
-            <Link to="/products?category=networking" className="group bg-gray-50 hover:bg-[#10b982]/5 border border-gray-200 hover:border-[#10b982] rounded-xl p-5 transition flex flex-col justify-between min-h-[130px]">
-              <div>
-                <FiZap className="text-[#fc6501] mb-2" size={26} />
-                <h3 className="font-bold text-gray-900 text-sm group-hover:text-[#10b982] transition">Networking</h3>
-                <p className="text-gray-500 text-xs mt-1">Routers, switches & access points</p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-[#10b982] text-xs font-semibold mt-3 group-hover:underline">
-                Shop Now <FiArrowRight size={12} />
-              </span>
-            </Link>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════
-          FEATURED PRODUCTS (if any)
-      ══════════════════════════════════════ */}
-      {featured && featured.length > 0 && (
-        <section className="py-10 bg-gray-50">
-          <div className="w-full">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <span className="w-1 h-6 bg-[#10b982] rounded-full inline-block" />
-                <h2 className="text-xl font-black text-gray-900 uppercase tracking-wide">Featured Products</h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex gap-2">
-                  <button
-                    onClick={scrollFeaturedPrev}
-                    disabled={!canScrollFeaturedPrev}
-                    className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <FiChevronLeft size={18} />
-                  </button>
-                  <button
-                    onClick={scrollFeaturedNext}
-                    disabled={!canScrollFeaturedNext}
-                    className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10b982] hover:text-[#10b982] hover:bg-[#10b982]/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <FiChevronRight size={18} />
-                  </button>
-                </div>
+            {/* Right: Supporting content with links */}
+            <div className="flex-1 text-right space-y-3">
+              <p className="text-lg text-gray-600 max-w-md ml-auto">
+                The latest Starlink kits, CCTV systems, and networking gear — all in one place.
+              </p>
+              <div className="flex items-center justify-end gap-6">
                 <Link
                   to="/products"
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-[#10b982] hover:bg-[#0ca072] px-4 py-2 rounded-lg transition"
+                  className="text-accent hover:text-accent-hover text-base font-medium flex items-center gap-1 transition"
                 >
-                  View All <FiArrowRight size={14} />
+                  Shop all <span className="text-[#0071e3]">›</span>
                 </Link>
+                  <Link
+                    to="/categories"
+                    className="text-accent hover:text-accent-hover text-base font-medium flex items-center gap-1 transition"
+                  >
+                    Browse categories <span className="text-accent">›</span>
+                  </Link>
               </div>
             </div>
-            <div className="relative overflow-hidden">
+
+          </div>
+        </div>
+      </section>
+
+
+
+
+
+      {/* ══════════════════════════════════════
+          APPLE-STYLE PRODUCT ROW: BEST SELLERS
+      ══════════════════════════════════════ */}
+      <section className="py-12 bg-white">
+        <div className="w-full px-4 md:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900">Best Sellers</h2>
+            <Link
+              to="/products"
+              className="text-accent hover:text-accent-hover text-base font-medium flex items-center gap-1 transition"
+            >
+              See all <span className="text-accent">›</span>
+            </Link>
+          </div>
+
+          <div className="relative">
+            <div className="embla" ref={bestSellersRef}>
+              <div className="embla__container flex gap-8 md:gap-12">
+                {(bestSellers ?? Array(4).fill(null)).map((product, idx) =>
+                  product ? (
+                    <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ width: '200px' }}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.35, delay: idx * 0.07 }}
+                        className="h-full"
+                      >
+                        <AppleProductTile product={product} />
+                      </motion.div>
+                    </div>
+                  ) : (
+                    <div key={idx} className="embla__slide flex-[0_0_auto] min-w-0" style={{ width: '200px' }}>
+                      <div className="bg-gray-100 h-48 animate-pulse rounded-lg" />
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Navigation arrows */}
+            <button
+              onClick={scrollBestSellersPrev}
+              disabled={!canScrollBestSellersPrev}
+              className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-accent transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <FiChevronLeft size={16} />
+            </button>
+            <button
+              onClick={scrollBestSellersNext}
+              disabled={!canScrollBestSellersNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-accent transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <FiChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════
+          APPLE-STYLE CATEGORY ROW
+      ══════════════════════════════════════ */}
+      <section className="py-12 bg-white">
+        <div className="w-full px-4 md:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900">Shop by Category</h2>
+            <Link
+              to="/categories"
+              className="text-[#0071e3] hover:text-[#0077ed] text-base font-medium flex items-center gap-1 transition"
+            >
+              See all <span className="text-[#0071e3]">›</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+            <Link to="/solutions/starlink" className="group block text-center">
+              <div className="mb-3">
+                <FiWifi className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+              </div>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">Starlink</p>
+            </Link>
+
+            <Link to="/solutions/cctv" className="group block text-center">
+              <div className="mb-3">
+                <FiCamera className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+              </div>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">CCTV</p>
+            </Link>
+
+            <Link to="/products?category=networking" className="group block text-center">
+              <div className="mb-3">
+                <FiZap className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+              </div>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">Networking</p>
+            </Link>
+
+            <Link to="/products?category=accessories" className="group block text-center">
+              <div className="mb-3">
+                <FiPackage className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+              </div>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">Accessories</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════
+          APPLE-STYLE PRODUCT ROW: FEATURED
+      ══════════════════════════════════════ */}
+      {featured && featured.length > 0 && (
+        <section className="py-12 bg-gray-50">
+          <div className="w-full px-4 md:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900">Featured</h2>
+              <Link
+                to="/products"
+                className="text-blue-600 hover:text-blue-700 text-base font-medium flex items-center gap-1 transition"
+              >
+                See all <span className="text-blue-600">›</span>
+              </Link>
+            </div>
+
+            <div className="relative">
               <div className="embla" ref={featuredRef}>
-                <div className="embla__container flex gap-2" style={{ cursor: 'default' }}>
+                <div className="embla__container flex gap-8 md:gap-12">
                   {featured.map((product, idx) => (
-                    <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ cursor: 'default' }}>
+                    <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ width: '200px' }}>
                       <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -783,105 +338,43 @@ export default function Home() {
                         transition={{ duration: 0.35, delay: idx * 0.05 }}
                         className="h-full"
                       >
-                        <CompactProductCard product={product} />
+                        <AppleProductTile product={product} />
                       </motion.div>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Navigation arrows */}
+              <button
+                onClick={scrollFeaturedPrev}
+                disabled={!canScrollFeaturedPrev}
+                className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#0071e3] hover:text-[#0071e3] transition disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <FiChevronLeft size={16} />
+              </button>
+              <button
+                onClick={scrollFeaturedNext}
+                disabled={!canScrollFeaturedNext}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#0071e3] hover:text-[#0071e3] transition disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <FiChevronRight size={16} />
+              </button>
             </div>
           </div>
         </section>
       )}
 
-      {/* ══════════════════════════════════════
-          VIEW ALL PRODUCTS BANNER
-      ══════════════════════════════════════ */}
-      <section className="py-10 bg-gray-900">
-        <div className="w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#10b982] via-[#0ca072] to-[#059669] px-8 py-12 md:px-14 md:py-14 flex flex-col md:flex-row items-center justify-between gap-8"
-          >
-            {/* Background decoration */}
-            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-              <FiPackage size={220} className="absolute -right-8 -top-8 text-white/5" />
-              <FiWifi size={140} className="absolute right-48 -bottom-10 text-white/5" />
-              <FiCamera size={100} className="absolute right-96 top-4 text-white/5 hidden lg:block" />
-            </div>
 
-            {/* Text */}
-            <div className="relative z-10 text-center md:text-left">
-              <span className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
-                Full Catalog
-              </span>
-              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
-                Browse All Products
-              </h2>
-              <p className="text-white/80 text-base md:text-lg max-w-md">
-                Starlink kits, CCTV systems, networking gear, accessories and more — all in one place.
-              </p>
-              <div className="flex flex-wrap items-center gap-4 mt-5 text-white/70 text-sm">
-                <span className="flex items-center gap-1.5"><span className="text-white">✓</span> Genuine products</span>
-                <span className="flex items-center gap-1.5"><span className="text-white">✓</span> Competitive prices</span>
-                <span className="flex items-center gap-1.5"><span className="text-white">✓</span> Fast nationwide delivery</span>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="relative z-10 flex flex-col sm:flex-row gap-3 flex-shrink-0">
-              <Link
-                to="/products"
-                className="inline-flex items-center justify-center gap-2 bg-white text-[#10b982] font-black text-base px-8 py-4 rounded-xl hover:bg-gray-100 transition shadow-lg"
-              >
-                View All Products
-                <FiArrowRight size={18} />
-              </Link>
-              <Link
-                to="/categories"
-                className="inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white font-bold text-base px-8 py-4 rounded-xl transition border border-white/30"
-              >
-                Browse Categories
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* ══════════════════════════════════════
-          TESTIMONIALS
+          APPLE-STYLE TESTIMONIALS
       ══════════════════════════════════════ */}
-      <section className="py-12 bg-white border-y border-gray-200">
-        <div className="w-full">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">What Our Customers Say</h2>
-            <div className="flex items-center justify-center gap-6 mt-4 text-center">
-              <div>
-                <div className="flex items-center justify-center gap-0.5 text-yellow-400 mb-0.5">
-                  {[1,2,3,4,5].map(s => <FiStar key={s} className="fill-yellow-400" size={14} />)}
-                </div>
-                <p className="text-lg font-bold text-gray-900">4.9</p>
-                <p className="text-xs text-gray-500">Average Rating</p>
-              </div>
-              <div className="w-px h-10 bg-gray-200" />
-              <div>
-                <p className="text-lg font-bold text-gray-900">500+</p>
-                <p className="text-xs text-gray-500">Installations</p>
-              </div>
-              <div className="w-px h-10 bg-gray-200" />
-              <div>
-                <p className="text-lg font-bold text-gray-900">98%</p>
-                <p className="text-xs text-gray-500">Satisfaction Rate</p>
-              </div>
-              <div className="w-px h-10 bg-gray-200" />
-              <div>
-                <p className="text-lg font-bold text-gray-900">47</p>
-                <p className="text-xs text-gray-500">Counties Served</p>
-              </div>
-            </div>
+      <section className="py-16 bg-gray-50">
+        <div className="w-full px-4 md:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-semibold text-gray-900 mb-2">Customer Stories</h2>
+            <p className="text-gray-600">See what our customers have to say</p>
           </div>
 
           <div className="embla overflow-hidden" ref={testimonialRef}>
@@ -889,42 +382,35 @@ export default function Home() {
               {testimonials.map((t, idx) => (
                 <div
                   key={idx}
-                  className="embla__slide flex-[0_0_90%] sm:flex-[0_0_50%] md:flex-[0_0_45%] lg:flex-[0_0_25%] min-w-0 px-2 pb-2 cursor-grab active:cursor-grabbing"
+                  className="embla__slide flex-[0_0_90%] sm:flex-[0_0_50%] md:flex-[0_0_33%] min-w-0 px-2 pb-2 cursor-grab active:cursor-grabbing"
                 >
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.35, delay: idx * 0.06 }}
-                    className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition h-full"
+                    className="bg-white p-6 rounded-lg h-full"
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-[#10b982]/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[#10b982] font-bold text-sm">{t.name.charAt(0)}</span>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-gray-600 font-semibold text-sm">{t.name.charAt(0)}</span>
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
-                        <p className="text-gray-400 text-xs">{t.location}</p>
+                        <p className="text-gray-500 text-xs">{t.location}</p>
                       </div>
                     </div>
-                    <div className="flex gap-0.5 mb-2">
+                    <div className="flex gap-0.5 mb-3">
                       {Array.from({ length: t.rating }).map((_, i) => (
-                        <FiStar key={i} size={12} className="fill-yellow-400 text-yellow-400" />
+                        <FiStar key={i} size={14} className="fill-yellow-400 text-yellow-400" />
                       ))}
                     </div>
-                    <p className="text-gray-600 text-xs leading-relaxed mb-3">"{t.review}"</p>
-                    <p className="text-gray-400 text-xs">{t.product} · {t.date}</p>
+                    <p className="text-gray-700 text-sm leading-relaxed mb-3">"{t.review}"</p>
+                    <p className="text-gray-500 text-xs">{t.product} · {t.date}</p>
                   </motion.div>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Dots */}
-          <div className="flex justify-center gap-2 mt-4">
-            {testimonials.map((_, i) => (
-              <span key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-[#fc6501]' : 'bg-gray-300'}`} />
-            ))}
           </div>
         </div>
       </section>

@@ -114,7 +114,7 @@ export default function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/solutions" element={<ModulesPage />} />
               <Route path="/solutions/:moduleSlug" element={<ModuleLanding />} />
-              <Route path="/solutions/:moduleSlug/products" element={<ModuleLanding />} />
+              <Route path="/solutions/:moduleSlug/products" element={<Navigate to="/solutions/:moduleSlug" replace />} />
               {/* Legacy redirects */}
               <Route path="/modules" element={<Navigate to="/solutions" replace />} />
               <Route path="/modules/:moduleSlug" element={<Navigate to="/solutions/:moduleSlug" replace />} />

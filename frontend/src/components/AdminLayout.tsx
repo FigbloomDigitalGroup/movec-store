@@ -55,46 +55,52 @@ export default function AdminLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-full bg-gray-900 text-white flex flex-col flex-shrink-0 transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-full bg-slate-950 flex flex-col flex-shrink-0 transform transition-transform border-r border-slate-800 shadow-xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+        style={{ color: '#cbd5e1' }}
+      >
         {/* Logo */}
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
-          <Link to="/admin" className="text-xl font-bold text-blue-400">Admin Panel</Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
+        <div className="px-5 py-5 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
+          <Link to="/admin" className="text-xl font-semibold tracking-tight" style={{ color: '#93c5fd' }}>
+            Admin Panel
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-100">
             <FiX size={20} />
           </button>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {sidebarLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+              className={`group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
                 location.pathname === link.to
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-blue-500/15 shadow-sm shadow-blue-500/20'
+                  : 'hover:bg-slate-800 hover:text-white'
               }`}
+              style={{ color: location.pathname === link.to ? '#bfdbfe' : '#cbd5e1' }}
             >
-              <link.icon size={18} />
-              <span className="text-sm font-medium">{link.label}</span>
+              <link.icon size={18} className="flex-shrink-0" style={{ color: 'inherit' }} />
+              <span className="text-sm font-medium" style={{ color: 'inherit' }}>{link.label}</span>
             </Link>
           ))}
         </nav>
 
         {/* Bottom user + sign out */}
-        <div className="p-4 border-t border-gray-800 flex-shrink-0">
+        <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex-shrink-0">
           {/* User info */}
           <div className="flex items-center gap-3 mb-4 px-1">
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-slate-950 font-semibold text-sm shadow-lg shadow-blue-500/20 flex-shrink-0">
               {user?.firstName?.[0]?.toUpperCase() ?? 'A'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
+              <p className="text-sm font-semibold text-slate-100 truncate">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs text-gray-400">Administrator</p>
+              <p className="text-xs text-slate-400">Administrator</p>
             </div>
           </div>
 

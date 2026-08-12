@@ -1,21 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getModule, getModuleProducts } from '../lib/api';
-import { FiSearch, FiFilter, FiArrowLeft, FiChevronLeft, FiChevronRight, FiShoppingCart, FiShoppingBag, FiHeart, FiTarget, FiUser, FiAlertTriangle, FiPackage, FiSmile, FiSmartphone, FiMoon, FiCheck, FiArrowRight, FiShield, FiVideo, FiHome, FiActivity, FiMap, FiGlobe, FiZap, FiWifi, FiTool, FiMonitor, FiHelpCircle, FiLock, FiTruck, FiPhone, FiStar, FiMessageSquare, FiBox, FiMonitor as FiBuilding, FiBookOpen as FiBook, FiSun, FiCloud, FiPlay, FiMonitor as FiLaptop, FiUpload, FiDownload, FiUsers, FiLink, FiArrowUp } from 'react-icons/fi';
-import { useCartStore } from '../store/cartStore';
-import { useWishlistStore } from '../store/wishlistStore';
-import AnimatedContent from '../components/AnimatedContent';
-import type { ReactElement } from 'react';
+import { FiSearch, FiArrowRight, FiGlobe, FiVideo, FiPackage } from 'react-icons/fi';
+import SectionHero from '../components/ui/SectionHero';
+import ProductCard from '../components/ProductCard';
 
 interface StoreModule {
   id: string;
   name: string;
   slug: string;
   description: string | null;
-  imageUrl: string | null;
-  categories: { id: string; name: string; slug: string }[];
-  _count: { products: number };
+  _count?: { products: number };
+  categories?: { id: string; name: string; slug: string }[];
 }
 
 interface Product {
@@ -23,1373 +20,205 @@ interface Product {
   name: string;
   slug: string;
   price: number;
-  compareAtPrice?: number;
-  images: { url: string; alt?: string }[];
-  brand?: { name: string };
-  categories: { id: string; name: string; slug: string }[];
-  inventory: { quantity: number }[];
+  images: { url: string }[];
 }
 
-const MODULE_THEMES: Record<string, { gradient: string; banner: string; icon: ReactElement; pill: string; pillText: string }> = {
-  starlink: {
-    gradient: 'from-[#FC6501] via-[#FC6501] to-[#10B982]',
-
-    banner: 'from-[#FC6501]/20 via-[#10B982]/10 to-transparent',
-
-    icon: <FiGlobe />,
-
-    pill: 'bg-[#FC6501]/20 border-[#FC6501]/30',
-
-    pillText: 'text-[#FC6501]',
-  },
-  cctv: {
-    gradient: 'from-emerald-900 via-teal-900 to-cyan-900',
-    banner: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-    icon: <FiVideo />,
-    pill: 'bg-emerald-500/20 border-emerald-500/30',
-    pillText: 'text-emerald-300',
-  },
-};
-
-const DEFAULT_THEME = {
-  gradient: 'from-gray-900 via-slate-900 to-gray-900',
-  banner: 'from-slate-500/20 to-transparent',
-  icon: <FiPackage />,
-  pill: 'bg-slate-500/20 border-slate-500/30',
-  pillText: 'text-slate-300',
-};
-
-function ProductCard({ product }: { product: Product }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const images = product.images || [];
-  const addToCart = useCartStore((s) => s.addItem);
-  const addToWishlist = useWishlistStore((s) => s.addItem);
-  const totalStock = product.inventory.reduce((s, i) => s + i.quantity, 0);
-  const inStock = totalStock > 0;
-
-  const discount =
-    product.compareAtPrice && product.compareAtPrice > product.price
-      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
-      : 0;
-
-  const goNext = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (images.length > 1) setCurrentIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const goPrev = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (images.length > 1) setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  return (
-    <Link
-      to={`/products/${product.slug}`}
-      className="group block bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200 relative"
-    >
-      {/* Discount Badge */}
-      {discount > 0 && (
-        <div className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded z-10">
-          -{discount}%
-        </div>
-      )}
-
-      {/* Image Container — white bg, object-contain, padded */}
-      <div className="relative bg-white rounded-t-lg overflow-hidden" style={{ height: '200px', padding: '12px' }}>
-        <div className="w-full h-full flex items-center justify-center">
-          {images.length > 0 ? (
-            <img
-              src={images[currentIndex]?.url}
-              alt={images[currentIndex]?.alt || product.name}
-              loading="lazy"
-              className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <FiPackage className="text-gray-300" size={40} />
-          )}
-        </div>
-
-        {/* Image navigation */}
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={goPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-gray-700 rounded-full p-1.5 shadow hover:bg-gray-50 transition z-10 border border-gray-200"
-              aria-label="Previous image"
-            >
-              <FiChevronLeft size={14} />
-            </button>
-            <button
-              onClick={goNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-gray-700 rounded-full p-1.5 shadow hover:bg-gray-50 transition z-10 border border-gray-200"
-              aria-label="Next image"
-            >
-              <FiChevronRight size={14} />
-            </button>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentIndex(i); }}
-                  className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'bg-blue-600 w-4' : 'bg-gray-300 w-1.5'}`}
-                  aria-label={`View image ${i + 1}`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Out of Stock overlay */}
-        {!inStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t-lg z-10">
-            <span className="text-white text-xs font-semibold">Out of Stock</span>
-          </div>
-        )}
-      </div>
-
-      {/* Product info */}
-      <div className="px-3 pb-3 pt-2">
-        {product.brand && (
-          <p className="text-[10px] text-gray-500 mb-0.5 truncate">{product.brand.name}</p>
-        )}
-        <h3
-          className="text-xs font-medium text-gray-900 mb-1 leading-tight group-hover:text-blue-600 transition-colors"
-          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2rem' }}
-        >
-          {product.name}
-        </h3>
-
-        <div className="mb-1">
-          <span className="text-sm font-bold text-gray-900">KES {product.price.toLocaleString()}</span>
-          {product.compareAtPrice && (
-            <span className="text-[10px] text-gray-400 line-through ml-1">KES {product.compareAtPrice.toLocaleString()}</span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 mb-1.5">
-          <span className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>●</span>
-          <p className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>
-            {inStock ? 'In Stock' : 'Out of Stock'}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-0.5 text-[10px] mb-2.5">
-          <div className="flex items-center gap-0.5 text-yellow-400">
-            {[1,2,3,4].map(i => <FiStar key={i} size={10} className="fill-yellow-400" />)}
-            <FiStar size={10} className="text-gray-300" />
-          </div>
-          <span className="text-gray-500">(4.0)</span>
-        </div>
-
-        <div className="flex gap-1.5">
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null, quantity: 1 }); }}
-            disabled={!inStock}
-            className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium py-2 rounded-lg transition-colors"
-          >
-            <FiShoppingCart size={13} />
-            Add to Cart
-          </button>
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToWishlist({ productId: product.id, name: product.name, slug: product.slug, price: product.price, image: images[currentIndex]?.url ?? null }); }}
-            className="p-2 border border-gray-200 hover:border-red-300 hover:text-red-500 rounded-lg text-gray-400 transition-colors"
-          >
-            <FiHeart size={14} />
-          </button>
-        </div>
-      </div>
-    </Link>
-  );
+interface ModuleProductsResponse {
+  module: StoreModule;
+  data: Product[];
+  meta: { page: number; limit: number; total: number };
 }
+
+const MODULE_THEMES: Record<string, { icon: any; title: string; description: string }> = {
+  starlink: { icon: <FiGlobe />, title: 'Starlink', description: 'High-speed satellite internet' },
+  cctv: { icon: <FiVideo />, title: 'CCTV', description: 'AI-powered security systems' },
+};
 
 export default function ModuleLanding() {
   const { moduleSlug } = useParams<{ moduleSlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
-  const [showFilters, setShowFilters] = useState(false);
 
-  const theme = MODULE_THEMES[moduleSlug || ''] || DEFAULT_THEME;
+  const theme = MODULE_THEMES[moduleSlug || ''] || {
+    icon: <FiPackage />,
+    title: 'Solutions',
+    description: 'Browse our products',
+  };
 
-  const { data: mod, isLoading: modLoading } = useQuery<StoreModule>({
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '');
+  }, [searchParams]);
+
+  const selectedCategory = searchParams.get('category') || '';
+  const pageNumber = parseInt(searchParams.get('page') || '1', 10);
+  const currentPage = Number.isNaN(pageNumber) ? 1 : pageNumber;
+
+  const { data: mod, isLoading: isModuleLoading } = useQuery<StoreModule>({
     queryKey: ['module', moduleSlug],
     queryFn: () => getModule(moduleSlug!),
     enabled: !!moduleSlug,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const { data, isLoading: productsLoading } = useQuery({
+  const { data, isLoading: isProductsLoading } = useQuery<ModuleProductsResponse>({
     queryKey: ['module-products', moduleSlug, searchParams.toString()],
-    queryFn: () => {
-      const params: Record<string, string> = {};
-      searchParams.forEach((v, k) => { params[k] = v; });
-      return getModuleProducts(moduleSlug!, params);
-    },
+    queryFn: () => getModuleProducts(moduleSlug!, Object.fromEntries(searchParams)),
     enabled: !!moduleSlug,
-    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  const activeCategory = searchParams.get('category') || '';
-  const page = parseInt(searchParams.get('page') || '1', 10);
+  const products: Product[] = data?.data || [];
   const totalPages = data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 1;
 
-  const sortedCategories = mod?.categories
-    ? [...mod.categories].sort((a, b) => {
-        if (moduleSlug === 'starlink') {
-          const order = ['starlink-kits', 'starlink-accessories', 'starlink-mounts'];
-          const idxA = order.indexOf(a.slug);
-          const idxB = order.indexOf(b.slug);
-          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-          if (idxA !== -1) return -1;
-          if (idxB !== -1) return 1;
-        }
-        if (moduleSlug === 'cctv') {
-          const order = ['dvr-nvr', 'surveillance-hard-drives', 'ip-cameras'];
-          const idxA = order.indexOf(a.slug);
-          const idxB = order.indexOf(b.slug);
-          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-          if (idxA !== -1) return -1;
-          if (idxB !== -1) return 1;
-        }
-        return a.name.localeCompare(b.name);
-      })
-    : [];
+  const title = mod?.name || theme.title;
+  const subtitle = mod?.description || theme.description;
 
   const handleSearch = () => {
     const params = new URLSearchParams(searchParams);
-    if (search) params.set('search', search); else params.delete('search');
+    if (search.trim()) params.set('search', search.trim());
+    else params.delete('search');
     params.delete('page');
     setSearchParams(params);
   };
 
-  const setCategory = (slug: string) => {
+  const handleCategoryChange = (slug?: string) => {
     const params = new URLSearchParams(searchParams);
-    if (slug) params.set('category', slug); else params.delete('category');
+    if (slug) params.set('category', slug);
+    else params.delete('category');
     params.delete('page');
     setSearchParams(params);
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Banner */}
-      <div className={`relative bg-gradient-to-br ${theme.gradient} border-b border-white/10 overflow-hidden`}>
-        <div className={`absolute inset-0 bg-gradient-to-r ${theme.banner}`} />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(255,255,255,0.04),_transparent_60%)]" />
-
-        <div className="relative w-full px-4 py-16">
-          <Link to="/solutions" className="inline-flex items-center gap-1.5 text-white/50 hover:text-white/80 text-sm mb-6 transition-colors">
-            <FiArrowLeft size={16} />
-            All Solutions
-          </Link>
-
-          {modLoading ? (
-            <div className="animate-pulse">
-              <div className="h-10 bg-white/10 rounded-xl w-64 mb-3" />
-              <div className="h-4 bg-white/10 rounded-xl w-96" />
-            </div>
-          ) : moduleSlug === 'starlink' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <div className="min-h-screen bg-gray-50">
+      <SectionHero title={title} subtitle={subtitle}>
+        <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 text-2xl">
+                {theme.icon}
+              </div>
               <div>
-                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                  <FiGlobe className="text-orange-300" />
-                  <span className="text-orange-100 text-sm font-medium">Satellite Internet</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
-                  Connect Anywhere with Starlink
-                </h1>
-                <p className="text-xl text-orange-100 mb-8 leading-relaxed">
-                  High-Speed Internet, Wherever You Are. Experience next-generation satellite internet designed for homes, businesses, farms, schools, and remote locations. Stay connected with fast, reliable internet even where traditional fiber or mobile networks aren't available.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-orange-600 px-8 py-4 rounded-xl font-semibold hover:bg-orange-50 transition">
-                    Shop Starlink Kits
-                    <FiArrowRight />
-                  </button>
-                  <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/30 transition">
-                    Book Installation
-                  </Link>
-                </div>
-              </div>
-              <div className="hidden lg:flex items-center justify-center">
-                <div className="relative">
-                  <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center">
-                    <FiGlobe className="text-white/80" size={120} />
-                  </div>
-                  <div className="absolute -top-4 -right-4 bg-orange-400 rounded-2xl p-4 shadow-xl">
-                    <FiZap className="text-white" size={32} />
-                  </div>
-                  <div className="absolute -bottom-4 -left-4 bg-green-400 rounded-2xl p-4 shadow-xl">
-                    <FiWifi className="text-white" size={32} />
-                  </div>
-                </div>
+                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Module summary</p>
+                <p className="text-sm text-gray-700">{mod?._count?.products ?? 0} products available</p>
+                <p className="text-sm text-gray-700">{mod?.categories?.length ?? 0} categories</p>
               </div>
             </div>
-          ) : moduleSlug === 'cctv' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                  <FiVideo className="text-cyan-300" />
-                  <span className="text-cyan-100 text-sm font-medium">AI-Powered Security</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-white">
-                  AI-Powered Security
-                  <br />
-                  <span className="text-cyan-300">with OpenCV</span>
-                </h1>
-                <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                  Smarter surveillance. Faster response. Better protection. Modern CCTV systems with computer vision technologies analyze video in real time, detect important events, and help you respond before incidents escalate.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
-                    Shop CCTV Systems
-                    <FiArrowRight />
-                  </button>
-                  <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/30 transition">
-                    Book Installation
-                  </Link>
-                </div>
-              </div>
-              <div className="hidden lg:flex items-center justify-center">
-                <div className="relative">
-                  <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center">
-                    <FiShield className="text-white/80" size={120} />
-                  </div>
-                  <div className="absolute -top-4 -right-4 bg-cyan-400 rounded-2xl p-4 shadow-xl">
-                    <FiSmile className="text-white" size={32} />
-                  </div>
-                  <div className="absolute -bottom-4 -left-4 bg-blue-400 rounded-2xl p-4 shadow-xl">
-                    <FiTarget className="text-white" size={32} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-start gap-5">
-              <div className="text-5xl">{theme.icon}</div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">{mod?.name}</h1>
-                <p className="text-white/60 text-lg max-w-2xl">{mod?.description}</p>
-                <p className="text-white/40 text-sm mt-2">{data?.meta?.total ?? 0} products</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* CCTV-specific marketing sections */}
-      {moduleSlug === 'cctv' && (
-        <>
-          {/* Product Grid */}
-          <div id="products-grid" className="w-full px-4 py-8 bg-white">
-            {/* Search + filter toggle */}
-            <div className="flex gap-3 mb-6">
-              <div className="relative flex-1 max-w-md">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  placeholder={`Search ${mod?.name ?? ''} products...`}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:bg-white transition text-sm"
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                  }`}
+            <div className="mt-5 space-y-2 text-sm text-gray-600">
+              <p>Focused product collection for {title} buyers.</p>
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
               >
-                <FiFilter size={15} />
-                Filters
-              </button>
+                View all products <FiArrowRight size={14} />
+              </Link>
             </div>
-
-            {/* Category filter pills */}
-            {sortedCategories.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <button
-                  onClick={() => setCategory('')}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                    }`}
-                >
-                  All
-                </button>
-                {sortedCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.slug)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                      }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Breadcrumbs for active filter */}
-            {(activeCategory || searchParams.get('search')) && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                <Link to={`/solutions/${moduleSlug}`} className="hover:text-blue-600 transition">
-                  {mod?.name}
-                </Link>
-                {activeCategory && (
-                  <>
-                    <FiChevronRight size={12} />
-                    <span className="text-gray-700 capitalize">{activeCategory.replace(/-/g, ' ')}</span>
-                  </>
-                )}
-                {searchParams.get('search') && (
-                  <>
-                    <FiChevronRight size={12} />
-                    <span className="text-gray-700">"{searchParams.get('search')}"</span>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Product grid */}
-            {productsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="rounded-2xl bg-gray-100 h-80 animate-pulse" />
-                ))}
-              </div>
-            ) : data?.data?.length === 0 ? (
-              <div className="text-center py-24 text-gray-500">
-                <div className="text-6xl mb-4 opacity-30 flex justify-center">
-                  <FiSearch size={48} />
-                </div>
-                <p className="text-lg">No products found.</p>
-                <button onClick={() => { setSearch(''); setSearchParams({}); }} className="mt-4 text-blue-600 hover:underline text-sm">
-                  Clear filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {(data?.data || []).map((product: Product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-10">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => {
-                    const params = new URLSearchParams(searchParams);
-                    page <= 2 ? params.delete('page') : params.set('page', String(page - 1));
-                    setSearchParams(params);
-                  }}
-                  className="px-5 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
-                >
-                  Previous
-                </button>
-                <span className="text-gray-500 text-sm">
-                  Page <span className="text-gray-900 font-medium">{page}</span> of <span className="text-gray-900 font-medium">{totalPages}</span>
-                </span>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => {
-                    const params = new URLSearchParams(searchParams);
-                    params.set('page', String(page + 1));
-                    setSearchParams(params);
-                  }}
-                  className="px-5 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* Key Benefits */}
-          <section className="py-20 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Key Benefits</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Advanced AI features that take your security to the next level
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  {
-                    icon: FiTarget,
-                    title: 'Intelligent Motion Detection',
-                    description: 'Receive alerts only when meaningful movement is detected, reducing false alarms caused by wind, rain, or lighting changes.',
-                    color: 'blue'
-                  },
-                  {
-                    icon: FiUser,
-                    title: 'Human & Vehicle Detection',
-                    description: 'Differentiate between people, vehicles, and other moving objects to improve monitoring accuracy.',
-                    color: 'green'
-                  },
-                  {
-                    icon: FiAlertTriangle,
-                    title: 'Intrusion Detection',
-                    description: 'Automatically detect unauthorized entry into restricted areas and receive instant notifications.',
-                    color: 'red'
-                  },
-                  {
-                    icon: FiPackage,
-                    title: 'Object Detection',
-                    description: 'Monitor valuable assets and receive alerts when objects are removed, left behind, or moved unexpectedly.',
-                    color: 'purple'
-                  },
-                  {
-                    icon: FiMap,
-                    title: 'License Plate Recognition',
-                    description: 'Capture and identify vehicle registration numbers for homes, businesses, parking lots, and gated communities.',
-                    color: 'orange'
-                  },
-                  {
-                    icon: FiSmile,
-                    title: 'Face Recognition',
-                    description: 'Identify authorized personnel or recognize familiar faces for enhanced access control (Supported Models).',
-                    color: 'pink'
-                  },
-                  {
-                    icon: FiSmartphone,
-                    title: 'Remote Monitoring',
-                    description: 'View live footage and recorded videos securely from anywhere using your smartphone, tablet, or computer.',
-                    color: 'cyan'
-                  },
-                  {
-                    icon: FiMoon,
-                    title: 'Crystal Clear Night Vision',
-                    description: 'Advanced infrared technology delivers reliable surveillance even in complete darkness.',
-                    color: 'indigo'
-                  }
-                ].map((benefit, index) => (
-                  <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
-                    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
-                      <div className={`w-12 h-12 bg-${benefit.color}-100 rounded-lg flex items-center justify-center mb-4`}>
-                        <benefit.icon className={`text-${benefit.color}-600`} size={24} />
-                      </div>
-                      <h3 className="font-semibold text-lg mb-2 text-gray-900">{benefit.title}</h3>
-                      <p className="text-gray-700 text-sm">{benefit.description}</p>
-                    </div>
-                  </AnimatedContent>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Why Choose Our CCTV Solutions */}
-          <section className="py-20 bg-white">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Our CCTV Solutions?</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Premium quality with cutting-edge technology
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  'High-definition video quality (2MP, 4MP, 5MP & 4K)',
-                  'AI-powered detection features',
-                  'Weatherproof outdoor cameras (IP66/IP67)',
-                  'Reliable 24/7 monitoring',
-                  'Mobile app access',
-                  'Easy installation and setup',
-                  'Expandable systems for homes and businesses',
-                  'Professional after-sales support'
-                ].map((feature, index) => (
-                  <AnimatedContent key={index} distance={20} direction="horizontal" reverse={false} duration={0.5} delay={index * 0.05}>
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <FiCheck className="text-green-600" size={16} />
-                      </div>
-                      <span className="text-gray-700 font-medium">{feature}</span>
-                    </div>
-                  </AnimatedContent>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Perfect For */}
-          <section className="py-20 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perfect For</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Versatile security solutions for every environment
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[
-                  { icon: <FiHome />, name: 'Homes' },
-                  { icon: <FiBuilding />, name: 'Offices' },
-                  { icon: <FiShoppingBag />, name: 'Retail Shops' },
-                  { icon: <FiBook />, name: 'Schools' },
-                  { icon: <FiActivity />, name: 'Hospitals' },
-                  { icon: <FiTool />, name: 'Warehouses' },
-                  { icon: <FiMap />, name: 'Parking Lots' },
-                  { icon: <FiShield />, name: 'Hotels' },
-                  { icon: <FiHome />, name: 'Churches' },
-                  { icon: <FiHome />, name: 'Estates' }
-                ].map((place, index) => (
-                  <AnimatedContent key={index} distance={30} direction="vertical" duration={0.5} delay={index * 0.05}>
-                    <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                      <div className="text-blue-600 mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
-                      <span className="text-gray-700 font-medium">{place.name}</span>
-                    </div>
-                  </AnimatedContent>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Smart Features Table */}
-          <section className="py-20 bg-white">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Smart Features Available</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Compare features and their benefits
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left font-semibold text-gray-900">Feature</th>
-                      <th className="px-6 py-4 text-left font-semibold text-gray-900">Benefit</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {[
-                      { feature: 'AI Motion Detection', benefit: 'Reduces unnecessary alerts' },
-                      { feature: 'Human Detection', benefit: 'Detects people more accurately' },
-                      { feature: 'Vehicle Detection', benefit: 'Identifies vehicles separately' },
-                      { feature: 'Face Recognition*', benefit: 'Enhanced access management' },
-                      { feature: 'License Plate Recognition*', benefit: 'Vehicle identification' },
-                      { feature: 'Night Vision', benefit: '24/7 surveillance' },
-                      { feature: 'Mobile Notifications', benefit: 'Instant alerts' },
-                      { feature: 'Remote Viewing', benefit: 'Monitor from anywhere' },
-                      { feature: 'Two-Way Audio*', benefit: 'Communicate through the camera' },
-                      { feature: 'Smart Tracking*', benefit: 'Camera follows moving objects' }
-                    ].map((item, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-gray-900 font-medium">{item.feature}</td>
-                        <td className="px-6 py-4 text-gray-700">{item.benefit}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="px-6 py-4 bg-gray-50 text-sm text-gray-600">
-                  *Available on selected models
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Why Buy From Us */}
-          <section className="py-20 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl p-8 md:p-12 text-white">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>
-                  <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-                    Your trusted partner for security solutions
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {[
-                    'Genuine CCTV products',
-                    'Competitive pricing',
-                    'Fast nationwide delivery',
-                    'Professional installation services',
-                    'Warranty included',
-                    'Expert technical support',
-                    'Secure payment options',
-                    '24/7 customer support'
-                  ].map((reason, index) => (
-                    <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
-                      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                          <FiCheck className="text-blue-600" size={16} />
-                        </div>
-                        <span className="font-medium">{reason}</span>
-                      </div>
-                    </AnimatedContent>
-                  ))}
-                </div>
-
-                <div className="text-center mt-12">
-                  <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
-                    Browse CCTV Products
-                    <FiArrowRight />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* CCTV FAQ Section */}
-          <section className="py-20 bg-white">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-                <p className="text-xl text-gray-700">
-                  Everything you need to know about our CCTV security systems
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  {
-                    question: 'What is an intelligent CCTV system?',
-                    answer: 'An intelligent CCTV system uses features such as motion detection, person and vehicle recognition, intrusion alerts, remote viewing, and recording to improve security monitoring.'
-                  },
-                  {
-                    question: 'Can I view my CCTV cameras remotely?',
-                    answer: 'Yes. Most of our CCTV systems support secure remote viewing through a mobile app or computer, provided the system has an internet connection.'
-                  },
-                  {
-                    question: 'Do CCTV cameras record at night?',
-                    answer: 'Yes. Many models include infrared night vision, while selected models offer full-colour night vision for clearer low-light footage.'
-                  },
-                  {
-                    question: 'How long is CCTV footage stored?',
-                    answer: 'Storage time depends on the number of cameras, video quality, recording schedule, and hard-drive capacity. We can recommend the right storage size for your needs.'
-                  },
-                  {
-                    question: 'Do you provide CCTV installation?',
-                    answer: 'Yes. We offer professional installation, configuration, testing, and user guidance for homes, shops, offices, schools, and other premises.'
-                  },
-                  {
-                    question: 'What products do you sell?',
-                    answer: 'We supply Starlink internet kits, accessories, mounting solutions, and intelligent CCTV systems including cameras, NVRs, storage devices, and installation accessories.'
-                  },
-                  {
-                    question: 'What payment methods do you accept?',
-                    answer: 'We accept the payment options displayed at checkout. For large installations or business orders, please contact us for a quotation.'
-                  },
-                  {
-                    question: 'How long does delivery take?',
-                    answer: 'Delivery times depend on product availability and your location. Estimated delivery details are provided during checkout or upon confirmation of your order.'
-                  },
-                  {
-                    question: 'What is your return and warranty policy?',
-                    answer: 'Eligible products may be returned according to our return policy. Products are covered by applicable manufacturer warranties; please retain your receipt and original packaging.'
-                  },
-                  {
-                    question: 'Can I get a quotation for multiple items or a full installation?',
-                    answer: 'Yes. Send us your requirements, location, and preferred products, and we will prepare a tailored quotation.'
-                  },
-                  {
-                    question: 'How can I get technical support?',
-                    answer: 'Contact our support team with your order number, product model, and a brief description of the issue. We will guide you through troubleshooting or arrange further assistance.'
-                  }
-                ].map((faq, index) => (
-                  <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <h3 className="font-semibold text-lg mb-2 text-gray-900 flex items-center gap-2">
-                      <FiHelpCircle className="text-blue-600" />
-                      {faq.question}
-                    </h3>
-                    <p className="text-gray-700 text-sm leading-relaxed">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* CTA Section */}
-          <section className="py-20 bg-gray-900 text-white">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Upgrade Your Security?</h2>
-              <p className="text-xl text-gray-300 mb-8">
-                Get AI-powered CCTV systems with professional installation. Protect what matters most.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
-                  Shop CCTV Systems
-                  <FiArrowRight />
-                </button>
-                <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition">
-                  Book Installation
-                </Link>
-              </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {/* Starlink-specific marketing sections */}
-      {moduleSlug === 'starlink' && (
-        <>
-          {/* Product Grid */}
-          <div id="products-grid" className="w-full px-4 py-8 bg-white">
-            {/* Search + filter toggle */}
-            <div className="flex gap-3 mb-6">
-              <div className="relative flex-1 max-w-md">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  placeholder={`Search ${mod?.name ?? ''} products...`}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:bg-white transition text-sm"
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                  }`}
-              >
-                <FiFilter size={15} />
-                Filters
-              </button>
-            </div>
-
-            {/* Category filter pills */}
-            {sortedCategories.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <button
-                  onClick={() => setCategory('')}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                    }`}
-                >
-                  All
-                </button>
-                {sortedCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.slug)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                      }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Breadcrumbs for active filter */}
-            {(activeCategory || searchParams.get('search')) && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                <Link to={`/solutions/${moduleSlug}`} className="hover:text-blue-600 transition">
-                  {mod?.name}
-                </Link>
-                {activeCategory && (
-                  <>
-                    <FiChevronRight size={12} />
-                    <span className="text-gray-700 capitalize">{activeCategory.replace(/-/g, ' ')}</span>
-                  </>
-                )}
-                {searchParams.get('search') && (
-                  <>
-                    <FiChevronRight size={12} />
-                    <span className="text-gray-700">"{searchParams.get('search')}"</span>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Product grid */}
-            {productsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="rounded-2xl bg-gray-100 h-80 animate-pulse" />
-                ))}
-              </div>
-            ) : data?.data?.length === 0 ? (
-              <div className="text-center py-24 text-gray-500">
-                <div className="text-6xl mb-4 opacity-30 flex justify-center">
-                  <FiSearch size={48} />
-                </div>
-                <p className="text-lg">No products found.</p>
-                <button onClick={() => { setSearch(''); setSearchParams({}); }} className="mt-4 text-blue-600 hover:underline text-sm">
-                  Clear filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {(data?.data || []).map((product: Product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-10">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => {
-                    const params = new URLSearchParams(searchParams);
-                    page <= 2 ? params.delete('page') : params.set('page', String(page - 1));
-                    setSearchParams(params);
-                  }}
-                  className="px-5 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
-                >
-                  Previous
-                </button>
-                <span className="text-gray-500 text-sm">
-                  Page <span className="text-gray-900 font-medium">{page}</span> of <span className="text-gray-900 font-medium">{totalPages}</span>
-                </span>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => {
-                    const params = new URLSearchParams(searchParams);
-                    params.set('page', String(page + 1));
-                    setSearchParams(params);
-                  }}
-                  className="px-5 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Why Choose Starlink */}
-          <section className="py-20 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Starlink?</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Next-generation satellite internet designed for everyone
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  {
-                    icon: <FiArrowUp />,
-                    title: 'High-Speed Performance',
-                    description: 'Enjoy fast download and upload speeds for streaming, gaming, video conferencing, and everyday browsing.'
-                  },
-                  {
-                    icon: <FiGlobe />,
-                    title: 'Coverage in Remote Areas',
-                    description: 'Get connected in rural and underserved locations where other internet options may be limited or unavailable.'
-                  },
-                  {
-                    icon: <FiZap />,
-                    title: 'Low Latency',
-                    description: 'Designed to deliver responsive internet suitable for video calls, online gaming, and cloud-based work.'
-                  },
-                  {
-                    icon: <FiWifi />,
-                    title: 'Reliable Connectivity',
-                    description: 'Access the internet through a network of low Earth orbit (LEO) satellites, helping provide consistent performance.'
-                  },
-                  {
-                    icon: <FiHome />,
-                    title: 'Simple Installation',
-                    description: 'The Starlink kit is designed for straightforward setup, and professional installation services are available if needed.'
-                  },
-                  {
-                    icon: <FiSmartphone />,
-                    title: 'Manage from Anywhere',
-                    description: 'Monitor your connection, check performance, and manage your network through the Starlink mobile app.'
-                  }
-                ].map((feature, index) => (
-                  <AnimatedContent key={index} distance={30} direction="vertical" duration={0.6} delay={index * 0.05}>
-                    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 h-full">
-                      <div className="text-4xl mb-4 block text-orange-500">{feature.icon}</div>
-                      <h3 className="font-semibold text-lg mb-2 text-gray-900">{feature.title}</h3>
-                      <p className="text-gray-700 text-sm">{feature.description}</p>
-                    </div>
-                  </AnimatedContent>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Perfect For */}
-          <section className="py-20 bg-white">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Perfect For</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Versatile connectivity solutions for every environment
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[
-                  { icon: <FiHome />, name: 'Homes' },
-                  { icon: <FiBuilding />, name: 'Businesses' },
-                  { icon: <FiBook />, name: 'Schools' },
-                  { icon: <FiActivity />, name: 'Hospitals' },
-                  { icon: <FiMap />, name: 'Farms' },
-                  { icon: <FiSun />, name: 'Campsites' },
-                  { icon: <FiTool />, name: 'Construction Sites' },
-                  { icon: <FiShield />, name: 'Hotels & Lodges' },
-                  { icon: <FiTruck />, name: 'Mobile Offices' },
-                  { icon: <FiGlobe />, name: 'Remote Communities' }
-                ].map((place, index) => (
-                  <div key={index} className="bg-gray-50 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100">
-                    <div className="text-4xl mb-3 block text-orange-500">{place.icon}</div>
-                    <span className="text-gray-700 font-medium">{place.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* What Can You Do */}
-          <section className="py-20 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Can You Do?</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Unlock possibilities with high-speed satellite internet
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[
-                  { icon: <FiPlay />, name: 'Stream HD & 4K videos' },
-                  { icon: <FiPlay />, name: 'Play online games' },
-                  { icon: <FiLaptop />, name: 'Work remotely' },
-                  { icon: <FiVideo />, name: 'Attend Zoom or Teams meetings' },
-                  { icon: <FiCloud />, name: 'Access cloud applications' },
-                  { icon: <FiBook />, name: 'Learn online' },
-                  { icon: <FiMonitor />, name: 'Watch live TV' },
-                  { icon: <FiUpload />, name: 'Upload large files' },
-                  { icon: <FiDownload />, name: 'Download large files' },
-                  { icon: <FiUsers />, name: 'Connect multiple devices' }
-                ].map((activity, index) => (
-                  <AnimatedContent key={index} distance={20} direction="vertical" duration={0.5} delay={index * 0.05}>
-                    <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full">
-                      <div className="text-4xl mb-3 flex justify-center text-orange-500">{activity.icon}</div>
-                      <span className="text-gray-700 font-medium text-sm">{activity.name}</span>
-                    </div>
-                  </AnimatedContent>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* What's Included */}
-          <section className="py-20 bg-white">
-            <div className="w-full px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What's Included</h2>
-                <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                  Everything you need to get started
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
-                <p className="text-gray-600 mb-6 text-center">Depending on the package, your Starlink kit may include:</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {[
-                    { icon: <FiWifi />, name: 'Starlink Satellite Dish' },
-                    { icon: <FiWifi />, name: 'Wi-Fi Router' },
-                    { icon: <FiZap />, name: 'Power Supply' },
-                    { icon: <FiLink />, name: 'Cables' },
-                    { icon: <FiTool />, name: 'Mounting Hardware' },
-                    { icon: <FiBook />, name: 'Setup Guide' }
-                  ].map((item, index) => (
-                    <AnimatedContent key={index} distance={20} direction="vertical" duration={0.5} delay={index * 0.05}>
-                      <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100 h-full">
-                        <div className="text-3xl mb-2 flex justify-center text-orange-500">{item.icon}</div>
-                        <span className="text-gray-700 font-medium text-xs">{item.name}</span>
-                      </div>
-                    </AnimatedContent>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Why Buy From Us */}
-          <section className="py-20 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="bg-gradient-to-br from-orange-500 to-green-600 rounded-3xl p-8 md:p-12 text-white">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>
-                  <p className="text-xl text-orange-100 max-w-2xl mx-auto">
-                    Your trusted partner for Starlink solutions
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {[
-                    'Genuine Starlink equipment',
-                    'Professional installation',
-                    'Network setup and configuration',
-                    'Nationwide delivery',
-                    'Warranty support',
-                    'Expert technical assistance',
-                    'After-sales support',
-                    'Competitive pricing'
-                  ].map((reason, index) => (
-                    <AnimatedContent key={index} distance={20} direction="horizontal" duration={0.5} delay={index * 0.05}>
-                      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4 h-full">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                          <FiCheck className="text-orange-500" size={16} />
-                        </div>
-                        <span className="font-medium">{reason}</span>
-                      </div>
-                    </AnimatedContent>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* FAQ Section */}
-          <section className="py-20 bg-white">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-                <p className="text-xl text-gray-700">
-                  Common questions about Starlink satellite internet
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  {
-                    question: 'What products do you sell?',
-                    answer: 'We supply Starlink internet kits, accessories, mounting solutions, and intelligent CCTV systems including cameras, NVRs, storage devices, and installation accessories.'
-                  },
-                  {
-                    question: 'Do you sell genuine Starlink equipment?',
-                    answer: 'Yes. We provide genuine Starlink hardware and compatible accessories. Product availability may vary by location.'
-                  },
-                  {
-                    question: 'Does Starlink work in my area?',
-                    answer: 'Starlink coverage depends on your service address. Contact us with your location and we will help you confirm availability before purchase.'
-                  },
-                  {
-                    question: 'Is installation included with Starlink purchases?',
-                    answer: 'Installation can be arranged as an additional service. We can assist with setup, mounting, cable routing, and network configuration.'
-                  },
-                  {
-                    question: 'What payment methods do you accept?',
-                    answer: 'We accept the payment options displayed at checkout. For large installations or business orders, please contact us for a quotation.'
-                  },
-                  {
-                    question: 'How long does delivery take?',
-                    answer: 'Delivery times depend on product availability and your location. Estimated delivery details are provided during checkout or upon confirmation of your order.'
-                  },
-                  {
-                    question: 'What is your return and warranty policy?',
-                    answer: 'Eligible products may be returned according to our return policy. Products are covered by applicable manufacturer warranties; please retain your receipt and original packaging.'
-                  },
-                  {
-                    question: 'Can I get a quotation for multiple items or a full installation?',
-                    answer: 'Yes. Send us your requirements, location, and preferred products, and we will prepare a tailored quotation.'
-                  },
-                  {
-                    question: 'How can I get technical support?',
-                    answer: 'Contact our support team with your order number, product model, and a brief description of the issue. We will guide you through troubleshooting or arrange further assistance.'
-                  }
-                ].map((faq, index) => (
-                  <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <h3 className="font-semibold text-lg mb-2 text-gray-900 flex items-center gap-2">
-                      <FiHelpCircle className="text-orange-500" />
-                      {faq.question}
-                    </h3>
-                    <p className="text-gray-700 text-sm leading-relaxed">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* CTA Section */}
-          <section className="py-20 bg-gray-900 text-white">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Stay Connected Without Limits</h2>
-              <p className="text-xl text-gray-300 mb-8">
-                Bring high-speed satellite internet to your home or business. Browse our range of genuine Starlink equipment, accessories, and installation services to find the solution that fits your needs.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth' })} className="inline-flex items-center justify-center gap-2 bg-orange-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-orange-600 transition">
-                  Shop Starlink Kits
-                  <FiArrowRight />
-                </button>
-                <Link to="/installation" className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border-2 border-white/30 px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition">
-                  Book Installation
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* Trust Signals */}
-          <section className="py-16 bg-gray-50">
-            <div className="w-full px-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {[
-                  { icon: FiLock, text: 'Secure Payments' },
-                  { icon: FiTruck, text: 'Fast Delivery Across Kenya' },
-                  { icon: FiTool, text: 'Professional Installation' },
-                  { icon: FiPhone, text: 'Dedicated Customer Support' },
-                  { icon: FiStar, text: 'Genuine Products' },
-                  { icon: FiShield, text: 'Warranty Included' },
-                  { icon: FiMessageSquare, text: 'Expert Consultation' },
-                  { icon: FiBox, text: 'Ready-to-Ship Stock' }
-                ].map((signal, index) => (
-                  <div key={index} className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                    <signal.icon className="text-orange-500" size={24} />
-                    <span className="text-gray-700 font-medium text-sm">{signal.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {/* Product grid for other modules (not CCTV or Starlink) */}
-      {moduleSlug !== 'cctv' && moduleSlug !== 'starlink' && (
-        <div id="products-grid" className="w-full px-4 py-8">
-          {/* Search + filter toggle */}
-          <div className="flex gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="relative">
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
-                type="text"
-                placeholder={`Search ${mod?.name ?? ''} products...`}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition text-sm"
+                placeholder={`Search ${title} products...`}
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-28 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white"
               />
+              <button
+                type="button"
+                onClick={handleSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+              >
+                Search
+              </button>
             </div>
+          </div>
+        </div>
+      </SectionHero>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {mod?.categories && mod.categories.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-2">
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all ${showFilters ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-                }`}
+              type="button"
+              onClick={() => handleCategoryChange()}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                selectedCategory === ''
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
-              <FiFilter size={15} />
-              Filters
+              All categories
+            </button>
+            {mod.categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => handleCategoryChange(category.slug)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  selectedCategory === category.slug
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {(isModuleLoading || isProductsLoading) && (
+          <div className="rounded-3xl border border-gray-200 bg-white p-10 text-center text-gray-500 shadow-sm">
+            Loading {isModuleLoading ? 'module details' : 'products'}...
+          </div>
+        )}
+
+        {!isProductsLoading && products.length === 0 && (
+          <div className="rounded-3xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
+            <FiSearch size={48} className="mx-auto mb-4" />
+            <p className="text-lg font-semibold">No products found.</p>
+            <p className="mt-2 text-sm text-gray-500">Try another search term or choose a different category.</p>
+          </div>
+        )}
+
+        {!isProductsLoading && products.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product as any} />
+            ))}
+          </div>
+        )}
+
+        {!isProductsLoading && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <button
+              disabled={currentPage <= 1}
+              onClick={() => {
+                const params = new URLSearchParams(searchParams);
+                currentPage <= 2 ? params.delete('page') : params.set('page', String(currentPage - 1));
+                setSearchParams(params);
+              }}
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-700">
+              Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+            </span>
+            <button
+              disabled={currentPage >= totalPages}
+              onClick={() => {
+                const params = new URLSearchParams(searchParams);
+                params.set('page', String(currentPage + 1));
+                setSearchParams(params);
+              }}
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
             </button>
           </div>
-
-          {/* Category filter pills */}
-          {showFilters && mod?.categories && mod.categories.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6 p-4 bg-white/5 border border-white/10 rounded-xl">
-              <button
-                onClick={() => setCategory('')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory
-                  ? `${theme.pill} ${theme.pillText} border-current`
-                  : 'bg-transparent border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                  }`}
-              >
-                All
-              </button>
-              {mod.categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setCategory(cat.slug)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug
-                    ? `${theme.pill} ${theme.pillText} border-current`
-                    : 'bg-transparent border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                    }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Breadcrumbs for active filter */}
-          {(activeCategory || searchParams.get('search')) && (
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-              <Link to={`/solutions/${moduleSlug}`} className="hover:text-white transition">
-                {mod?.name}
-              </Link>
-              {activeCategory && (
-                <>
-                  <FiChevronRight size={12} />
-                  <span className="text-white/70 capitalize">{activeCategory.replace(/-/g, ' ')}</span>
-                </>
-              )}
-              {searchParams.get('search') && (
-                <>
-                  <FiChevronRight size={12} />
-                  <span className="text-white/70">"{searchParams.get('search')}"</span>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Product grid */}
-          {productsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="rounded-2xl bg-white/5 h-80 animate-pulse" />
-              ))}
-            </div>
-          ) : data?.data?.length === 0 ? (
-            <div className="text-center py-24 text-gray-500">
-              <div className="text-6xl mb-4 opacity-30 flex justify-center">
-                <FiSearch size={48} />
-              </div>
-              <p className="text-lg">No products found.</p>
-              <button onClick={() => { setSearch(''); setSearchParams({}); }} className="mt-4 text-blue-400 hover:underline text-sm">
-                Clear filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {(data?.data || []).map((product: Product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-10">
-              <button
-                disabled={page <= 1}
-                onClick={() => {
-                  const params = new URLSearchParams(searchParams);
-                  page <= 2 ? params.delete('page') : params.set('page', String(page - 1));
-                  setSearchParams(params);
-                }}
-                className="px-5 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
-              >
-                Previous
-              </button>
-              <span className="text-gray-400 text-sm">
-                Page <span className="text-white font-medium">{page}</span> of <span className="text-white font-medium">{totalPages}</span>
-              </span>
-              <button
-                disabled={page >= totalPages}
-                onClick={() => {
-                  const params = new URLSearchParams(searchParams);
-                  params.set('page', String(page + 1));
-                  setSearchParams(params);
-                }}
-                className="px-5 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition text-sm"
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

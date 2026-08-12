@@ -4,6 +4,7 @@ import api from '../lib/api';
 import { FiSearch, FiChevronDown, FiChevronUp, FiHelpCircle, FiMail } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import SectionHero from '../components/ui/SectionHero';
 
 const WHATSAPP_NUMBER = '254796285718';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
@@ -143,20 +144,16 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900 text-white py-14 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#10b982]/20 text-[#10b982] border border-[#10b982]/30 mb-4">
+      <SectionHero title="Frequently Asked Questions" subtitle="Find quick answers about products, installation, delivery, and warranty.">
+        <div className="mt-6">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-100 text-accent border border-accent mb-4">
             <FiHelpCircle size={14} /> Help & Knowledge Base
-          </span>
-          <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-gray-300 text-base md:text-lg max-w-2xl mx-auto mb-8">
+          </div>
+
+          <p className="text-gray-500 text-base md:text-lg max-w-2xl mb-6">
             Find quick answers to common questions about Starlink kits, CCTV security systems, installation services, payments, and warranties.
           </p>
 
-          {/* Search Box */}
           <div className="relative max-w-xl mx-auto">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -164,11 +161,11 @@ export default function SupportPage() {
               placeholder="Search questions (e.g. Starlink, CCTV night vision, delivery...)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-white text-gray-900 placeholder-gray-500 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-[#10b982] text-sm"
+              className="w-full pl-12 pr-4 py-3.5 bg-white text-gray-900 placeholder-gray-500 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-accent text-sm"
             />
           </div>
         </div>
-      </div>
+      </SectionHero>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 mt-8">

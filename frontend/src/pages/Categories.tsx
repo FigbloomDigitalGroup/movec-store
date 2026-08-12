@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
+import SectionHero from '../components/ui/SectionHero';
 import { FiWifi, FiCamera, FiHardDrive, FiServer, FiCpu, FiTool } from 'react-icons/fi';
 
 const categoryIcons: Record<string, any> = {
@@ -14,13 +15,14 @@ const categoryIcons: Record<string, any> = {
 };
 
 const categoryColors: Record<string, string> = {
-  'starlink-kits': 'bg-blue-100 text-blue-600',
-  'starlink-accessories': 'bg-purple-100 text-purple-600',
-  'cctv-cameras': 'bg-green-100 text-green-600',
-  'dvr-nvr': 'bg-orange-100 text-orange-600',
-  'hard-drives': 'bg-yellow-100 text-yellow-600',
-  'network-equipment': 'bg-pink-100 text-pink-600',
-  'installation-accessories': 'bg-gray-100 text-gray-600',
+  // Use the primary accent for all category tiles to keep a unified accent language
+  'starlink-kits': 'bg-accent-100 text-accent',
+  'starlink-accessories': 'bg-accent-100 text-accent',
+  'cctv-cameras': 'bg-accent-100 text-accent',
+  'dvr-nvr': 'bg-accent-100 text-accent',
+  'hard-drives': 'bg-accent-100 text-accent',
+  'network-equipment': 'bg-accent-100 text-accent',
+  'installation-accessories': 'bg-accent-100 text-accent',
 };
 
 export default function Categories() {
@@ -33,8 +35,7 @@ export default function Categories() {
 
   return (
     <div className="w-full px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2 text-white">Categories</h1>
-      <p className="text-gray-300 mb-8">Browse products by category</p>
+      <SectionHero title="Categories" subtitle="Browse products by category" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories?.map((cat: any) => {

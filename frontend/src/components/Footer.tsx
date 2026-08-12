@@ -180,10 +180,10 @@ export default function Footer() {
               🇰🇪 Proudly Serving Kenya
             </span>
             <span className="flex items-center gap-2">
-              ⭐ Trusted by Thousands of Customers
+               Trusted by Thousands of Customers
             </span>
             <span className="flex items-center gap-2">
-              🔒 Your Connectivity &amp; Security Partner
+               Your Connectivity &amp; Security Partner
             </span>
           </div>
         </div>
