@@ -3,7 +3,17 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { getModules } from '../lib/api';
-import { FiPackage, FiArrowRight, FiWifi, FiCamera } from 'react-icons/fi';
+import {
+  FiPackage,
+  FiArrowRight,
+  FiWifi,
+  FiCamera,
+  FiShield,
+  FiMapPin,
+  FiSmartphone,
+  FiTool,
+  FiCheckCircle,
+} from 'react-icons/fi';
 import Card, { CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import type { Product } from '../types';
@@ -205,11 +215,27 @@ export default function Landing() {
 
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-start">
                 {isInternalLink(activeSlide.ctaLink) ? (
-                  <Link to={activeSlide.ctaLink} className="inline-flex items-center justify-center rounded-full bg-[#10B982] px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-[#0fa872]">
+                  <Link
+                    to={activeSlide.ctaLink}
+                    className="inline-flex items-center justify-center rounded-full border border-[#10B982] bg-[#10B982] px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-[#0fa872] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:ring-offset-2"
+                    style={{
+                      backgroundColor: activeSlide.badgeColor || '#10B982',
+                      color: '#ffffff',
+                    }}
+                  >
                     {activeSlide.ctaText}
                   </Link>
                 ) : (
-                  <a href={activeSlide.ctaLink} className="inline-flex items-center justify-center rounded-full bg-[#10B982] px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-[#0fa872]">
+                  <a
+                    href={activeSlide.ctaLink}
+                    className="inline-flex items-center justify-center rounded-full border border-[#10B982] bg-[#10B982] px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-[#0fa872] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:ring-offset-2"
+                    style={{
+                      backgroundColor: activeSlide.badgeColor || '#10B982',
+                      color: '#ffffff',
+                    }}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {activeSlide.ctaText}
                   </a>
                 )}
@@ -288,6 +314,100 @@ export default function Landing() {
             <Link to="/products" className="inline-flex items-center gap-2 rounded-full border border-[#FC6501]/40 bg-[#fff8f4] px-6 py-3 text-sm font-semibold text-slate-900 transition hover:border-[#FC6501] hover:bg-[#fff1ea] hover:text-[#0f172a]">
               <FiPackage size={18} /> Browse All Products
             </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f7faf8] py-16 md:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FC6501]">Why Choose Movec Systems?</p>
+            <h2 className="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Next-generation connectivity and security, in one place.</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-base text-slate-600">
+              Because life is already busy enough without buffering videos, ghost alerts, or wondering if your signal is pretending to work.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+            {[
+              {
+                icon: FiWifi,
+                title: 'Fast, Reliable Connectivity',
+                text: 'High-speed Starlink internet with low latency for streaming, gaming, Zoom calls, and remote work — even where the usual providers tap out.',
+                accent: 'from-[#ECFDF5] to-[#F0FDF4]',
+              },
+              {
+                icon: FiShield,
+                title: 'Smart, AI-Powered Security',
+                text: 'Hikvision CCTV with human and vehicle detection, intrusion alerts, and sharp night vision — so you get the important alerts, not every passing shadow.',
+                accent: 'from-[#F8FAFC] to-[#EEF6FF]',
+              },
+              {
+                icon: FiMapPin,
+                title: 'Coverage Everywhere',
+                text: 'From homes and offices to farms, schools, hospitals, and remote sites — we keep the signal and the security strong wherever you are.',
+                accent: 'from-[#FFF7ED] to-[#FFF1E9]',
+              },
+              {
+                icon: FiSmartphone,
+                title: 'Manage From Anywhere',
+                text: 'View your internet status or camera footage from your phone, tablet, or laptop — because checking in should be easy, not a full mission.',
+                accent: 'from-[#F3F4F6] to-[#EEF2FF]',
+              },
+              {
+                icon: FiTool,
+                title: 'Simple Setup, Real Support',
+                text: 'Professional installation, setup help, warranty coverage, and after-sales support — genuine gear, smooth delivery, and zero “it should be working” energy.',
+                accent: 'from-[#F5F3FF] to-[#F3E8FF]',
+              },
+            ].map(({ icon: Icon, title, text, accent }) => (
+              <div key={title} className={`rounded-3xl border border-slate-200 bg-gradient-to-br ${accent} p-6 shadow-[0_16px_40px_rgba(15,23,42,0.04)]`}>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#10B982] shadow-sm">
+                  <Icon size={22} />
+                </div>
+                <h3 className="mb-3 text-lg font-semibold text-slate-900">{title}</h3>
+                <p className="text-sm leading-6 text-slate-600">{text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.04)] md:p-8">
+            <div className="flex items-center justify-between gap-4 flex-col md:flex-row">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FC6501]">Perfect For</p>
+                <h3 className="mt-3 text-2xl font-semibold text-slate-900">Homes, businesses, and every place that deserves solid internet and better security.</h3>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 md:justify-end">
+                {['Homes', 'Businesses', 'Schools', 'Hospitals', 'Farms', 'Hotels & Lodges', 'Construction Sites', 'Retail Shops', 'Warehouses', 'Estates', 'Remote Communities'].map((item) => (
+                  <span key={item} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700">{item}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 rounded-[28px] bg-gradient-to-r from-[#0d9b6f] to-[#FC6501] p-6 text-white shadow-[0_22px_50px_rgba(16,185,130,0.18)] md:p-8">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/80">Why Buy From Us</p>
+                <h3 className="mt-3 text-2xl font-semibold">Because the best setups don’t come with drama.</h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  'Genuine Starlink & Hikvision equipment',
+                  'Professional installation',
+                  'Nationwide delivery',
+                  'Warranty support',
+                  'Expert technical assistance',
+                  'Competitive pricing',
+                  '24/7 customer support',
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2 text-sm font-medium text-white/95 backdrop-blur-sm">
+                    <FiCheckCircle className="flex-shrink-0 text-white" size={16} />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
