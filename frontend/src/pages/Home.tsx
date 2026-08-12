@@ -11,7 +11,6 @@ import {
   FiZap,
   FiPackage,
 } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -44,9 +43,6 @@ function AppleProductTile({ product }: { product: Product }) {
     </Link>
   );
 }
-
-const WHATSAPP_NUMBER = '254796285718';
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 interface Testimonial {
   name: string;
@@ -414,19 +410,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ══════════════════════════════════════
-          FLOATING WHATSAPP BUTTON
-      ══════════════════════════════════════ */}
-      <a
-        href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-[#25d366] hover:bg-[#1ebe57] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-        aria-label="Order via WhatsApp"
-      >
-        <FaWhatsapp size={26} />
-      </a>
 
     </div>
   );
