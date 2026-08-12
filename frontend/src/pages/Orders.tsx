@@ -17,7 +17,7 @@ import {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   PENDING:    { label: 'Pending',    color: 'bg-amber-50 text-amber-700 border-amber-200',   icon: <FiClock size={13} /> },
-  CONFIRMED:  { label: 'Confirmed',  color: 'bg-blue-50 text-blue-700 border-blue-200',       icon: <FiCheckCircle size={13} /> },
+  CONFIRMED:  { label: 'Confirmed',  color: 'bg-[#ecfdf5] text-[#10B982] border-[#10B982]/20', icon: <FiCheckCircle size={13} /> },
   PROCESSING: { label: 'Processing', color: 'bg-purple-50 text-purple-700 border-purple-200', icon: <FiRefreshCw size={13} /> },
   SHIPPED:    { label: 'Shipped',    color: 'bg-sky-50 text-sky-700 border-sky-200',          icon: <FiTruck size={13} /> },
   DELIVERED:  { label: 'Delivered',  color: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: <FiCheckCircle size={13} /> },
@@ -61,8 +61,8 @@ export default function OrdersPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <FiPackage className="text-blue-600" size={20} />
+            <div className="w-10 h-10 bg-[#10B982]/10 rounded-xl flex items-center justify-center">
+              <FiPackage className="text-[#10B982]" size={20} />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Orders</h1>
           </div>
@@ -83,7 +83,7 @@ export default function OrdersPage() {
               placeholder="Search by order number or product..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#10B982] transition"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function OrdersPage() {
                   onClick={() => setStatusFilter(s)}
                   className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition border ${
                     statusFilter === s
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-[#10B982] text-white border-[#10B982]'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -144,7 +144,7 @@ export default function OrdersPage() {
             {orders.length === 0 && (
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
+                className="inline-flex items-center gap-2 bg-[#10B982] hover:bg-[#0d9b6f] text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
               >
                 <FiShoppingBag size={16} /> Start Shopping
               </Link>
@@ -198,7 +198,7 @@ export default function OrdersPage() {
                     <span className="text-lg font-bold text-gray-900">
                       KES {order.total.toLocaleString()}
                     </span>
-                    <div className="flex items-center gap-1 text-xs text-blue-600 font-semibold group-hover:gap-2 transition-all">
+                    <div className="flex items-center gap-1 text-xs text-[#10B982] font-semibold group-hover:gap-2 transition-all">
                       View Details <FiChevronRight size={14} />
                     </div>
                   </div>

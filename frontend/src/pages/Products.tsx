@@ -52,7 +52,7 @@ export default function Products() {
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:border-transparent"
               />
               <Button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
                 Search
@@ -73,7 +73,7 @@ export default function Products() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]">
                     <option>All Categories</option>
                     <option>Starlink</option>
                     <option>CCTV</option>
@@ -82,7 +82,7 @@ export default function Products() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]">
                     <option>All Prices</option>
                     <option>Under KES 10,000</option>
                     <option>KES 10,000 - 50,000</option>
@@ -92,7 +92,7 @@ export default function Products() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]">
                     <option>All Brands</option>
                     <option>Starlink</option>
                     <option>Hikvision</option>
@@ -101,7 +101,7 @@ export default function Products() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]">
                     <option>All</option>
                     <option>In Stock</option>
                     <option>Out of Stock</option>
@@ -119,7 +119,7 @@ export default function Products() {
           </p>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-700">Sort by:</span>
-            <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B982]">
               <option>Featured</option>
               <option>Price: Low to High</option>
               <option>Price: High to Low</option>
@@ -159,7 +159,7 @@ export default function Products() {
                   params.delete('brand');
                   setSearchParams(params);
                 }}
-                className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                className="rounded-2xl border border-[#10B982]/30 bg-[#ecfdf5] px-5 py-3 text-sm font-semibold text-[#10B982] transition hover:bg-[#d9f8ee]"
               >
                 Clear filters
               </button>
@@ -210,7 +210,7 @@ export default function Products() {
                     }}
                     className={`w-10 h-10 rounded-lg font-medium transition ${
                       isCurrentPage
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-[#10B982] text-white'
                         : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}
                   >

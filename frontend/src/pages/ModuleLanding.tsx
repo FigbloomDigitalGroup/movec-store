@@ -93,7 +93,7 @@ export default function ModuleLanding() {
         <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 text-2xl">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#10B982]/10 text-[#10B982] text-2xl">
                 {theme.icon}
               </div>
               <div>
@@ -107,7 +107,7 @@ export default function ModuleLanding() {
               <p>Focused product collection for {title} buyers.</p>
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-2 text-[#10B982] hover:text-[#0d9b6f]"
               >
                 View all products <FiArrowRight size={14} />
               </Link>
@@ -122,12 +122,12 @@ export default function ModuleLanding() {
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder={`Search ${title} products...`}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-28 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:bg-white"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-28 text-sm text-gray-900 outline-none transition focus:border-[#10B982] focus:bg-white"
               />
               <button
                 type="button"
                 onClick={handleSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-2xl bg-[#10B982] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9b6f]"
               >
                 Search
               </button>
@@ -144,7 +144,7 @@ export default function ModuleLanding() {
               onClick={() => handleCategoryChange()}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 selectedCategory === ''
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[#10B982] text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -157,7 +157,7 @@ export default function ModuleLanding() {
                 onClick={() => handleCategoryChange(category.slug)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                   selectedCategory === category.slug
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-[#10B982] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >

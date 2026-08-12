@@ -4,12 +4,13 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
+import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiSmartphone, FiHash } from 'react-icons/fi';
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
     const [processing, setProcessing] = useState(false);
     const [completed, setCompleted] = useState(false);
+    const [selectedMethod, setSelectedMethod] = useState('Card');
 
     const { data: order } = useQuery({
         queryKey: ['order', orderNumber],
@@ -45,7 +46,7 @@ export default function PaymentPage() {
 
     if (completed) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+            <div className="min-h-screen bg-gradient-to-br from-[#ecfdf5] to-[#fff4ee]">
                 <div className="max-w-3xl mx-auto px-4 py-16">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -90,8 +91,8 @@ export default function PaymentPage() {
                             <h3 className="font-semibold text-gray-900 mb-4">What happens next?</h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <FiMail className="text-blue-600" size={16} />
+                                    <div className="w-8 h-8 bg-[#10B982]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiMail className="text-[#10B982]" size={16} />
                                     </div>
                                     <div>
                                         <p className="font-medium text-gray-900">Confirmation Email</p>
@@ -127,7 +128,7 @@ export default function PaymentPage() {
                         >
                             <Link
                                 to={`/orders/${orderNumber}`}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium text-center flex items-center justify-center gap-2"
+                                className="bg-[#10B982] text-white px-6 py-3 rounded-lg hover:bg-[#0d9b6f] transition font-medium text-center flex items-center justify-center gap-2"
                             >
                                 View Order
                                 <FiArrowRight size={18} />
@@ -152,29 +153,51 @@ export default function PaymentPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-4">
-                    <h2 className="text-xl font-semibold text-white mb-4">Pay with Paystack</h2>
+                    <h2 className="text-xl font-semibold text-white mb-4">Choose your payment method</h2>
 
-                    <div className="w-full text-left p-4 rounded-xl border-2 border-purple-500 bg-purple-50">
-                        <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 flex items-center justify-center rounded-lg bg-white">
-                                <img src="/visa-gold-800x450.png" alt="Visa/Mastercard" className="w-full h-full object-contain" />
-                            </div>
+                    <div className="w-full rounded-3xl border border-[#10B982]/40 bg-[#ecfdf5] p-6">
+                        <div className="flex flex-col gap-4">
                             <div>
-                                <p className="font-semibold text-lg text-gray-900">Paystack</p>
-                                <p className="text-sm text-gray-600">Secure card payments and local gateways via Paystack</p>
+                                <p className="text-lg font-semibold text-gray-900">Supported payment methods</p>
+                                <p className="text-sm text-gray-600 mt-1">Pay securely using any of the options below through our payment provider.</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { key: 'MPESA', icon: FiPhone, label: 'M-PESA', subtitle: 'Mobile payment' },
+                                    { key: 'MPESA_TILL', icon: FiHash, label: 'M-PESA Till', subtitle: 'Till checkout' },
+                                    { key: 'AIRTEL_MONEY', icon: FiSmartphone, label: 'Airtel Money', subtitle: 'Mobile wallet' },
+                                    { key: 'CARD', icon: FiCreditCard, label: 'Card', subtitle: 'Visa, Mastercard, other cards' },
+                                ].map(({ key, icon: Icon, label, subtitle }) => {
+                                    const isSelected = selectedMethod === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => setSelectedMethod(key)}
+                                            className={`rounded-2xl p-4 border transition text-left flex items-start gap-3 ${isSelected ? 'border-[#10B982] bg-[#ecfdf5]' : 'border-gray-200 bg-white hover:border-[#10B982]/40'}`}
+                                        >
+                                            <div className={`p-2 rounded-full ${isSelected ? 'bg-[#10B982] text-white' : 'bg-[#ecfdf5] text-[#10B982]'}`}>
+                                                <Icon size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm text-gray-900">{label}</p>
+                                                <p className="text-xs text-gray-500">{subtitle}</p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
 
-                    {/* Paystack action */}
                     <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 mt-4">
-                        <p className="text-gray-700 mb-4">Paystack supports cards, mobile money, and local payment options via a single payment flow.</p>
+                        <p className="text-gray-700 mb-4">Continue to the secure checkout to complete payment using your preferred method.</p>
                         <button
                             onClick={() => { setProcessing(true); initiatePaystack.mutate(); }}
                             disabled={initiatePaystack.isPending || processing}
-                            className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold disabled:opacity-50"
+                            className="w-full bg-[#10B982] text-white py-3 rounded-lg hover:bg-[#0d9b6f] transition font-semibold disabled:opacity-50"
                         >
-                            {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : 'Proceed with Paystack'}
+                            {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : `Continue with ${selectedMethod.replace('_', ' ')}`}
                         </button>
                     </div>
                 </div>
@@ -208,17 +231,14 @@ export default function PaymentPage() {
                             <span>-KES {order.discountAmount.toLocaleString()}</span>
                         </div>
                     )}
-                    <div className="text-xs text-gray-500 mt-3">
-                        Calculation: KES {order?.subtotal?.toLocaleString() ?? '0'} + KES {order?.shippingCost?.toLocaleString() ?? '0'} + KES {order?.taxAmount?.toLocaleString() ?? '0'} - KES {order?.discountAmount?.toLocaleString() ?? '0'} = KES {order?.total?.toLocaleString() ?? '0'}
-                    </div>
                     <div className="flex justify-between font-bold text-lg mt-4 pt-4 border-t border-gray-300/40">
                         <span>Total</span>
                         <span>KES {order?.total?.toLocaleString()}</span>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200/30">
-                        <p className="text-sm text-gray-500">Status: <span className="font-semibold text-blue-600">{order?.status}</span></p>
+                        <p className="text-sm text-gray-500">Status: <span className="font-semibold text-[#10B982]">{order?.status}</span></p>
                     </div>
-                    <Link to={`/orders/${orderNumber}`} className="block text-center text-blue-600 text-sm mt-4 hover:underline">
+                    <Link to={`/orders/${orderNumber}`} className="block text-center text-[#10B982] text-sm mt-4 hover:text-[#0d9b6f] hover:underline">
                         View Order Details
                     </Link>
 

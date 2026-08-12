@@ -157,7 +157,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     setCurrentIndex(i);
                   }}
                   className={`h-1.5 rounded-full transition-all ${
-                    i === currentIndex ? 'bg-blue-600 w-4' : 'bg-gray-300 w-1.5'
+                    i === currentIndex ? 'bg-[#10B982] w-4' : 'bg-gray-300 w-1.5'
                   }`}
                   aria-label={`View image ${i + 1}`}
                 />

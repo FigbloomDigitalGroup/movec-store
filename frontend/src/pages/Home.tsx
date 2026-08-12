@@ -183,15 +183,15 @@ export default function Home() {
               <div className="flex items-center justify-end gap-6">
                 <Link
                   to="/products"
-                  className="text-accent hover:text-accent-hover text-base font-medium flex items-center gap-1 transition"
+                  className="text-[#10B982] hover:text-[#0d9b6f] text-base font-medium flex items-center gap-1 transition"
                 >
-                  Shop all <span className="text-[#0071e3]">›</span>
+                  Shop all <span className="text-[#FC6501]">›</span>
                 </Link>
                   <Link
                     to="/categories"
-                    className="text-accent hover:text-accent-hover text-base font-medium flex items-center gap-1 transition"
+                    className="text-[#10B982] hover:text-[#0d9b6f] text-base font-medium flex items-center gap-1 transition"
                   >
-                    Browse categories <span className="text-accent">›</span>
+                    Browse categories <span className="text-[#FC6501]">›</span>
                   </Link>
               </div>
             </div>
@@ -213,9 +213,9 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-gray-900">Best Sellers</h2>
             <Link
               to="/products"
-              className="text-accent hover:text-accent-hover text-base font-medium flex items-center gap-1 transition"
+              className="text-[#10B982] hover:text-[#0d9b6f] text-base font-medium flex items-center gap-1 transition"
             >
-              See all <span className="text-accent">›</span>
+              See all <span className="text-[#FC6501]">›</span>
             </Link>
           </div>
 
@@ -272,39 +272,39 @@ export default function Home() {
             <h2 className="text-2xl font-semibold text-gray-900">Shop by Category</h2>
             <Link
               to="/categories"
-              className="text-[#0071e3] hover:text-[#0077ed] text-base font-medium flex items-center gap-1 transition"
+              className="text-[#10B982] hover:text-[#0d9b6f] text-base font-medium flex items-center gap-1 transition"
             >
-              See all <span className="text-[#0071e3]">›</span>
+              See all <span className="text-[#FC6501]">›</span>
             </Link>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             <Link to="/solutions/starlink" className="group block text-center">
               <div className="mb-3">
-                <FiWifi className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+                <FiWifi className="mx-auto text-gray-400 group-hover:text-[#10B982] transition-colors" size={32} />
               </div>
-              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">Starlink</p>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#10B982] transition-colors">Starlink</p>
             </Link>
 
             <Link to="/solutions/cctv" className="group block text-center">
               <div className="mb-3">
-                <FiCamera className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+                <FiCamera className="mx-auto text-gray-400 group-hover:text-[#10B982] transition-colors" size={32} />
               </div>
-              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">CCTV</p>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#10B982] transition-colors">CCTV</p>
             </Link>
 
             <Link to="/products?category=networking" className="group block text-center">
               <div className="mb-3">
-                <FiZap className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+                <FiZap className="mx-auto text-gray-400 group-hover:text-[#10B982] transition-colors" size={32} />
               </div>
-              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">Networking</p>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#10B982] transition-colors">Networking</p>
             </Link>
 
             <Link to="/products?category=accessories" className="group block text-center">
               <div className="mb-3">
-                <FiPackage className="mx-auto text-gray-400 group-hover:text-[#0071e3] transition-colors" size={32} />
+                <FiPackage className="mx-auto text-gray-400 group-hover:text-[#10B982] transition-colors" size={32} />
               </div>
-              <p className="text-sm text-gray-900 font-medium group-hover:text-[#0071e3] transition-colors">Accessories</p>
+              <p className="text-sm text-gray-900 font-medium group-hover:text-[#10B982] transition-colors">Accessories</p>
             </Link>
           </div>
         </div>
@@ -320,9 +320,9 @@ export default function Home() {
               <h2 className="text-2xl font-semibold text-gray-900">Featured</h2>
               <Link
                 to="/products"
-                className="text-blue-600 hover:text-blue-700 text-base font-medium flex items-center gap-1 transition"
+                className="text-[#10B982] hover:text-[#0d9b6f] text-base font-medium flex items-center gap-1 transition"
               >
-                See all <span className="text-blue-600">›</span>
+                See all <span className="text-[#FC6501]">›</span>
               </Link>
             </div>
 
@@ -349,14 +349,14 @@ export default function Home() {
               <button
                 onClick={scrollFeaturedPrev}
                 disabled={!canScrollFeaturedPrev}
-                className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#0071e3] hover:text-[#0071e3] transition disabled:opacity-30 disabled:cursor-not-allowed"
+                className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10B982] hover:text-[#10B982] transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <FiChevronLeft size={16} />
               </button>
               <button
                 onClick={scrollFeaturedNext}
                 disabled={!canScrollFeaturedNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#0071e3] hover:text-[#0071e3] transition disabled:opacity-30 disabled:cursor-not-allowed"
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10B982] hover:text-[#10B982] transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <FiChevronRight size={16} />
               </button>

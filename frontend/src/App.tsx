@@ -13,6 +13,7 @@ import PageLoader from './components/PageLoader';
 import AuthBootstrap from './components/AuthBootstrap';
 
 const Home = lazy(() => import('./pages/Home'));
+const Landing = lazy(() => import('./pages/Landing'));
 const Products = lazy(() => import('./pages/Products'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Categories = lazy(() => import('./pages/Categories'));
@@ -29,7 +30,6 @@ const ContactPage = lazy(() => import('./pages/Contact'));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmail'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
-const ModulesPage = lazy(() => import('./pages/Modules'));
 const ModuleLanding = lazy(() => import('./pages/ModuleLanding'));
 const PaymentPage = lazy(() => import('./pages/Payment'));
 const ProfilePage = lazy(() => import('./pages/Profile'));
@@ -103,7 +103,8 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<Layout />}>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/shop" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/:slug" element={<ProductDetail />} />
               <Route path="/categories" element={<Categories />} />
@@ -112,11 +113,10 @@ export default function App() {
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/solutions" element={<ModulesPage />} />
               <Route path="/solutions/:moduleSlug" element={<ModuleLanding />} />
               <Route path="/solutions/:moduleSlug/products" element={<Navigate to="/solutions/:moduleSlug" replace />} />
               {/* Legacy redirects */}
-              <Route path="/modules" element={<Navigate to="/solutions" replace />} />
+              <Route path="/modules" element={<Navigate to="/" replace />} />
               <Route path="/modules/:moduleSlug" element={<Navigate to="/solutions/:moduleSlug" replace />} />
               <Route path="/cctv" element={<Navigate to="/solutions/cctv" replace />} />
               <Route path="/cart" element={<CartPage />} />

@@ -101,8 +101,8 @@ export default function CheckoutPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <Card>
             <CardBody className="text-center py-16">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiLock className="text-blue-600" size={32} />
+              <div className="w-16 h-16 bg-[#10B982]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiLock className="text-[#10B982]" size={32} />
               </div>
               <h1 className="text-2xl font-section-title text-gray-900 mb-4">Sign in to Checkout</h1>
               <p className="text-gray-600 mb-6">You need an account to complete your order. Your cart will be saved.</p>
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
               </Link>
               <p className="mt-4 text-sm text-gray-500">
                 Don't have an account?{' '}
-                <Link to="/register?redirect=checkout" className="text-blue-600 hover:underline font-medium">
+                <Link to="/register?redirect=checkout" className="text-[#10B982] hover:text-[#0d9b6f] hover:underline font-medium">
                   Register
                 </Link>
               </p>
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
         <div className="w-full px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">1</div>
+              <div className="w-8 h-8 bg-[#10B982] text-white rounded-full flex items-center justify-center font-semibold text-sm">1</div>
               <div>
                 <p className="font-medium text-gray-900">Shipping</p>
                 <p className="text-xs text-gray-500">Enter delivery address</p>
@@ -192,8 +192,8 @@ export default function CheckoutPage() {
             <Card>
               <CardBody>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FiMapPin className="text-blue-600" size={20} />
+                  <div className="w-10 h-10 bg-[#10B982]/10 rounded-lg flex items-center justify-center">
+                    <FiMapPin className="text-[#10B982]" size={20} />
                   </div>
                   <h2 className="text-xl font-section-title text-gray-900">Shipping Address</h2>
                 </div>
@@ -209,8 +209,8 @@ export default function CheckoutPage() {
                     key={addr.id}
                     className={`block p-4 border-2 rounded-lg mb-3 cursor-pointer transition ${
                       shippingId === addr.id
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        ? 'border-[#10B982] bg-[#ecfdf5]'
+                        : 'border-gray-200 hover:border-[#10B982]/50 bg-white'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -321,7 +321,7 @@ export default function CheckoutPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add any special instructions for your order..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:border-transparent resize-none"
                   rows={4}
                 />
               </CardBody>

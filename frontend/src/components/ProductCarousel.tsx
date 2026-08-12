@@ -60,7 +60,7 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
           {viewAllLink && (
             <a
               href={viewAllLink}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+              className="text-sm text-[#10B982] hover:text-[#0d9b6f] font-medium hover:underline"
             >
               See All
             </a>

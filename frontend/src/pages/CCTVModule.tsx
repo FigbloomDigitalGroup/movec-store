@@ -6,24 +6,24 @@ export default function CCTVModule() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 text-white py-20">
+      <section className="bg-gradient-to-br from-[#0e2b24] via-[#10B982] to-[#FC6501] text-white py-20">
         <div className="w-full px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                <FiVideo className="text-cyan-300" />
-                <span className="text-cyan-100 text-sm font-medium">AI-Powered Security</span>
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                <FiVideo className="text-[#fff4ee]" />
+                <span className="text-[#ecfdf5] text-sm font-medium">AI-Powered Security</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                 AI-Powered Security
                 <br />
-                <span className="text-cyan-300">with OpenCV</span>
+                <span className="text-[#fff4ee]">with OpenCV</span>
               </h1>
-              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+              <p className="text-xl text-[#ecfdf5] mb-8 leading-relaxed">
                 Smarter surveillance. Faster response. Better protection. Modern CCTV systems with computer vision technologies analyze video in real time, detect important events, and help you respond before incidents escalate.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
+                <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-white text-[#10B982] px-8 py-4 rounded-xl font-semibold hover:bg-[#ecfdf5] transition">
                   Shop CCTV Systems
                   <FiArrowRight />
                 </Link>
@@ -37,10 +37,10 @@ export default function CCTVModule() {
                 <div className="w-80 h-80 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center">
                   <FiShield className="text-white/80" size={120} />
                 </div>
-                <div className="absolute -top-4 -right-4 bg-cyan-400 rounded-2xl p-4 shadow-xl">
+                <div className="absolute -top-4 -right-4 bg-[#FC6501] rounded-2xl p-4 shadow-xl">
                   <FiSmile className="text-white" size={32} />
                 </div>
-                <div className="absolute -bottom-4 -left-4 bg-blue-400 rounded-2xl p-4 shadow-xl">
+                <div className="absolute -bottom-4 -left-4 bg-[#0d9b6f] rounded-2xl p-4 shadow-xl">
                   <FiTarget className="text-white" size={32} />
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function CCTVModule() {
             ].map((place, index) => (
               <AnimatedContent key={index} distance={30} direction="vertical" duration={0.5} delay={index * 0.05}>
               <div className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100 h-full">
-                <div className="text-blue-600 mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
+                <div className="text-[#10B982] mx-auto mb-3 text-3xl flex justify-center">{place.icon}</div>
                 <span className="text-gray-700 font-medium">{place.name}</span>
               </div>
               </AnimatedContent>
@@ -240,10 +240,10 @@ export default function CCTVModule() {
       {/* Why Buy From Us */}
       <section className="py-20">
         <div className="w-full px-4">
-          <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl p-8 md:p-12 text-white">
+          <div className="bg-gradient-to-br from-[#0d9b6f] to-[#FC6501] rounded-3xl p-8 md:p-12 text-white">
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy From Us?</h2>
-              <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              <p className="text-xl text-[#ecfdf5] max-w-2xl mx-auto">
                 Your trusted partner for security solutions
               </p>
             </div>
@@ -271,7 +271,7 @@ export default function CCTVModule() {
             </div>
 
             <div className="text-center mt-12">
-              <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition">
+              <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-white text-[#10B982] px-8 py-4 rounded-xl font-semibold hover:bg-[#ecfdf5] transition">
                 Browse CCTV Products
                 <FiArrowRight />
               </Link>
@@ -288,7 +288,7 @@ export default function CCTVModule() {
             Get AI-powered CCTV systems with professional installation. Protect what matters most.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
+            <Link to="/products?category=cctv" className="inline-flex items-center justify-center gap-2 bg-[#10B982] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#0d9b6f] transition">
               Shop CCTV Systems
               <FiArrowRight />
             </Link>

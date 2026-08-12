@@ -191,7 +191,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               onChange={(e) => setTitle(e.target.value)}
               placeholder='e.g. "Great product, very easy to set up"'
               maxLength={120}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] focus:bg-white transition"
             />
           </div>
 
@@ -206,7 +206,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               placeholder="Share details about your experience — what you liked, how it performed, tips for other buyers..."
               rows={4}
               maxLength={2000}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition resize-none"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] focus:bg-white transition resize-none"
             />
             <p className="text-xs text-gray-400 mt-1 text-right">{body.length}/2000</p>
           </div>
@@ -450,7 +450,7 @@ export default function ProductDetail() {
       <div className="bg-white border-b border-gray-200">
         <div className="w-full px-4 py-4">
           <nav className="flex items-center gap-2 text-sm">
-            <Link to="/" className="text-gray-500 hover:text-gray-700">Home</Link>
+            <Link to="/shop" className="text-gray-500 hover:text-gray-700">Shop</Link>
             <span className="text-gray-400">/</span>
             <Link to="/products" className="text-gray-500 hover:text-gray-700">Products</Link>
             <span className="text-gray-400">/</span>

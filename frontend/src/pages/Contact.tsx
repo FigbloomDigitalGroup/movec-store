@@ -56,7 +56,7 @@ export default function ContactPage() {
                 <h3 className="text-xl font-semibold mb-4">Business Information</h3>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-600">
+                  <div className="bg-[#10B982]/10 p-3 rounded-full text-[#10B982]">
                     <FiMapPin size={24} />
                   </div>
                   <div>

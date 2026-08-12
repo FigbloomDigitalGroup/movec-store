@@ -42,14 +42,14 @@ export default function Register() {
           <div className="text-6xl mb-6 animate-bounce">✉️</div>
           <h1 className="text-3xl font-bold mb-4 text-gray-800">Verify Your Email</h1>
           <p className="text-gray-600 mb-6">
-            We have sent a verification link to <strong className="text-blue-600 font-semibold">{form.email}</strong>.
+            We have sent a verification link to <strong className="text-[#10B982] font-semibold">{form.email}</strong>.
           </p>
           <p className="text-sm text-gray-500 mb-8">
             Please check your inbox and click the link to activate your account.
           </p>
           <Link
             to={loginLink}
-            className="inline-block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium"
+            className="inline-block w-full bg-[#10B982] text-white py-3 rounded-lg hover:bg-[#0d9b6f] transition font-medium"
           >
             Go to Login
           </Link>
@@ -124,7 +124,7 @@ export default function Register() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading ? (
             <>
@@ -140,7 +140,7 @@ export default function Register() {
         </button>
       </form>
       <p className="text-center mt-4 text-sm">
-        Already have an account? <Link to={loginLink} className="text-blue-600">Login</Link>
+        Already have an account? <Link to={loginLink} className="text-[#10B982]">Login</Link>
       </p>
     </div>
   );

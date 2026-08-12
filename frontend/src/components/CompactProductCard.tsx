@@ -91,7 +91,7 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
         {/* Add to Cart Button */}
         <button
           onClick={handleAddToCart}
-          className="absolute bottom-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-sm transition-colors duration-200 z-10 opacity-0 group-hover:opacity-100"
+          className="absolute bottom-2 right-2 w-8 h-8 bg-[#10B982] hover:bg-[#0d9b6f] text-white rounded-full flex items-center justify-center shadow-sm transition-colors duration-200 z-10 opacity-0 group-hover:opacity-100"
           aria-label="Add to cart"
         >
           <FiPlus size={14} strokeWidth={3} />

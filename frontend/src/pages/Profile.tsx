@@ -86,7 +86,7 @@ export default function ProfilePage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === tab.key ? 'bg-blue-600 text-white' : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === tab.key ? 'bg-[#10B982] text-white' : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white'}`}
           >
             <tab.icon size={16} />
             {tab.label}
@@ -98,7 +98,7 @@ export default function ProfilePage() {
       {activeTab === 'profile' && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600">
+            <div className="w-16 h-16 bg-[#10B982]/10 rounded-full flex items-center justify-center text-2xl font-bold text-[#10B982]">
               {profile?.firstName?.[0]}{profile?.lastName?.[0]}
             </div>
             <div>
@@ -124,7 +124,7 @@ export default function ProfilePage() {
               <input value={profile?.email || ''} disabled className="border rounded-lg px-4 py-2 w-full bg-gray-100" />
             </div>
           </div>
-          <button onClick={() => updateProfile.mutate(profileForm)} className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+          <button onClick={() => updateProfile.mutate(profileForm)} className="mt-6 bg-[#10B982] text-white px-6 py-2 rounded-lg hover:bg-[#0d9b6f] transition flex items-center gap-2">
             <FiSave size={16} /> Save Changes
           </button>
         </div>
@@ -135,7 +135,7 @@ export default function ProfilePage() {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-white">Saved Addresses</h2>
-            <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+            <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2">
               <FiPlus size={16} /> Add Address
             </button>
           </div>
@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 <input placeholder="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} className="border rounded-lg px-4 py-2" />
               </div>
               <div className="flex gap-3 mt-4">
-                <button onClick={() => saveAddress.mutate(addressForm)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"><FiCheck size={16} /> Save</button>
+                <button onClick={() => saveAddress.mutate(addressForm)} className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2"><FiCheck size={16} /> Save</button>
                 <button onClick={() => { setShowAddAddress(false); setEditingAddress(null); }} className="border px-4 py-2 rounded-lg flex items-center gap-2"><FiX size={16} /> Cancel</button>
               </div>
             </div>
@@ -172,13 +172,13 @@ export default function ProfilePage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{addr.type}</span>
-                    {addr.isDefault && <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Default</span>}
+                    {addr.isDefault && <span className="bg-[#ecfdf5] text-[#10B982] text-xs px-2 py-0.5 rounded-full">Default</span>}
                   </div>
                   <p className="text-gray-600">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}</p>
                   <p className="text-gray-500 text-sm">{addr.city}{addr.state ? `, ${addr.state}` : ''} · {addr.postalCode} · {addr.country}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => startEditAddress(addr)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><FiEdit2 size={16} /></button>
+                  <button onClick={() => startEditAddress(addr)} className="p-2 text-[#10B982] hover:bg-[#ecfdf5] rounded-lg"><FiEdit2 size={16} /></button>
                   <button onClick={() => deleteAddress.mutate(addr.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 size={16} /></button>
                 </div>
               </div>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                 if (passwordForm.newPassword.length < 8) return alert('Password must be at least 8 characters');
                 changePassword.mutate();
               }}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+              className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition"
             >
               Change Password
             </button>

@@ -30,7 +30,7 @@ export default function ResetPasswordPage() {
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8">
         <h1 className="text-3xl font-bold text-center mb-8">Reset Password</h1>
-        {message && <p className="bg-blue-100 text-blue-700 p-3 rounded mb-4">{message}</p>}
+        {message && <p className="bg-[#ecfdf5] text-[#10B982] p-3 rounded mb-4">{message}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">New Password</label>
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

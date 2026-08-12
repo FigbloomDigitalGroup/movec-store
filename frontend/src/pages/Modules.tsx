@@ -19,11 +19,11 @@ interface StoreModule {
 const MODULE_CONFIG: Record<string, { icon: React.ReactNode; gradient: string }> = {
   starlink: {
     icon: <FiWifi size={36} />,
-    gradient: 'from-orange-500 to-green-500',
+    gradient: 'from-[#10B982] via-[#48c79d] to-[#f8a16b]',
   },
   cctv: {
     icon: <FiCamera size={36} />,
-    gradient: 'from-green-600 to-emerald-500',
+    gradient: 'from-[#10B982] via-[#34c38f] to-[#FC6501]',
   },
 };
 
@@ -72,9 +72,9 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
   return (
     <Link
       to={`/solutions/${mod.slug}`}
-      className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
+      className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10B982] focus-visible:ring-offset-2 rounded-xl"
     >
-      <Card hover className="h-full transition-shadow group-hover:border-blue-200 group-hover:shadow-lg">
+      <Card hover className="h-full transition-shadow group-hover:border-[#10B982]/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
         <CardBody className="flex h-full flex-col">
           <div className={`mb-6 rounded-2xl bg-gradient-to-br ${config.gradient} p-8 text-white shadow-lg`}>
             <div className="flex items-start justify-between">
@@ -105,7 +105,7 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
             </div>
           )}
 
-          <div className="flex items-center gap-2 font-semibold text-blue-600 transition-all group-hover:gap-3">
+          <div className="flex items-center gap-2 font-semibold text-[#FC6501] transition-all group-hover:gap-3">
             Explore {mod.name}
             <FiArrowRight className="transition-transform group-hover:translate-x-1" />
           </div>
@@ -131,12 +131,12 @@ export default function Modules() {
       <div className="border-b border-gray-200 bg-white">
         <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-blue-700">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#10B982]/10 px-4 py-2 text-[#10B982]">
               <FiGrid size={18} />
               <span className="text-sm font-medium">All Solutions</span>
             </div>
             <h1 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
-              Shop by <span className="text-blue-600">Solution</span>
+              Shop by <span className="text-[#10B982]">Solution</span>
             </h1>
             <p className="mx-auto max-w-2xl text-xl text-gray-700">
               Choose a product line below to browse kits, accessories, and related services.

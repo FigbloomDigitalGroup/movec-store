@@ -23,7 +23,7 @@ const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERE
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   PENDING:    { label: 'Pending',    color: 'text-amber-600',   bg: 'bg-amber-100',   icon: <FiClock size={18} /> },
-  CONFIRMED:  { label: 'Confirmed',  color: 'text-blue-600',    bg: 'bg-blue-100',    icon: <FiCheckCircle size={18} /> },
+  CONFIRMED:  { label: 'Confirmed',  color: 'text-[#10B982]',    bg: 'bg-[#ecfdf5]',    icon: <FiCheckCircle size={18} /> },
   PROCESSING: { label: 'Processing', color: 'text-purple-600',  bg: 'bg-purple-100',  icon: <FiRefreshCw size={18} /> },
   SHIPPED:    { label: 'Shipped',    color: 'text-sky-600',     bg: 'bg-sky-100',     icon: <FiTruck size={18} /> },
   DELIVERED:  { label: 'Delivered',  color: 'text-emerald-600', bg: 'bg-emerald-100', icon: <FiCheckCircle size={18} /> },
@@ -144,7 +144,7 @@ export default function OrderDetailPage() {
         <div className="text-center">
           <FiAlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
           <h2 className="text-lg font-bold text-gray-800">Order not found</h2>
-          <Link to="/orders" className="text-blue-600 text-sm mt-2 inline-block">← Back to orders</Link>
+          <Link to="/orders" className="text-[#10B982] text-sm mt-2 inline-block hover:text-[#0d9b6f]">← Back to orders</Link>
         </div>
       </div>
     );
@@ -189,7 +189,7 @@ export default function OrderDetailPage() {
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <div className="border-b border-gray-100 px-6 py-4">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <FiShoppingBag className="text-blue-600" size={16} /> Items Ordered
+                  <FiShoppingBag className="text-[#10B982]" size={16} /> Items Ordered
                 </h2>
               </div>
               <div className="divide-y divide-gray-100">
@@ -205,7 +205,7 @@ export default function OrderDetailPage() {
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/products/${item.slug}`}
-                        className="font-semibold text-gray-900 text-sm hover:text-blue-600 transition line-clamp-2"
+                        className="font-semibold text-gray-900 text-sm hover:text-[#10B982] transition line-clamp-2"
                       >
                         {item.productName}
                       </Link>
@@ -226,7 +226,7 @@ export default function OrderDetailPage() {
             {order.shippingAddress && (
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <FiMapPin className="text-blue-600" size={16} /> Delivery Address
+                  <FiMapPin className="text-[#10B982]" size={16} /> Delivery Address
                 </h2>
                 <div className="text-sm text-gray-700 space-y-1">
                   <p className="font-semibold text-gray-900">
@@ -271,7 +271,7 @@ export default function OrderDetailPage() {
             {order.payments?.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <FiCreditCard className="text-blue-600" size={16} /> Payment
+                  <FiCreditCard className="text-[#10B982]" size={16} /> Payment
                 </h2>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Method</span>
