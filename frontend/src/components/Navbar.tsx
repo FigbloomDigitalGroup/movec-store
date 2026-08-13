@@ -52,7 +52,7 @@ export default function Navbar() {
               <img src={logo} alt="Movec" className="h-8 w-auto object-contain" />
             </Link>
 
-            <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
+            <div className="hidden md:flex items-center gap-2 flex-1 justify-center">
               {[
                 { to: '/shop', label: 'Shop' },
                 { to: '/solutions/starlink', label: 'Starlink' },
@@ -62,14 +62,16 @@ export default function Navbar() {
                 { to: '/installation', label: 'Installation' },
                 { to: '/support/faqs', label: 'Support' },
               ].map(({ to, label }) => (
-                <Link key={to} to={to} className="text-sm font-medium text-[#2D342F] hover:text-[#10B982] transition">
-                  {label}
+                <Link key={to} to={to}>
+                  <p className=" text-sm border text-[#10B982] hover:text-[#10B982] transition px-2 py-1">
+                    {label}
+                  </p>
                 </Link>
               ))}
             </div>
 
             <div className="flex items-center gap-4 flex-shrink-0">
-              <button onClick={() => {}} className="p-1.5 text-[#4B534D] hover:text-[#10B982] transition" aria-label="Search">
+              <button onClick={() => { }} className="p-1.5 text-[#4B534D] hover:text-[#10B982] transition" aria-label="Search">
                 <FiSearch size={18} />
               </button>
 

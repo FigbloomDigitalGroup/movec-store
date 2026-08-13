@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { FaTruck } from 'react-icons/fa';
 import api from '../lib/api';
 import { getModules } from '../lib/api';
 import {
@@ -39,6 +40,7 @@ const BRAND_ORANGE = '#FC6501';
 interface StoreModule {
   id: string;
   name: string;
+  img: any;
   slug: string;
   description: string | null;
   imageUrl: string | null;
@@ -66,6 +68,7 @@ const FALLBACK_MODULES: StoreModule[] = [
   {
     id: 'module-starlink',
     name: 'Starlink',
+    img: '/download_nobg.png',
     slug: 'starlink',
     description:
       'High-speed satellite internet solutions powered by SpaceX Starlink. Kits, accessories, and mounts for home and mobile use.',
@@ -80,6 +83,7 @@ const FALLBACK_MODULES: StoreModule[] = [
   {
     id: 'module-cctv',
     name: 'CCTV & Security',
+    img: '/Types-of-CCTV-Cameras-reference-img-512x316_nobg.png',
     slug: 'cctv',
     description:
       'Professional CCTV cameras, DVRs, NVRs and surveillance accessories for homes and businesses.',
@@ -99,38 +103,77 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
   const categories = mod.categories ?? [];
 
   return (
-    <Link to={`/solutions/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10B982] focus-visible:ring-offset-2 rounded-xl">
-      <Card hover className="h-full transition-shadow group-hover:border-[#10B982]/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
-        <CardBody className="flex h-full flex-col">
-          <div className={`mb-6 rounded-2xl bg-gradient-to-br ${config.gradient} p-8 text-white shadow-lg`}>
-            <div className="flex items-start justify-between">
-              <div className="rounded-xl bg-white/20 p-4 backdrop-blur-sm">{config.icon}</div>
-              {productCount > 0 && <Badge variant="gray" className="!bg-white/20 !text-white">{productCount} Products</Badge>}
+    <>
+      <Link
+        to={`/solutions/${mod.slug}`}
+
+
+        className='p-2'>
+        <Card hover className="h-full">
+          <CardBody className="flex h-full flex-col bg-[#10B982] rounded-lg">
+            {/* image block */}
+            <div className="relative mb-6 h-100 overflow-hidden text-white">
+              <img
+                src={mod.img}
+                alt={mod.name}
+                className="absolute inset-0 h-full w-full"
+              />
+
+              <div className="absolute left-4 top-4 rounded-xl bg-white/20 p-5 bg-orange-500">
+                {config.icon}
+              </div>
+
+              {productCount > 0 && (
+                <Badge
+                  variant="gray"
+                  className="!absolute !right-4 !top-4 !bg-white/20 !text-white animate-wiggle"
+                >
+                  {productCount} Products
+                </Badge>
+              )}
+
+              <h2 className="absolute bottom-4 w-[300px] left-4 right-4 text-2xl font-bold p-5 bg-orange-500 rounded-full md:text-3xl">
+                {mod.name}
+              </h2>
             </div>
-            <h2 className="mt-6 text-2xl font-bold md:text-3xl">{mod.name}</h2>
-          </div>
 
-          <p className="mb-6 flex-1 leading-relaxed text-slate-700">{mod.description}</p>
+            <p className="mb-6 flex-1 leading-relaxed text-white text-sm">{mod.description}</p>
 
-          {categories.length > 0 && (
-            <div className="mb-6 flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <span key={cat.id} className="rounded-full bg-[#F3F5F2] px-3 py-1 text-xs text-slate-700">
-                  {cat.name}
-                </span>
-              ))}
+            {categories.length > 0 && (
+              <div className="mb-6 flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <span key={cat.id} className="rounded-full bg-orange-500 text-white p-3 text-xs text-slate-700">
+                    {cat.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 font-semibold text-white transition-all group-hover:gap-3">
+              Explore {mod.name}
+              <FiArrowRight className="transition-transform group-hover:translate-x-1" />
             </div>
-          )}
+          </CardBody>
+        </Card>
+      </Link >
 
-          <div className="flex items-center gap-2 font-semibold text-[#FC6501] transition-all group-hover:gap-3">
-            Explore {mod.name}
-            <FiArrowRight className="transition-transform group-hover:translate-x-1" />
-          </div>
-        </CardBody>
-      </Card>
-    </Link>
-  );
+      <style>{`
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-6deg); }
+    50% { transform: rotate(6deg); }
+  }
+  .animate-wiggle {
+    animation: wiggle 2.2s ease-in-out infinite;
+    transform-origin: center;
+  }
+`}</style>
+
+
+    </>
+  )
+
 }
+
 
 const defaultBanners: PromoBanner[] = [
   {
@@ -190,9 +233,20 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-[#F6F8F6] text-slate-900">
-      <div className="bg-[#FC6501] text-white text-sm px-4 py-3 text-center font-medium shadow-sm">
-        Free delivery on orders over KES 50,000 • Nationwide installation available
+
+      <div className="bg-[#FC6501] text-white h-[100px] flex items-center justify-center gap-3 px-4 shadow-sm">
+        <FaTruck className="w-6 h-6 shrink-0 hidden sm:block" strokeWidth={2} />
+        <p className="text-center text-sm sm:text-base font-medium leading-snug">
+          Free delivery on orders over{" "}
+          <span className="inline-block bg-white p-5 rounded-full text-2xl sm:text-3xl font-extrabold tracking-tight animate-bounce text-orange-500 align-middle">
+            KES 50,000
+          </span>
+          <span className="mx-2 opacity-60">•</span>
+          Nationwide installation available
+        </p>
       </div>
+
+
 
       <section className="relative overflow-hidden pt-8">
         <div className="absolute inset-x-0 top-0 h-48 bg-[#10B982]/10" />
@@ -202,8 +256,7 @@ export default function Landing() {
               {activeSlide.badge && (
                 <span
                   className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.25em]"
-                  style={{ backgroundColor: `${activeSlide.badgeColor || BRAND_ORANGE}1a`, color: activeSlide.badgeColor || BRAND_ORANGE }}
-                >
+                  style={{ backgroundColor: `${activeSlide.badgeColor || BRAND_ORANGE}1a`, color: activeSlide.badgeColor || BRAND_ORANGE }}>
                   {activeSlide.badge}
                 </span>
               )}
@@ -221,8 +274,7 @@ export default function Landing() {
                     style={{
                       backgroundColor: activeSlide.badgeColor || '#10B982',
                       color: '#ffffff',
-                    }}
-                  >
+                    }}>
                     {activeSlide.ctaText}
                   </Link>
                 ) : (
@@ -282,9 +334,9 @@ export default function Landing() {
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <p className="text-sm uppercase tracking-[0.3em] text-[#FC6501] font-semibold">Shop by solution</p>
-            <h2 className="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Browse our main product lines</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600">
+            <p className="text-sm uppercase tracking-[0.3em] text-[#FC6501] font-semibold p-5 bg-orange-500 text-white rounded-full">Shop by solution</p>
+            <h2 className="mt-5 text-3xl font-bold text-slate-900 sm:text-5xl">Browse our main product lines</h2>
+            <p className="mx-auto mt-6 max-w-2xl text-base text-slate-600">
               Explore Starlink, CCTV, and networking solutions directly from the homepage. Each card opens the relevant product line so customers can shop faster.
             </p>
           </div>
@@ -295,24 +347,29 @@ export default function Landing() {
             </div>
           )}
 
-          {modulesLoading ? (
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-[420px] animate-pulse rounded-3xl border border-slate-200 bg-slate-100" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {displayModules.map((mod) => (
-                <ModuleCard key={mod.id} mod={mod} />
-              ))}
-            </div>
-          )}
+
+
+          {
+            modulesLoading ? (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-[420px] animate-pulse rounded-3xl border border-slate-200 bg-slate-100" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {displayModules.map((mod) => (
+                  <ModuleCard key={mod.id} mod={mod} />
+                ))}
+              </div>
+            )}
+
+
 
           <div className="mt-12 flex flex-col items-center gap-4 text-center">
             <p className="text-slate-700">Want to browse the full catalog?</p>
             <Link to="/products" className="inline-flex items-center gap-2 rounded-full border border-[#FC6501]/40 bg-[#fff8f4] px-6 py-3 text-sm font-semibold text-slate-900 transition hover:border-[#FC6501] hover:bg-[#fff1ea] hover:text-[#0f172a]">
-              <FiPackage size={18} /> Browse All Products
+              <FiPackage size={18} />Browse All Products
             </Link>
           </div>
         </div>
@@ -321,7 +378,7 @@ export default function Landing() {
       <section className="bg-[#f7faf8] py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FC6501]">Why Choose Movec Systems?</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] bg-orange-500 text-[#FC6501] text-white p-5 rounded-full">Why Choose Movec Systems?</p>
             <h2 className="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Next-generation connectivity and security, in one place.</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base text-slate-600">
               Because life is already busy enough without buffering videos, ghost alerts, or wondering if your signal is pretending to work.
@@ -385,12 +442,35 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="mt-12 rounded-[28px] bg-gradient-to-r from-[#0d9b6f] to-[#FC6501] p-6 text-white shadow-[0_22px_50px_rgba(16,185,130,0.18)] md:p-8">
+          <div className="mt-12 rounded-[28px] bg-[#10B982] p-6 text-white shadow-[0_22px_50px_rgba(16,185,130,0.18)] md:p-8">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/80">Why Buy From Us</p>
-                <h3 className="mt-3 text-2xl font-semibold">Because the best setups don’t come with drama.</h3>
+
+              <div className="flex flex-col items-start gap-4 sm:items-center">
+                <img
+                  className="h-20 w-20 shrink-0 animate-spin-slow rounded-full drop-shadow-lg sm:h-24 sm:w-24"
+                  src="/79576752-great-deal-rubber-stamp.jpg"
+                  alt="Great deal stamp"
+                />
+                <div className="flex flex-col items-center">
+                  <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/80">
+                    Why Buy From Us
+                  </p>
+                  <h3 className="mt-3 text-2xl font-bold">
+                    Because the best setups don't come with drama.
+                  </h3>
+                </div>
               </div>
+
+              <style>{`
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin-slow {
+    animation: spin-slow 6s linear infinite;
+  }
+`}</style>
+
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
                   'Genuine Starlink & Hikvision equipment',
@@ -401,7 +481,7 @@ export default function Landing() {
                   'Competitive pricing',
                   '24/7 customer support',
                 ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-2 text-sm font-medium text-white/95 backdrop-blur-sm">
+                  <div key={item} className="flex items-center gap-2 rounded-2xl bg-orange-500 px-3 py-2 text-sm font-medium text-white/95 backdrop-blur-sm">
                     <FiCheckCircle className="flex-shrink-0 text-white" size={16} />
                     <span>{item}</span>
                   </div>
