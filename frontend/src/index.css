@@ -179,6 +179,12 @@ a:hover {
   background-color: var(--color-brand-green-dark);
 }
 
+/* Embla drives this element's transform on every animation frame during scroll/drag.
+   The global transition rule above fights that, producing laggy, stuttery scrolling. */
+.embla__container {
+  transition: none;
+}
+
 .bg-accent-100 {
   background-color: rgba(16, 185, 130, 0.1) !important;
 }

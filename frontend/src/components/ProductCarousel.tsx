@@ -15,7 +15,7 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
     align: 'start',
     slidesToScroll: 1,
     dragFree: false,
-    containScroll: 'trimSnaps',
+    loop: true,
   });
 
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -94,7 +94,7 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
 
         {/* Embla Viewport */}
         <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex gap-2">
+          <div className="embla__container flex gap-2">
             {products.map((product) => (
               <div key={product.id} className="flex-[0_0_auto]">
                 <CompactProductCard product={product} />
