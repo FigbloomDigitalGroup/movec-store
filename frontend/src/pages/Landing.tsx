@@ -189,7 +189,7 @@ export default function Landing() {
   const hasProduct = Boolean(activeSlide.product);
 
   return (
-    <div className="min-h-screen bg-[#F6F8F6] text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <div className="bg-[#FC6501] text-white text-sm px-4 py-3 text-center font-medium shadow-sm">
         Free delivery on orders over KES 50,000 • Nationwide installation available
       </div>

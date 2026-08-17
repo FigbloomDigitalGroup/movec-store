@@ -155,12 +155,12 @@ export default function Home() {
 
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
 
       {/* ══════════════════════════════════════
           APPLE-STYLE HERO SECTION
       ══════════════════════════════════════ */}
-      <section className="bg-gray-50 border-b border-gray-200/50 py-16 md:py-24">
+      <section className="border-b border-gray-200/50 py-16 md:py-24">
         <div className="w-full px-4 md:px-8">
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 md:gap-16">
             
@@ -203,7 +203,7 @@ export default function Home() {
       {/* ══════════════════════════════════════
           APPLE-STYLE PRODUCT ROW: BEST SELLERS
       ══════════════════════════════════════ */}
-      <section className="py-12 bg-white">
+      <section className="py-12">
         <div className="w-full px-4 md:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-semibold text-gray-900">Best Sellers</h2>
@@ -262,7 +262,7 @@ export default function Home() {
       {/* ══════════════════════════════════════
           APPLE-STYLE CATEGORY ROW
       ══════════════════════════════════════ */}
-      <section className="py-12 bg-white">
+      <section className="py-12">
         <div className="w-full px-4 md:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-semibold text-gray-900">Shop by Category</h2>
@@ -310,7 +310,7 @@ export default function Home() {
           APPLE-STYLE PRODUCT ROW: FEATURED
       ══════════════════════════════════════ */}
       {featured && featured.length > 0 && (
-        <section className="py-12 bg-gray-50">
+        <section className="py-12">
           <div className="w-full px-4 md:px-8">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-semibold text-gray-900">Featured</h2>
@@ -366,7 +366,7 @@ export default function Home() {
       {/* ══════════════════════════════════════
           APPLE-STYLE TESTIMONIALS
       ══════════════════════════════════════ */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16">
         <div className="w-full px-4 md:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-semibold text-gray-900 mb-2">Customer Stories</h2>

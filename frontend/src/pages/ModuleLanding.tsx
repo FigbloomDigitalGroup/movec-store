@@ -88,7 +88,7 @@ export default function ModuleLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <SectionHero title={title} subtitle={subtitle}>
         <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">

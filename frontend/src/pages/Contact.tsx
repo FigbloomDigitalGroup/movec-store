@@ -36,7 +36,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
+    <div className="min-h-screen py-12">
       <div className="w-full px-4">
         <AnimatedContent distance={30} direction="vertical" duration={0.6}>
         <div className="text-center mb-12">

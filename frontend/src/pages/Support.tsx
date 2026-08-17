@@ -143,7 +143,7 @@ export default function SupportPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen pb-16">
       <SectionHero title="Frequently Asked Questions" subtitle="Find quick answers about products, installation, delivery, and warranty.">
         <div className="mt-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-100 text-accent border border-accent mb-4">

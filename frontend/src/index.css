@@ -37,7 +37,7 @@ html {
 }
 
 body {
-  background: var(--color-neutral-50);
+  background: linear-gradient(180deg, #c9f2e0 0%, #e3f7ed 20%, #f2f4f0 45%, #fbe9d9 75%, #f8d9bd 100%);
   color: var(--color-neutral-800);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
