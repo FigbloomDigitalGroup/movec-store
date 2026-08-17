@@ -114,52 +114,71 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-
-        {open && (
-          <div className="md:hidden border-t border-[#E3E8E5] bg-white shadow-lg">
-            <div className="px-4 py-4 space-y-1">
-              {[
-                { to: '/shop', label: 'Shop' },
-                { to: '/solutions/starlink', label: 'Starlink' },
-                { to: '/solutions/cctv', label: 'CCTV' },
-                { to: '/products?category=networking', label: 'Networking' },
-                { to: '/products?category=accessories', label: 'Accessories' },
-                { to: '/installation', label: 'Installation' },
-                { to: '/support/faqs', label: 'Support' },
-              ].map(({ to, label }) => (
-                <Link key={to} to={to} onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">{label}</Link>
-              ))}
-
-              <div className="border-t border-[#EEF3F0] pt-3 mt-3 space-y-1">
-                <Link to="/cart" onClick={() => setOpen(false)} className="flex items-center justify-between py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">
-                  <span>Cart</span>
-                  {cartCount > 0 && <span className="bg-[#10B982] text-white text-xs px-2 py-0.5 rounded-full">{cartCount}</span>}
-                </Link>
-                <Link to="/wishlist" onClick={() => setOpen(false)} className="flex items-center justify-between py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">
-                  <span>Wishlist</span>
-                  {wishlistCount > 0 && <span className="bg-[#10B982] text-white text-xs px-2 py-0.5 rounded-full">{wishlistCount}</span>}
-                </Link>
-              </div>
-
-              {isAuthenticated ? (
-                <div className="border-t border-[#EEF3F0] pt-3 mt-3 space-y-1">
-                  <Link to="/profile" onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Profile</Link>
-                  <Link to="/orders" onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">My Orders</Link>
-                  {user?.roles?.includes('ADMIN') && (
-                    <Link to="/admin" onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Admin Panel</Link>
-                  )}
-                  <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="w-full text-left py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Sign Out</button>
-                </div>
-              ) : (
-                <div className="border-t border-[#EEF3F0] pt-3 mt-3 space-y-2">
-                  <Link to="/login" onClick={() => setOpen(false)} className="block w-full text-center py-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Sign In</Link>
-                  <Link to="/register" onClick={() => setOpen(false)} className="block w-full text-center py-3 bg-[#10B982] text-white font-medium rounded-lg hover:bg-[#0d9b6f] transition">Create Account</Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </nav>
+
+      {/* Mobile sidebar backdrop */}
+      {open && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile sidebar drawer */}
+      <div
+        className={`md:hidden fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+          open ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 h-14 border-b border-[#E3E8E5] flex-shrink-0">
+          <img src={logo} alt="Movec" className="h-7 w-auto object-contain" />
+          <button onClick={() => setOpen(false)} className="p-1.5 text-[#4B534D] hover:text-[#10B982] transition" aria-label="Close menu">
+            <FiX size={20} />
+          </button>
+        </div>
+
+        <div className="px-4 py-4 space-y-1">
+          {[
+            { to: '/shop', label: 'Shop' },
+            { to: '/solutions/starlink', label: 'Starlink' },
+            { to: '/solutions/cctv', label: 'CCTV' },
+            { to: '/products?category=networking', label: 'Networking' },
+            { to: '/products?category=accessories', label: 'Accessories' },
+            { to: '/installation', label: 'Installation' },
+            { to: '/support/faqs', label: 'Support' },
+          ].map(({ to, label }) => (
+            <Link key={to} to={to} onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">{label}</Link>
+          ))}
+
+          <div className="border-t border-[#EEF3F0] pt-3 mt-3 space-y-1">
+            <Link to="/cart" onClick={() => setOpen(false)} className="flex items-center justify-between py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">
+              <span>Cart</span>
+              {cartCount > 0 && <span className="bg-[#10B982] text-white text-xs px-2 py-0.5 rounded-full">{cartCount}</span>}
+            </Link>
+            <Link to="/wishlist" onClick={() => setOpen(false)} className="flex items-center justify-between py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">
+              <span>Wishlist</span>
+              {wishlistCount > 0 && <span className="bg-[#10B982] text-white text-xs px-2 py-0.5 rounded-full">{wishlistCount}</span>}
+            </Link>
+          </div>
+
+          {isAuthenticated ? (
+            <div className="border-t border-[#EEF3F0] pt-3 mt-3 space-y-1">
+              <Link to="/profile" onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Profile</Link>
+              <Link to="/orders" onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">My Orders</Link>
+              {user?.roles?.includes('ADMIN') && (
+                <Link to="/admin" onClick={() => setOpen(false)} className="block py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Admin Panel</Link>
+              )}
+              <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="w-full text-left py-3 px-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Sign Out</button>
+            </div>
+          ) : (
+            <div className="border-t border-[#EEF3F0] pt-3 mt-3 space-y-2">
+              <Link to="/login" onClick={() => setOpen(false)} className="block w-full text-center py-3 text-[#3A423E] hover:text-[#10B982] font-medium transition">Sign In</Link>
+              <Link to="/register" onClick={() => setOpen(false)} className="block w-full text-center py-3 bg-[#10B982] text-white font-medium rounded-lg hover:bg-[#0d9b6f] transition">Create Account</Link>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 }

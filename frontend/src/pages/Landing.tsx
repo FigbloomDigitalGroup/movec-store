@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 import Card, { CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import ProductCarousel from '../components/ProductCarousel';
 import type { Product } from '../types';
 
 interface PromoBanner {
@@ -172,6 +173,22 @@ export default function Landing() {
     }
   );
 
+  const { data: bestSellers } = useQuery({
+    queryKey: ['best-sellers'],
+    queryFn: async () => {
+      const { data } = await api.get('/products?bestSeller=true&limit=100');
+      return data.data as Product[];
+    },
+  });
+
+  const { data: featured } = useQuery({
+    queryKey: ['featured-products'],
+    queryFn: async () => {
+      const { data } = await api.get('/products?featured=true&limit=100');
+      return data.data as Product[];
+    },
+  });
+
   const displayModules = modules && modules.length > 0 ? modules : FALLBACK_MODULES;
   const slides = banners.length > 0 ? banners : defaultBanners;
   const activeSlide = slides[activeIndex % slides.length] || slides[0];
@@ -278,6 +295,22 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {bestSellers && bestSellers.length > 0 && (
+        <section className="py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ProductCarousel products={bestSellers} title="Best Sellers" viewAllLink="/products?bestSeller=true" />
+          </div>
+        </section>
+      )}
+
+      {featured && featured.length > 0 && (
+        <section className="py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ProductCarousel products={featured} title="Featured Products" viewAllLink="/products?featured=true" />
+          </div>
+        </section>
+      )}
 
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -387,7 +420,14 @@ export default function Landing() {
 
           <div className="mt-12 rounded-[28px] bg-gradient-to-r from-[#0d9b6f] to-[#FC6501] p-6 text-white shadow-[0_22px_50px_rgba(16,185,130,0.18)] md:p-8">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div>
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white p-2 shadow-lg animate-spin-slow sm:h-24 sm:w-24">
+                  <img
+                    src="/great-deal-stamp.png"
+                    alt="Great deal stamp"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
                 <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/80">Why Buy From Us</p>
                 <h3 className="mt-3 text-2xl font-semibold">Because the best setups don’t come with drama.</h3>
               </div>

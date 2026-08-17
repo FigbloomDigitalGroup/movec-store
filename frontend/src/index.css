@@ -168,6 +168,17 @@ a:hover {
   background-color: var(--color-neutral-50);
 }
 
+.btn-accent {
+  background-color: var(--color-brand-green);
+  color: white;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-accent:hover {
+  background-color: var(--color-brand-green-dark);
+}
+
 .bg-accent-100 {
   background-color: rgba(16, 185, 130, 0.1) !important;
 }
@@ -178,4 +189,13 @@ a:hover {
 
 .orange-ring {
   box-shadow: 0 0 0 4px rgba(252, 101, 1, 0.14);
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }

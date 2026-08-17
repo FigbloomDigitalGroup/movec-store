@@ -6,43 +6,13 @@ import {
   FiWifi,
   FiCamera,
   FiStar,
-  FiChevronLeft,
-  FiChevronRight,
   FiZap,
   FiPackage,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { useCallback, useEffect, useState } from 'react';
-
-// Apple-style product tile component
-function AppleProductTile({ product }: { product: Product }) {
-  const images = product.images || [];
-  const mainImage = images[0]?.url;
-
-  return (
-    <Link to={`/products/${product.slug}`} className="block group">
-      <div className="mb-3">
-        {mainImage ? (
-          <img
-            src={mainImage}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-48 object-contain group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
-            <FiPackage size={32} className="text-gray-300" />
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-gray-900 text-center font-medium group-hover:text-accent transition-colors">
-        {product.name}
-      </p>
-    </Link>
-  );
-}
+import ProductCarousel from '../components/ProductCarousel';
 
 interface Testimonial {
   name: string;
@@ -101,50 +71,6 @@ export default function Home() {
   });
 
 
-
-  // Best Sellers carousel
-  const [bestSellersRef, bestSellersApi] = useEmblaCarousel({
-    loop: false,
-    align: 'start',
-    slidesToScroll: 1,
-    watchDrag: true,
-    dragFree: true,
-  });
-  const scrollBestSellersPrev = useCallback(() => bestSellersApi?.scrollPrev(), [bestSellersApi]);
-  const scrollBestSellersNext = useCallback(() => bestSellersApi?.scrollNext(), [bestSellersApi]);
-  const [canScrollBestSellersPrev, setCanScrollBestSellersPrev] = useState(false);
-  const [canScrollBestSellersNext, setCanScrollBestSellersNext] = useState(false);
-  useEffect(() => {
-    if (!bestSellersApi) return;
-    const onSelect = () => {
-      setCanScrollBestSellersPrev(bestSellersApi.canScrollPrev());
-      setCanScrollBestSellersNext(bestSellersApi.canScrollNext());
-    };
-    bestSellersApi.on('select', onSelect);
-    onSelect();
-  }, [bestSellersApi]);
-
-  // Featured Products carousel
-  const [featuredRef, featuredApi] = useEmblaCarousel({
-    loop: false,
-    align: 'start',
-    slidesToScroll: 1,
-    watchDrag: true,
-    dragFree: true,
-  });
-  const scrollFeaturedPrev = useCallback(() => featuredApi?.scrollPrev(), [featuredApi]);
-  const scrollFeaturedNext = useCallback(() => featuredApi?.scrollNext(), [featuredApi]);
-  const [canScrollFeaturedPrev, setCanScrollFeaturedPrev] = useState(false);
-  const [canScrollFeaturedNext, setCanScrollFeaturedNext] = useState(false);
-  useEffect(() => {
-    if (!featuredApi) return;
-    const onSelect = () => {
-      setCanScrollFeaturedPrev(featuredApi.canScrollPrev());
-      setCanScrollFeaturedNext(featuredApi.canScrollNext());
-    };
-    featuredApi.on('select', onSelect);
-    onSelect();
-  }, [featuredApi]);
 
   // Testimonials carousel
   const [testimonialRef] = useEmblaCarousel(
@@ -215,47 +141,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="relative">
-            <div className="embla" ref={bestSellersRef}>
-              <div className="embla__container flex gap-8 md:gap-12">
-                {(bestSellers ?? Array(4).fill(null)).map((product, idx) =>
-                  product ? (
-                    <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ width: '200px' }}>
-                      <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.35, delay: idx * 0.07 }}
-                        className="h-full"
-                      >
-                        <AppleProductTile product={product} />
-                      </motion.div>
-                    </div>
-                  ) : (
-                    <div key={idx} className="embla__slide flex-[0_0_auto] min-w-0" style={{ width: '200px' }}>
-                      <div className="bg-gray-100 h-48 animate-pulse rounded-lg" />
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* Navigation arrows */}
-            <button
-              onClick={scrollBestSellersPrev}
-              disabled={!canScrollBestSellersPrev}
-              className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-accent transition disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <FiChevronLeft size={16} />
-            </button>
-            <button
-              onClick={scrollBestSellersNext}
-              disabled={!canScrollBestSellersNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-accent transition disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <FiChevronRight size={16} />
-            </button>
-          </div>
+          <ProductCarousel products={bestSellers ?? []} viewAllLink="/products?bestSeller=true" />
         </div>
       </section>
 
@@ -322,41 +208,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="relative">
-              <div className="embla" ref={featuredRef}>
-                <div className="embla__container flex gap-8 md:gap-12">
-                  {featured.map((product, idx) => (
-                    <div key={product.id} className="embla__slide flex-[0_0_auto] min-w-0" style={{ width: '200px' }}>
-                      <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.35, delay: idx * 0.05 }}
-                        className="h-full"
-                      >
-                        <AppleProductTile product={product} />
-                      </motion.div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation arrows */}
-              <button
-                onClick={scrollFeaturedPrev}
-                disabled={!canScrollFeaturedPrev}
-                className="absolute right-12 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10B982] hover:text-[#10B982] transition disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <FiChevronLeft size={16} />
-              </button>
-              <button
-                onClick={scrollFeaturedNext}
-                disabled={!canScrollFeaturedNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#10B982] hover:text-[#10B982] transition disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <FiChevronRight size={16} />
-              </button>
-            </div>
+            <ProductCarousel products={featured} viewAllLink="/products?featured=true" />
           </div>
         </section>
       )}

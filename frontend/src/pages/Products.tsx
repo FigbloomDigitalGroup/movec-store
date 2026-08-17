@@ -131,15 +131,15 @@ export default function Products() {
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <Skeleton className="h-64 w-full" />
-                <div className="p-5">
-                  <Skeleton className="h-4 w-16 mb-2" />
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-6 w-3/4 mb-3" />
-                  <Skeleton className="h-8 w-24" />
+              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <Skeleton className="h-[120px] w-full" />
+                <div className="p-2">
+                  <Skeleton className="h-3 w-12 mb-1.5" />
+                  <Skeleton className="h-3 w-full mb-1.5" />
+                  <Skeleton className="h-3 w-3/4 mb-2" />
+                  <Skeleton className="h-6 w-full" />
                 </div>
               </div>
             ))}
@@ -173,7 +173,7 @@ export default function Products() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {data?.data?.map((product: Product) => (
               <ProductCard key={product.id} product={product} />
             ))}

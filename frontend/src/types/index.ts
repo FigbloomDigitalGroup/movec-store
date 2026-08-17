@@ -18,6 +18,8 @@ export interface Product {
   isActive: boolean;
   isFeatured: boolean;
   isBestSeller?: boolean;
+  avgRating: number | null;
+  reviewCount: number;
   images: ProductImage[];
   brand: Brand | null;
   categories: Category[];
