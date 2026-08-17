@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import type { Product } from '../types';
 import CompactProductCard from './CompactProductCard';
@@ -11,12 +12,15 @@ interface ProductCarouselProps {
 }
 
 export default function ProductCarousel({ products, title, viewAllLink }: ProductCarouselProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'start',
-    slidesToScroll: 1,
-    dragFree: false,
-    loop: true,
-  });
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      align: 'start',
+      slidesToScroll: 1,
+      dragFree: false,
+      loop: true,
+    },
+    [Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })],
+  );
 
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
