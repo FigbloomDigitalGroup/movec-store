@@ -155,21 +155,26 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
           {product.name}
         </h3>
 
-        {/* Rating */}
-        {product.reviewCount > 0 && (
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <div className="flex items-center gap-0.5 text-yellow-400">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <FiStar
-                  key={i}
-                  size={12}
-                  className={i <= Math.round(product.avgRating ?? 0) ? 'fill-yellow-400' : 'text-gray-300'}
-                />
-              ))}
+        {/* Rating — falls back to a placeholder until the product has real reviews */}
+        {(() => {
+          const displayRating = product.avgRating ?? 4;
+          return (
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <div className="flex items-center gap-0.5 text-yellow-400">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <FiStar
+                    key={i}
+                    size={12}
+                    className={i <= Math.round(displayRating) ? 'fill-yellow-400' : 'text-gray-300'}
+                  />
+                ))}
+              </div>
+              {product.reviewCount > 0 && (
+                <span className="text-xs text-gray-500">({product.reviewCount})</span>
+              )}
             </div>
-            <span className="text-xs text-gray-500">({product.reviewCount})</span>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Price */}
         <div className="mb-1">

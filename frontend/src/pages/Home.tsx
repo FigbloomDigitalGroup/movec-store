@@ -107,7 +107,7 @@ export default function Home() {
                   to="/products"
                   className="text-[#10B982] hover:text-[#0d9b6f] text-base font-medium flex items-center gap-1 transition"
                 >
-                  Shop all <span className="text-[#FC6501]">›</span>
+                  Browse All Products <span className="text-[#FC6501]">›</span>
                 </Link>
                   <Link
                     to="/categories"

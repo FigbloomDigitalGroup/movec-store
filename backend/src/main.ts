@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import * as express from 'express';
 import { Reflector } from '@nestjs/core';
+import { createCsrfMiddleware } from './common/middleware/csrf.middleware';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
@@ -45,6 +46,7 @@ async function bootstrap() {
 
   app.use(helmet({ crossOriginResourcePolicy: false }));
   app.use(cookieParser());
+  app.use(createCsrfMiddleware(configService));
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   // NOTE: Local /uploads/ folder removed — use Cloudinary for all media storage.

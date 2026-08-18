@@ -14,9 +14,7 @@ export default function AuthBootstrap() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (localStorage.getItem('accessToken')) {
-      loadUser();
-    }
+    loadUser();
   }, [loadUser]);
 
   useEffect(() => {

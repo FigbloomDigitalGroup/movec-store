@@ -179,6 +179,20 @@ a:hover {
   background-color: var(--color-brand-green-dark);
 }
 
+/* Embla drives this element's transform on every animation frame during scroll/drag.
+   The global transition rule above fights that, producing laggy, stuttery scrolling. */
+.embla__container {
+  transition: none;
+}
+
+/* Framer Motion drives this element's transform/opacity every frame during the hero
+   slide transition. The global transition rule above fights that — it makes the CSS
+   engine try to interpolate its own 200ms transition on top of Framer's animation,
+   which cuts the motion short and makes it snap instead of gliding smoothly. */
+.hero-slide {
+  transition: none;
+}
+
 .bg-accent-100 {
   background-color: rgba(16, 185, 130, 0.1) !important;
 }

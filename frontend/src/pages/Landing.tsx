@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { getModules } from '../lib/api';
@@ -47,20 +48,23 @@ interface StoreModule {
   categories?: { id: string; name: string; slug: string }[];
 }
 
-const MODULE_CONFIG: Record<string, { icon: React.ReactNode; gradient: string }> = {
+const MODULE_CONFIG: Record<string, { icon: React.ReactNode; gradient: string; image?: string }> = {
   starlink: {
     icon: <FiWifi size={36} />,
     gradient: 'from-[#10B982] via-[#48c79d] to-[#f8a16b]',
+    image: '/starlink-image.jpg',
   },
   cctv: {
     icon: <FiCamera size={36} />,
     gradient: 'from-[#10B982] via-[#34c38f] to-[#FC6501]',
+    image: '/cctv-image.jpg',
   },
 };
 
 const DEFAULT_CONFIG = {
   icon: <FiPackage size={36} />,
   gradient: 'from-slate-700 to-slate-600',
+  image: undefined as string | undefined,
 };
 
 const FALLBACK_MODULES: StoreModule[] = [
@@ -103,12 +107,22 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
     <Link to={`/solutions/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10B982] focus-visible:ring-offset-2 rounded-xl">
       <Card hover className="h-full transition-shadow group-hover:border-[#10B982]/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
         <CardBody className="flex h-full flex-col">
-          <div className={`mb-6 rounded-2xl bg-gradient-to-br ${config.gradient} p-8 text-white shadow-lg`}>
-            <div className="flex items-start justify-between">
-              <div className="rounded-xl bg-white/20 p-4 backdrop-blur-sm">{config.icon}</div>
-              {productCount > 0 && <Badge variant="gray" className="!bg-white/20 !text-white">{productCount} Products</Badge>}
+          <div className="relative mb-6 overflow-hidden rounded-2xl p-8 text-white shadow-lg">
+            {config.image && (
+              <img
+                src={config.image}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+            <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} ${config.image ? 'opacity-80' : ''}`} />
+            <div className="relative">
+              <div className="flex items-start justify-between">
+                <div className="rounded-xl bg-white/20 p-4 backdrop-blur-sm">{config.icon}</div>
+                {productCount > 0 && <Badge variant="gray" className="!bg-white/20 !text-white">{productCount} Products</Badge>}
+              </div>
+              <h2 className="mt-6 text-2xl font-bold md:text-3xl">{mod.name}</h2>
             </div>
-            <h2 className="mt-6 text-2xl font-bold md:text-3xl">{mod.name}</h2>
           </div>
 
           <p className="mb-6 flex-1 leading-relaxed text-slate-700">{mod.description}</p>
@@ -153,6 +167,14 @@ const defaultBanners: PromoBanner[] = [
 
 function isInternalLink(href: string) {
   return href.startsWith('/');
+}
+
+function getSlideBackgroundImage(slide: PromoBanner): string | undefined {
+  const haystack = `${slide.ctaLink} ${slide.badge ?? ''}`.toLowerCase();
+  if (haystack.includes('starlink')) return '/starlink-image.jpg';
+  if (haystack.includes('cctv')) return '/cctv-image.jpg';
+  if (haystack.includes('installation') || haystack.includes('installer')) return '/installation-image.jpg';
+  return undefined;
 }
 
 export default function Landing() {
@@ -204,6 +226,7 @@ export default function Landing() {
   }, [slides.length]);
 
   const hasProduct = Boolean(activeSlide.product);
+  const slideBackgroundImage = getSlideBackgroundImage(activeSlide);
 
   return (
     <div className="min-h-screen text-slate-900">
@@ -212,9 +235,29 @@ export default function Landing() {
       </div>
 
       <section className="relative overflow-hidden pt-8">
+        {slideBackgroundImage && (
+          <img
+            key={slideBackgroundImage}
+            src={slideBackgroundImage}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.22] transition-opacity duration-700"
+            style={{
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)',
+            }}
+          />
+        )}
         <div className="absolute inset-x-0 top-0 h-48 bg-[#10B982]/10" />
-        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-          <div className="grid items-center gap-12 justify-items-center text-center lg:grid-cols-[1.05fr_0.95fr] lg:text-left">
+        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16 overflow-hidden">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+              className="hero-slide grid items-center gap-12 justify-items-center text-center lg:grid-cols-[1.05fr_0.95fr] lg:text-left"
+            >
             <div className="space-y-6 max-w-3xl lg:max-w-none">
               {activeSlide.badge && (
                 <span
@@ -286,7 +329,8 @@ export default function Landing() {
                 )}
               </div>
             </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
 
           <div className="mt-10 flex items-center justify-center gap-3">
             {slides.map((_, index) => (
