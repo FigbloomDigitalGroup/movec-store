@@ -4,8 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
-import { useCartStore } from '../store/cartStore';
-import { useWishlistStore } from '../store/wishlistStore';
+import { useProductActions } from '../hooks/useProductActions';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -349,14 +348,11 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 export default function ProductDetail() {
   const { slug } = useParams();
   const { isAuthenticated } = useAuthStore();
-  const guestCart = useCartStore();
-  const guestWishlist = useWishlistStore();
-  const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  const { data: product } = useQuery({
+  const { data: product, isLoading, isError, refetch } = useQuery({
     queryKey: ['product', slug],
     queryFn: async () => {
       const { data } = await api.get(`/products/${slug}`);
@@ -364,73 +360,49 @@ export default function ProductDetail() {
     },
   });
 
-  const addToCartApi = useMutation({
-    mutationFn: async () => {
-      await api.post('/cart/items', { productId: product.id, quantity });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-      toast.success(`Added ${product.name} to cart`);
-    },
-    onError: (error: any) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
-
-  const addToWishlistApi = useMutation({
-    mutationFn: async () => {
-      await api.post('/wishlist', { productId: product.id });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      toast.success('Wishlist updated');
-    },
-    onError: (error: any) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
+  const {
+    isWishlisted,
+    addToCart,
+    toggleWishlist,
+    isAddingToCart,
+    isTogglingWishlist,
+  } = useProductActions(product?.id || '');
 
   const handleAddToCart = () => {
-    if (isAuthenticated) {
-      addToCartApi.mutate();
-    } else {
-      guestCart.addItem({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        image: product.images?.[0]?.url || null,
-        quantity,
-      });
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    }
+    addToCart(product, quantity, product.images?.[0]?.url || null);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const handleWishlist = () => {
-    if (isAuthenticated) {
-      addToWishlistApi.mutate();
-    } else {
-      guestWishlist.toggleItem({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        image: product.images?.[0]?.url || null,
-      });
-    }
+    toggleWishlist(product, product.images?.[0]?.url || null);
   };
 
-  const isWishlisted = isAuthenticated
-    ? false
-    : guestWishlist.isInWishlist(product?.id || '');
-
-  if (!product)
+  if (isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
         Loading...
+      </div>
+    );
+
+  if (isError || !product)
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <h2 className="text-lg font-bold text-gray-800 mb-2">Product not found</h2>
+        <p className="text-sm text-gray-500 mb-6 max-w-sm">
+          This product may have been removed, or the link may be incorrect.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-semibold text-[#10B982] hover:text-[#0d9b6f]"
+          >
+            Retry
+          </button>
+          <Link to="/products" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+            ← Back to Products
+          </Link>
+        </div>
       </div>
     );
 
@@ -620,12 +592,15 @@ export default function ProductDetail() {
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleAddToCart} disabled={!inStock} className="flex-1" size="lg">
-                  {addedToCart ? '✓ Added!' : 'Add to Cart'}
+                <Button onClick={handleAddToCart} disabled={!inStock || isAddingToCart} className="flex-1" size="lg">
+                  {addedToCart ? '✓ Added!' : isAddingToCart ? 'Adding...' : 'Add to Cart'}
                 </Button>
                 <Button
                   onClick={handleWishlist}
                   variant="outline"
+                  disabled={isTogglingWishlist}
+                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  aria-pressed={isWishlisted}
                   className={isWishlisted ? 'border-red-500 text-red-500 hover:bg-red-50' : ''}
                 >
                   <FiHeart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />

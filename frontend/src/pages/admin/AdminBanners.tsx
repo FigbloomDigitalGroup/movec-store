@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FiPlus, FiEdit2, FiTrash2, FiMove, FiImage, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiHash, FiImage, FiEye, FiEyeOff } from 'react-icons/fi';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
 import type { Product } from '../../types';
@@ -155,9 +155,9 @@ export default function AdminBanners() {
                   {/* Info */}
                   <div className="md:col-span-2">
                     <div className="flex items-start gap-2 mb-2">
-                      <div className="flex items-center gap-2">
-                        <FiMove className="text-gray-400" size={16} />
-                        <span className="text-xs text-gray-500 font-medium">#{banner.sortOrder}</span>
+                      <div className="flex items-center gap-2" title="Edit the banner to change its sort order">
+                        <FiHash className="text-gray-400" size={14} />
+                        <span className="text-xs text-gray-500 font-medium">Sort position {banner.sortOrder}</span>
                       </div>
                       {banner.badge && (
                         <span

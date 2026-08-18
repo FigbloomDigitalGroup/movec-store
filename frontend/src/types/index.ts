@@ -71,6 +71,34 @@ export interface Cart {
   total: number;
 }
 
+export interface OrderItem {
+  id?: string;
+  productId: string;
+  productName: string;
+  slug: string;
+  quantity: number;
+  price: number;
+  image: string | null;
+}
+
+export interface OrderPayment {
+  method: string;
+  status: string;
+  amount?: number;
+}
+
+export interface OrderShipping {
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
+}
+
+export interface OrderStatusHistoryEntry {
+  status: string;
+  changedAt: string;
+}
+
 export interface Order {
   orderNumber: string;
   status: string;
@@ -79,9 +107,12 @@ export interface Order {
   taxAmount: number;
   discountAmount: number;
   total: number;
-  items: any[];
-  payment: any;
-  shipping: any;
+  items: OrderItem[];
+  payments?: OrderPayment[];
+  shipping?: OrderShipping | null;
+  shippingAddress?: Address | null;
+  statusHistory?: OrderStatusHistoryEntry[];
+  coupon?: { code: string } | null;
   createdAt: string;
 }
 

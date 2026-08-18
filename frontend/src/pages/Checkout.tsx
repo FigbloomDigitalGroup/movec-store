@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
-import type { Cart, Address } from '../types';
+import { useCart } from '../hooks/useCart';
+import type { Address } from '../types';
 import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
@@ -27,11 +29,7 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Kenya');
 
-  const { data: cart, isLoading: cartLoading, error: cartError } = useQuery<Cart>({
-    queryKey: ['cart'],
-    queryFn: () => api.get('/cart').then(r => r.data),
-    enabled: isAuthenticated,
-  });
+  const { data: cart, isLoading: cartLoading, error: cartError } = useCart();
 
   const { data: addresses, refetch: refetchAddresses, isLoading: addressesLoading, error: addressesError } = useQuery<Address[]>({
     queryKey: ['addresses'],
@@ -64,7 +62,7 @@ export default function CheckoutPage() {
       });
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || 'Failed to add address');
+      toast.error(getErrorMessage(err) || 'Failed to add address');
     }
   });
 
@@ -83,12 +81,7 @@ export default function CheckoutPage() {
       navigate(`/payment/${data.orderNumber}`);
     },
     onError: (err: any) => {
-      const msg =
-        err.response?.data?.error?.message ||
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to place order';
-      alert(msg);
+      toast.error(getErrorMessage(err) || 'Failed to place order');
     },
   });
 
@@ -130,7 +123,7 @@ export default function CheckoutPage() {
   if (isSyncing) return <div className="min-h-screen flex items-center justify-center text-gray-600">Syncing your cart...</div>;
 
   if (cartLoading || addressesLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading checkout...</div>;
+    return <PageLoader />;
   }
 
   if (cartError || addressesError) {

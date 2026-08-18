@@ -4,13 +4,12 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiSmartphone, FiHash } from 'react-icons/fi';
+import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone } from 'react-icons/fi';
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
     const [processing, setProcessing] = useState(false);
     const [completed, setCompleted] = useState(false);
-    const [selectedMethod, setSelectedMethod] = useState('Card');
 
     const { data: order } = useQuery({
         queryKey: ['order', orderNumber],
@@ -148,44 +147,37 @@ export default function PaymentPage() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-2 text-white">Complete Payment</h1>
-            <p className="text-gray-300 mb-8">Order #{orderNumber}</p>
+            <h1 className="text-3xl font-bold mb-2 text-gray-900">Complete Payment</h1>
+            <p className="text-gray-600 mb-8">Order #{orderNumber}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-4">
-                    <h2 className="text-xl font-semibold text-white mb-4">Choose your payment method</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Choose your payment method</h2>
 
                     <div className="w-full rounded-3xl border border-[#10B982]/40 bg-[#ecfdf5] p-6">
                         <div className="flex flex-col gap-4">
                             <div>
                                 <p className="text-lg font-semibold text-gray-900">Supported payment methods</p>
-                                <p className="text-sm text-gray-600 mt-1">Pay securely using any of the options below through our payment provider.</p>
+                                <p className="text-sm text-gray-600 mt-1">You'll choose one of the options below in the secure payment window that opens next.</p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
                                     { key: 'MPESA', icon: FiPhone, label: 'M-PESA', subtitle: 'Mobile payment' },
-                                    { key: 'MPESA_TILL', icon: FiHash, label: 'M-PESA Till', subtitle: 'Till checkout' },
-                                    { key: 'AIRTEL_MONEY', icon: FiSmartphone, label: 'Airtel Money', subtitle: 'Mobile wallet' },
                                     { key: 'CARD', icon: FiCreditCard, label: 'Card', subtitle: 'Visa, Mastercard, other cards' },
-                                ].map(({ key, icon: Icon, label, subtitle }) => {
-                                    const isSelected = selectedMethod === key;
-                                    return (
-                                        <button
-                                            key={key}
-                                            type="button"
-                                            onClick={() => setSelectedMethod(key)}
-                                            className={`rounded-2xl p-4 border transition text-left flex items-start gap-3 ${isSelected ? 'border-[#10B982] bg-[#ecfdf5]' : 'border-gray-200 bg-white hover:border-[#10B982]/40'}`}
-                                        >
-                                            <div className={`p-2 rounded-full ${isSelected ? 'bg-[#10B982] text-white' : 'bg-[#ecfdf5] text-[#10B982]'}`}>
-                                                <Icon size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-sm text-gray-900">{label}</p>
-                                                <p className="text-xs text-gray-500">{subtitle}</p>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
+                                ].map(({ key, icon: Icon, label, subtitle }) => (
+                                    <div
+                                        key={key}
+                                        className="rounded-2xl p-4 border border-gray-200 bg-white text-left flex items-start gap-3"
+                                    >
+                                        <div className="p-2 rounded-full bg-[#ecfdf5] text-[#10B982]">
+                                            <Icon size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm text-gray-900">{label}</p>
+                                            <p className="text-xs text-gray-500">{subtitle}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -197,7 +189,7 @@ export default function PaymentPage() {
                             disabled={initiatePaystack.isPending || processing}
                             className="w-full bg-[#10B982] text-white py-3 rounded-lg hover:bg-[#0d9b6f] transition font-semibold disabled:opacity-50"
                         >
-                            {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : `Continue with ${selectedMethod.replace('_', ' ')}`}
+                            {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : 'Continue to Secure Payment'}
                         </button>
                     </div>
                 </div>

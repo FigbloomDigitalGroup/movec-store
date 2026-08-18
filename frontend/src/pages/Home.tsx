@@ -5,54 +5,10 @@ import type { Product } from '../types';
 import {
   FiWifi,
   FiCamera,
-  FiStar,
   FiZap,
   FiPackage,
 } from 'react-icons/fi';
-import { motion } from 'framer-motion';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import ProductCarousel from '../components/ProductCarousel';
-
-interface Testimonial {
-  name: string;
-  location: string;
-  product: string;
-  rating: number;
-  date: string;
-  review: string;
-}
-
-const testimonials: Testimonial[] = [
-  {
-    name: 'James K.',
-    location: 'Nairobi',
-    product: 'Starlink Standard Kit',
-    rating: 5,
-    date: 'June 2026',
-    review: 'Excellent Starlink kit! Fast delivery and the installation support was top-notch.',
-  },
-  {
-    name: 'Mary W.',
-    location: 'Nakuru',
-    product: 'Hikvision CCTV System',
-    rating: 5,
-    date: 'May 2026',
-    review: 'The CCTV system works perfectly. Great night vision and clear footage.',
-  },
-  {
-    name: 'Brian O.',
-    location: 'Kisumu',
-    product: 'Starlink Mini',
-    rating: 5,
-    date: 'July 2026',
-    review: 'Professional service and genuine products. Highly recommend Movec Store!',
-  },
-];
-
-
-
-
 export default function Home() {
   const { data: featured } = useQuery({
     queryKey: ['featured-products'],
@@ -70,13 +26,6 @@ export default function Home() {
     },
   });
 
-
-
-  // Testimonials carousel
-  const [testimonialRef] = useEmblaCarousel(
-    { loop: true, dragFree: true, align: 'start' },
-    [Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })]
-  );
 
 
 
@@ -212,56 +161,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-
-
-      {/* ══════════════════════════════════════
-          APPLE-STYLE TESTIMONIALS
-      ══════════════════════════════════════ */}
-      <section className="py-16">
-        <div className="w-full px-4 md:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-semibold text-gray-900 mb-2">Customer Stories</h2>
-            <p className="text-gray-600">See what our customers have to say</p>
-          </div>
-
-          <div className="embla overflow-hidden" ref={testimonialRef}>
-            <div className="embla__container flex -mx-2">
-              {testimonials.map((t, idx) => (
-                <div
-                  key={idx}
-                  className="embla__slide flex-[0_0_90%] sm:flex-[0_0_50%] md:flex-[0_0_33%] min-w-0 px-2 pb-2 cursor-grab active:cursor-grabbing"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.35, delay: idx * 0.06 }}
-                    className="bg-white p-6 rounded-lg h-full"
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-gray-600 font-semibold text-sm">{t.name.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
-                        <p className="text-gray-500 text-xs">{t.location}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-0.5 mb-3">
-                      {Array.from({ length: t.rating }).map((_, i) => (
-                        <FiStar key={i} size={14} className="fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 text-sm leading-relaxed mb-3">"{t.review}"</p>
-                    <p className="text-gray-500 text-xs">{t.product} · {t.date}</p>
-                  </motion.div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
     </div>
   );

@@ -5,6 +5,7 @@ import { getModule, getModuleProducts } from '../lib/api';
 import { FiSearch, FiArrowRight, FiGlobe, FiVideo, FiPackage } from 'react-icons/fi';
 import SectionHero from '../components/ui/SectionHero';
 import ProductCard from '../components/ProductCard';
+import Skeleton from '../components/ui/Skeleton';
 import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
 
 interface StoreModule {
@@ -189,8 +190,18 @@ export default function ModuleLanding() {
         )}
 
         {(isModuleLoading || isProductsLoading) && (
-          <div className="rounded-3xl border border-gray-200 bg-white p-10 text-center text-gray-500 shadow-sm">
-            Loading {isModuleLoading ? 'module details' : 'products'}...
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <Skeleton className="h-[120px] w-full" />
+                <div className="p-2">
+                  <Skeleton className="h-3 w-12 mb-1.5" />
+                  <Skeleton className="h-3 w-full mb-1.5" />
+                  <Skeleton className="h-3 w-3/4 mb-2" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

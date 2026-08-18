@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -61,7 +61,10 @@ export class SupportService {
     return ticket;
   }
 
-  async getTicket(ticketId: string) {
+  // `ownerId` is only passed by the customer-facing controller, to enforce that a
+  // customer can only view their own ticket. The admin controller omits it, since
+  // access there is already gated by RolesGuard + @Roles(ADMIN).
+  async getTicket(ticketId: string, ownerId?: string) {
     const ticket = await this.prisma.supportTicket.findUnique({
       where: { id: ticketId },
       include: {
@@ -70,10 +73,23 @@ export class SupportService {
       },
     });
     if (!ticket) throw new NotFoundException('Ticket not found');
+    if (ownerId && ticket.userId !== ownerId) {
+      throw new ForbiddenException('You do not have access to this ticket');
+    }
     return ticket;
   }
 
   async addMessage(ticketId: string, senderId: string, isStaff: boolean, dto: CreateMessageDto) {
+    if (!isStaff) {
+      const ticket = await this.prisma.supportTicket.findUnique({
+        where: { id: ticketId },
+        select: { userId: true },
+      });
+      if (!ticket) throw new NotFoundException('Ticket not found');
+      if (ticket.userId !== senderId) {
+        throw new ForbiddenException('You do not have access to this ticket');
+      }
+    }
     return this.prisma.ticketMessage.create({
       data: {
         ticketId,

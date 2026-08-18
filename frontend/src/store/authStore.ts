@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api, { setHasSession } from '../lib/api';
+import { queryClient } from '../lib/queryClient';
 import type { User } from '../types';
 
 interface AuthState {
@@ -35,6 +36,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } finally {
       setHasSession(false);
       set({ user: null, isAuthenticated: false });
+      // Drop every cached query (orders, addresses, admin lists, etc.) so the next
+      // session — whether anonymous or a different account — never sees this user's
+      // data, in memory or in the persisted localStorage cache.
+      queryClient.clear();
     }
   },
 

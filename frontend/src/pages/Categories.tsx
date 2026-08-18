@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import SectionHero from '../components/ui/SectionHero';
+import PageLoader from '../components/PageLoader';
 import { FiWifi, FiCamera, FiHardDrive, FiServer, FiCpu, FiTool } from 'react-icons/fi';
 
 const categoryIcons: Record<string, any> = {
@@ -31,7 +32,7 @@ export default function Categories() {
     queryFn: () => api.get('/categories').then(r => r.data),
   });
 
-  if (isLoading) return <div className="w-full px-4 py-8">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="w-full px-4 py-8">

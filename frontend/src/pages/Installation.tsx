@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import CustomCalendar from '../components/CustomCalendar';
 import CustomDropdown from '../components/CustomDropdown';
 
@@ -8,6 +10,7 @@ export default function InstallationPage() {
   const [serviceId, setServiceId] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   const dateInputRef = useRef<HTMLDivElement>(null);
   const notesInputRef = useRef<HTMLTextAreaElement>(null);
@@ -17,8 +20,17 @@ export default function InstallationPage() {
 
   const submit = useMutation({
     mutationFn: () => api.post('/installation/requests', { serviceId, preferredDate: new Date(preferredDate).toISOString(), addressId: addresses?.[0]?.id, notes }),
-    onSuccess: () => alert('Installation request submitted!'),
+    onSuccess: () => {
+      toast.success('Installation request submitted!');
+      setSubmitted(true);
+      setServiceId('');
+      setPreferredDate('');
+      setNotes('');
+    },
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
+
+  const hasNoAddress = Array.isArray(addresses) && addresses.length === 0;
 
   // Auto-progression handlers
   const handleServiceComplete = () => {
@@ -35,8 +47,20 @@ export default function InstallationPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">Book Installation</h1>
       
+      {submitted && (
+        <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 text-sm">
+          Your installation request has been submitted. Our team will contact you shortly to confirm scheduling.
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="space-y-6">
+          {hasNoAddress && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-sm">
+              You don't have a saved address yet. Add one from your{' '}
+              <Link to="/profile" className="font-semibold underline">Profile</Link> before booking installation.
+            </div>
+          )}
           {/* Service Selection with Custom Dropdown */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -85,10 +109,10 @@ export default function InstallationPage() {
           {/* Submit Button */}
           <button
             onClick={() => submit.mutate()}
-            disabled={submit.isPending || !serviceId || !preferredDate}
+            disabled={submit.isPending || !serviceId || !preferredDate || hasNoAddress}
             className={`
               w-full py-3 rounded-lg font-medium transition-all duration-200
-              ${submit.isPending || !serviceId || !preferredDate
+              ${submit.isPending || !serviceId || !preferredDate || hasNoAddress
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm hover:shadow-md'
               }

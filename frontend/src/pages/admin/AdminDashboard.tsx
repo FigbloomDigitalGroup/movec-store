@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
-import { FiPackage, FiCheckCircle, FiAlertCircle, FiGrid, FiPlus, FiHome, FiUser, FiExternalLink } from 'react-icons/fi';
+import { FiPackage, FiCheckCircle, FiAlertCircle, FiGrid, FiPlus, FiHome, FiUser, FiExternalLink, FiDollarSign, FiClock, FiTool, FiTrendingDown } from 'react-icons/fi';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -83,6 +83,54 @@ export default function AdminDashboard() {
           </div>
           <p className="text-2xl font-bold mb-1">{dashboardData?.categories?.total || 0}</p>
           <p className="text-sm text-gray-500">Categories</p>
+        </button>
+      </div>
+
+      {/* Business KPIs — these come from the same dashboard summary endpoint above,
+          but were previously fetched and discarded without ever being rendered. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <button
+          onClick={() => navigate('/admin/reports')}
+          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+        >
+          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+            <FiDollarSign className="text-emerald-600" size={20} />
+          </div>
+          <p className="text-2xl font-bold mb-1">KES {(dashboardData?.sales?.total || 0).toLocaleString()}</p>
+          <p className="text-sm text-gray-500">Total Revenue</p>
+        </button>
+
+        <button
+          onClick={() => navigate('/admin/orders')}
+          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+        >
+          <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
+            <FiClock className="text-amber-600" size={20} />
+          </div>
+          <p className="text-2xl font-bold mb-1">{dashboardData?.pending?.orders || 0}</p>
+          <p className="text-sm text-gray-500">Pending Orders</p>
+        </button>
+
+        <button
+          onClick={() => navigate('/admin/installations')}
+          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+        >
+          <div className="w-10 h-10 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <FiTool className="text-sky-600" size={20} />
+          </div>
+          <p className="text-2xl font-bold mb-1">{dashboardData?.pending?.installations || 0}</p>
+          <p className="text-sm text-gray-500">Pending Installations</p>
+        </button>
+
+        <button
+          onClick={() => navigate('/admin/inventory')}
+          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+        >
+          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+            <FiTrendingDown className="text-red-600" size={20} />
+          </div>
+          <p className="text-2xl font-bold mb-1">{dashboardData?.inventory?.lowStock || 0}</p>
+          <p className="text-sm text-gray-500">Low Stock Items</p>
         </button>
       </div>
 

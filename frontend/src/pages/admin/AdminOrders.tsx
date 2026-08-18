@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
@@ -8,18 +8,13 @@ import {
   FiSearch,
   FiChevronDown,
   FiX,
+  FiMapPin,
+  FiShoppingBag,
 } from 'react-icons/fi';
+import { ORDER_STATUSES, getOrderStatusConfig } from '../../lib/orderStatus';
+import OrderStatusBadge from '../../components/OrderStatusBadge';
 
-const STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
-  PENDING:    { label: 'Pending',    color: 'bg-amber-50 text-amber-700 border-amber-200',    dot: 'bg-amber-400' },
-  CONFIRMED:  { label: 'Confirmed',  color: 'bg-blue-50 text-blue-700 border-blue-200',        dot: 'bg-blue-400' },
-  PROCESSING: { label: 'Processing', color: 'bg-purple-50 text-purple-700 border-purple-200',  dot: 'bg-purple-400' },
-  SHIPPED:    { label: 'Shipped',    color: 'bg-sky-50 text-sky-700 border-sky-200',           dot: 'bg-sky-400' },
-  DELIVERED:  { label: 'Delivered',  color: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400' },
-  CANCELLED:  { label: 'Cancelled',  color: 'bg-red-50 text-red-700 border-red-200',           dot: 'bg-red-400' },
-};
+const STATUSES = ORDER_STATUSES;
 
 const PAYMENT_CONFIG: Record<string, string> = {
   COMPLETED: 'bg-emerald-50 text-emerald-700',
@@ -27,16 +22,6 @@ const PAYMENT_CONFIG: Record<string, string> = {
   FAILED:    'bg-red-50 text-red-700',
   REFUNDED:  'bg-gray-100 text-gray-700',
 };
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: 'bg-gray-100 text-gray-700 border-gray-200', dot: 'bg-gray-400' };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cfg.color}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-      {cfg.label}
-    </span>
-  );
-}
 
 /* ─── Update Status Modal ────────────────────────────────────── */
 interface UpdateModalProps {
@@ -49,6 +34,19 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [carrier, setCarrier] = useState('');
   const queryClient = useQueryClient();
+
+  const { data: orderDetail, isLoading: detailLoading } = useQuery({
+    queryKey: ['admin-order', order.orderNumber],
+    queryFn: () => api.get(`/admin/orders/${order.orderNumber}`).then((r) => r.data),
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const updateMutation = useMutation({
     mutationFn: () =>
@@ -66,22 +64,60 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
   });
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
+        className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="text-base font-bold text-gray-900">Update Order Status</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Order #{order.orderNumber}</p>
+            <h3 className="text-base font-bold text-gray-900">Order #{order.orderNumber}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {order.customer?.firstName} {order.customer?.lastName} · {order.customer?.email}
+            </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition" aria-label="Close">
             <FiX size={20} />
           </button>
         </div>
+
+        {/* Line items */}
+        <div className="mb-5">
+          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+            <FiShoppingBag size={12} /> Items
+          </h4>
+          {detailLoading ? (
+            <div className="space-y-2">
+              {[1, 2].map((i) => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+            </div>
+          ) : (
+            <div className="border border-gray-100 rounded-xl divide-y divide-gray-100">
+              {orderDetail?.items?.map((item: any, i: number) => (
+                <div key={i} className="flex items-center justify-between px-3 py-2 text-sm">
+                  <span className="text-gray-800">{item.productName} × {item.quantity}</span>
+                  <span className="font-semibold text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Shipping address */}
+        {!detailLoading && orderDetail?.shippingAddress && (
+          <div className="mb-5">
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <FiMapPin size={12} /> Delivery Address
+            </h4>
+            <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">
+              <p>{orderDetail.shippingAddress.addressLine1}</p>
+              {orderDetail.shippingAddress.addressLine2 && <p>{orderDetail.shippingAddress.addressLine2}</p>}
+              <p>{orderDetail.shippingAddress.city}{orderDetail.shippingAddress.state ? `, ${orderDetail.shippingAddress.state}` : ''}</p>
+              {orderDetail.shippingAddress.phone && <p className="text-gray-500 mt-1">📞 {orderDetail.shippingAddress.phone}</p>}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4">
           {/* Status Selector */}
@@ -89,7 +125,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
             <label className="block text-xs font-bold text-gray-700 mb-2">New Status</label>
             <div className="grid grid-cols-2 gap-2">
               {STATUSES.map((s) => {
-                const cfg = STATUS_CONFIG[s];
+                const cfg = getOrderStatusConfig(s);
                 return (
                   <button
                     key={s}
@@ -97,7 +133,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
                     onClick={() => setStatus(s)}
                     className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${
                       status === s
-                        ? `${cfg.color} ring-2 ring-offset-1 ring-blue-400`
+                        ? `${cfg.bg} ${cfg.text} ${cfg.border} ring-2 ring-offset-1 ring-[#10B982]/40`
                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -221,21 +257,21 @@ export default function AdminOrders() {
           onClick={() => setStatusFilter('')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${
             !statusFilter
-              ? 'bg-blue-600 text-white border-blue-600'
+              ? 'bg-[#10B982] text-white border-[#10B982]'
               : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
           }`}
         >
           All Orders ({total})
         </button>
         {kpis.map(({ status, count }) => {
-          const cfg = STATUS_CONFIG[status];
+          const cfg = getOrderStatusConfig(status);
           return (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition ${
                 statusFilter === status
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-[#10B982] text-white border-[#10B982]'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -330,7 +366,7 @@ export default function AdminOrders() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <StatusBadge status={order.status} />
+                      <OrderStatusBadge status={order.status} size="sm" />
                     </td>
 
                     <td className="px-5 py-4">

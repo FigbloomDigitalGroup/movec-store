@@ -1,6 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Registers `primary` as a real Tailwind color scale (mapped to the brand green)
+   so utilities like bg-primary-100 / text-primary-700 / focus:ring-primary-500
+   actually generate instead of silently compiling to nothing. */
+@theme {
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1f5e8;
+  --color-primary-200: #a7e9cf;
+  --color-primary-500: #10b982;
+  --color-primary-600: #0d9b6f;
+  --color-primary-700: #0b7d59;
+}
+
 :root {
   /* Brand palette */
   --color-brand-green: #10b982;

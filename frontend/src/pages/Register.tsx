@@ -64,7 +64,7 @@ export default function Register() {
       {error && <p className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</p>}
       {success && <p className="bg-green-100 text-green-700 p-3 rounded mb-4">{success}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">First Name</label>
             <input type="text" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />

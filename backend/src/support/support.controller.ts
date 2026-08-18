@@ -36,8 +36,9 @@ export class SupportController {
 
   @Get('tickets/:id')
   @UseGuards(JwtAuthGuard)
-  getTicket(@Param('id') id: string) {
-    return this.supportService.getTicket(id);
+  getTicket(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as any;
+    return this.supportService.getTicket(id, user.id);
   }
 
   @Post('tickets/:id/messages')

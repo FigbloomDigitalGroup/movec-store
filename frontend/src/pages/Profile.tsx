@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { FiUser, FiMapPin, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiSave } from 'react-icons/fi';
 
@@ -25,6 +26,19 @@ export default function ProfilePage() {
     queryFn: () => api.get('/users/me').then(r => r.data),
   });
 
+  // Keep the edit form in sync with whatever the server actually has on file —
+  // otherwise saving just the name (without touching phone) would PATCH phone
+  // back to an empty string.
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        phone: profile.phone || '',
+      });
+    }
+  }, [profile]);
+
   const { data: addresses } = useQuery({
     queryKey: ['addresses'],
     queryFn: () => api.get('/users/me/addresses').then(r => r.data),
@@ -34,17 +48,18 @@ export default function ProfilePage() {
     mutationFn: (data: any) => api.patch('/users/me', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      alert('Profile updated!');
+      toast.success('Profile updated!');
     },
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const changePassword = useMutation({
     mutationFn: () => api.post('/auth/change-password', { oldPassword: passwordForm.oldPassword, newPassword: passwordForm.newPassword }),
     onSuccess: () => {
-      alert('Password changed!');
+      toast.success('Password changed!');
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     },
-    onError: (err: any) => alert(err.response?.data?.error?.message || 'Failed'),
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const saveAddress = useMutation({
@@ -57,12 +72,18 @@ export default function ProfilePage() {
       setShowAddAddress(false);
       setEditingAddress(null);
       setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false });
+      toast.success(editingAddress ? 'Address updated' : 'Address added');
     },
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const deleteAddress = useMutation({
     mutationFn: (id: string) => api.delete(`/users/me/addresses/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['addresses'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['addresses'] });
+      toast.success('Address removed');
+    },
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const startEditAddress = (addr: any) => {
@@ -73,8 +94,8 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2 text-white">My Account</h1>
-      <p className="text-gray-300 mb-8">Manage your profile, addresses, and password</p>
+      <h1 className="text-3xl font-bold mb-2 text-gray-900">My Account</h1>
+      <p className="text-gray-600 mb-8">Manage your profile, addresses, and password</p>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-8">
@@ -124,8 +145,12 @@ export default function ProfilePage() {
               <input value={profile?.email || ''} disabled className="border rounded-lg px-4 py-2 w-full bg-gray-100" />
             </div>
           </div>
-          <button onClick={() => updateProfile.mutate(profileForm)} className="mt-6 bg-[#10B982] text-white px-6 py-2 rounded-lg hover:bg-[#0d9b6f] transition flex items-center gap-2">
-            <FiSave size={16} /> Save Changes
+          <button
+            onClick={() => updateProfile.mutate(profileForm)}
+            disabled={updateProfile.isPending}
+            className="mt-6 bg-[#10B982] text-white px-6 py-2 rounded-lg hover:bg-[#0d9b6f] transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiSave size={16} /> {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       )}
@@ -134,7 +159,7 @@ export default function ProfilePage() {
       {activeTab === 'addresses' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-white">Saved Addresses</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Saved Addresses</h2>
             <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2">
               <FiPlus size={16} /> Add Address
             </button>
@@ -160,7 +185,13 @@ export default function ProfilePage() {
                 <input placeholder="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} className="border rounded-lg px-4 py-2" />
               </div>
               <div className="flex gap-3 mt-4">
-                <button onClick={() => saveAddress.mutate(addressForm)} className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2"><FiCheck size={16} /> Save</button>
+                <button
+                  onClick={() => saveAddress.mutate(addressForm)}
+                  disabled={!addressForm.line1 || !addressForm.city || !addressForm.postalCode || saveAddress.isPending}
+                  className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiCheck size={16} /> {saveAddress.isPending ? 'Saving...' : 'Save'}
+                </button>
                 <button onClick={() => { setShowAddAddress(false); setEditingAddress(null); }} className="border px-4 py-2 rounded-lg flex items-center gap-2"><FiX size={16} /> Cancel</button>
               </div>
             </div>
@@ -206,13 +237,14 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={() => {
-                if (passwordForm.newPassword !== passwordForm.confirmPassword) return alert('Passwords do not match');
-                if (passwordForm.newPassword.length < 8) return alert('Password must be at least 8 characters');
+                if (passwordForm.newPassword !== passwordForm.confirmPassword) return toast.error('Passwords do not match');
+                if (passwordForm.newPassword.length < 8) return toast.error('Password must be at least 8 characters');
                 changePassword.mutate();
               }}
-              className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition"
+              disabled={changePassword.isPending}
+              className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Change Password
+              {changePassword.isPending ? 'Changing...' : 'Change Password'}
             </button>
           </div>
         </div>

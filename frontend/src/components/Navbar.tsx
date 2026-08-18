@@ -4,6 +4,7 @@ import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
+import { useCart } from '../hooks/useCart';
 import {
   FiShoppingCart,
   FiUser,
@@ -19,14 +20,7 @@ export default function Navbar() {
   const guestCartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
   const guestWishlistCount = useWishlistStore((s) => s.items.length);
 
-  const { data: apiCart } = useQuery({
-    queryKey: ['cart'],
-    queryFn: async () => {
-      const { data } = await api.get('/cart');
-      return data;
-    },
-    enabled: isAuthenticated,
-  });
+  const { data: apiCart } = useCart();
 
   const { data: apiWishlist } = useQuery({
     queryKey: ['wishlist'],

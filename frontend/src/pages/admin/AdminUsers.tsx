@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
+import api, { getErrorMessage } from '../../lib/api';
+import toast from 'react-hot-toast';
 import { FiShield, FiCheck, FiX } from 'react-icons/fi';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const ALL_ROLES = ['ADMIN', 'CUSTOMER', 'STAFF', 'TECHNICIAN'] as const;
 type RoleName = (typeof ALL_ROLES)[number];
@@ -17,6 +19,7 @@ export default function AdminUsers() {
   const queryClient = useQueryClient();
   const [editingRoles, setEditingRoles] = useState<string | null>(null);
   const [pendingRoles, setPendingRoles] = useState<RoleName[]>([]);
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; isActive: boolean; name: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -26,7 +29,12 @@ export default function AdminUsers() {
   const toggleUser = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       api.patch(`/admin/users/${id}`, { isActive: !isActive }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+    onSuccess: (_data, { isActive }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success(isActive ? 'User deactivated' : 'User activated');
+      setPendingToggle(null);
+    },
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const updateRoles = useMutation({
@@ -35,7 +43,9 @@ export default function AdminUsers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setEditingRoles(null);
+      toast.success('Roles updated');
     },
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const openRoleEditor = (user: any) => {
@@ -118,7 +128,7 @@ export default function AdminUsers() {
                         <button
                           onClick={() => saveRoles(user.id)}
                           disabled={pendingRoles.length === 0 || updateRoles.isPending}
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50"
+                          className="px-3 py-1 bg-[#10B982] text-white rounded text-xs hover:bg-[#0d9b6f] disabled:opacity-50"
                         >
                           {updateRoles.isPending ? 'Saving…' : 'Save'}
                         </button>
@@ -171,7 +181,7 @@ export default function AdminUsers() {
                 <td className="p-4">
                   <button
                     onClick={() =>
-                      toggleUser.mutate({ id: user.id, isActive: user.isActive })
+                      setPendingToggle({ id: user.id, isActive: user.isActive, name: `${user.firstName} ${user.lastName}` })
                     }
                     className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-medium transition ${
                       user.isActive
@@ -195,6 +205,21 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingToggle}
+        title={pendingToggle ? `${pendingToggle.isActive ? 'Deactivate' : 'Activate'} ${pendingToggle.name}?` : ''}
+        description={
+          pendingToggle?.isActive
+            ? 'They will immediately lose access to their account until reactivated.'
+            : 'They will regain access to their account.'
+        }
+        confirmLabel={pendingToggle?.isActive ? 'Deactivate' : 'Activate'}
+        danger={!!pendingToggle?.isActive}
+        isPending={toggleUser.isPending}
+        onConfirm={() => pendingToggle && toggleUser.mutate({ id: pendingToggle.id, isActive: pendingToggle.isActive })}
+        onCancel={() => setPendingToggle(null)}
+      />
     </div>
   );
 }

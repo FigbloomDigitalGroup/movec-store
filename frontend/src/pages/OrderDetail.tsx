@@ -5,41 +5,21 @@ import toast from 'react-hot-toast';
 import {
   FiPackage,
   FiChevronLeft,
-  FiClock,
-  FiCheckCircle,
-  FiTruck,
-  FiXCircle,
   FiAlertCircle,
-  FiRefreshCw,
   FiMapPin,
+  FiTruck,
   FiCreditCard,
   FiTag,
   FiShoppingBag,
   FiArrowRight,
+  FiXCircle,
 } from 'react-icons/fi';
-
-/* ─── Status helpers ─────────────────────────────────────────── */
-const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  PENDING:    { label: 'Pending',    color: 'text-amber-600',   bg: 'bg-amber-100',   icon: <FiClock size={18} /> },
-  CONFIRMED:  { label: 'Confirmed',  color: 'text-[#10B982]',    bg: 'bg-[#ecfdf5]',    icon: <FiCheckCircle size={18} /> },
-  PROCESSING: { label: 'Processing', color: 'text-purple-600',  bg: 'bg-purple-100',  icon: <FiRefreshCw size={18} /> },
-  SHIPPED:    { label: 'Shipped',    color: 'text-sky-600',     bg: 'bg-sky-100',     icon: <FiTruck size={18} /> },
-  DELIVERED:  { label: 'Delivered',  color: 'text-emerald-600', bg: 'bg-emerald-100', icon: <FiCheckCircle size={18} /> },
-  CANCELLED:  { label: 'Cancelled',  color: 'text-red-600',     bg: 'bg-red-100',     icon: <FiXCircle size={18} /> },
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: 'text-gray-600', bg: 'bg-gray-100', icon: <FiAlertCircle size={18} /> };
-  return (
-    <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold ${cfg.bg} ${cfg.color}`}>
-      {cfg.icon} {cfg.label}
-    </span>
-  );
-}
+import { getOrderStatusConfig } from '../lib/orderStatus';
+import OrderStatusBadge from '../components/OrderStatusBadge';
 
 /* ─── Order Timeline ─────────────────────────────────────────── */
+const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+
 function OrderTimeline({ status, history }: { status: string; history: any[] }) {
   const isCancelled = status === 'CANCELLED';
   const steps = isCancelled
@@ -57,7 +37,7 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
 
         <div className="space-y-6">
           {steps.map((step, i) => {
-            const cfg = STATUS_CONFIG[step];
+            const cfg = getOrderStatusConfig(step);
             const isDone = isCancelled
               ? (step === 'PENDING' || step === 'CANCELLED')
               : i <= currentIdx;
@@ -72,9 +52,9 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
                 <div
                   className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition ${
                     isActive
-                      ? `${cfg.bg} ${cfg.color} ring-4 ring-offset-1 ${cfg.bg}`
+                      ? `${cfg.bg} ${cfg.text} ring-4 ring-offset-1 ${cfg.bg}`
                       : isDone
-                      ? `${cfg.bg} ${cfg.color}`
+                      ? `${cfg.bg} ${cfg.text}`
                       : 'bg-gray-100 text-gray-400'
                   }`}
                 >
@@ -82,7 +62,7 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
                 </div>
 
                 <div className="pt-1">
-                  <p className={`text-sm font-semibold ${isActive ? cfg.color : isDone ? 'text-gray-800' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-semibold ${isActive ? cfg.text : isDone ? 'text-gray-800' : 'text-gray-400'}`}>
                     {cfg.label}
                   </p>
                   {histEntry ? (
@@ -116,7 +96,7 @@ export default function OrderDetailPage() {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: () => api.patch(`/orders/${orderNumber}/cancel`),
+    mutationFn: () => api.post(`/orders/${orderNumber}/cancel`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', orderNumber] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -174,7 +154,7 @@ export default function OrderDetailPage() {
                 })}
               </p>
             </div>
-            <StatusBadge status={order.status} />
+            <OrderStatusBadge status={order.status} size="lg" />
           </div>
         </div>
       </div>

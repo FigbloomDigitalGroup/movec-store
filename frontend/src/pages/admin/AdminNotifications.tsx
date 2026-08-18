@@ -12,6 +12,7 @@ import {
   FiSmartphone,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 interface NotificationLog {
   id: string;
@@ -42,6 +43,7 @@ export default function AdminNotifications() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -101,6 +103,7 @@ export default function AdminNotifications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notification-logs'] });
       toast.success('Notification deleted from history');
+      setPendingDeleteId(null);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -416,7 +419,7 @@ export default function AdminNotifications() {
                           : 'Broadcast (All Customers)'}
                       </span>
                       <button
-                        onClick={() => deleteMutation.mutate(log.id)}
+                        onClick={() => setPendingDeleteId(log.id)}
                         className="text-gray-400 hover:text-red-500 transition p-1"
                         title="Delete log"
                       >
@@ -430,6 +433,16 @@ export default function AdminNotifications() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        title="Delete this notification log?"
+        description="This removes it from the history list. It cannot be undone."
+        confirmLabel="Delete"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => pendingDeleteId && deleteMutation.mutate(pendingDeleteId)}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

@@ -6,32 +6,11 @@ import {
   FiPackage,
   FiChevronRight,
   FiClock,
-  FiCheckCircle,
-  FiTruck,
-  FiXCircle,
-  FiAlertCircle,
   FiShoppingBag,
   FiSearch,
-  FiRefreshCw,
 } from 'react-icons/fi';
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  PENDING:    { label: 'Pending',    color: 'bg-amber-50 text-amber-700 border-amber-200',   icon: <FiClock size={13} /> },
-  CONFIRMED:  { label: 'Confirmed',  color: 'bg-[#ecfdf5] text-[#10B982] border-[#10B982]/20', icon: <FiCheckCircle size={13} /> },
-  PROCESSING: { label: 'Processing', color: 'bg-purple-50 text-purple-700 border-purple-200', icon: <FiRefreshCw size={13} /> },
-  SHIPPED:    { label: 'Shipped',    color: 'bg-sky-50 text-sky-700 border-sky-200',          icon: <FiTruck size={13} /> },
-  DELIVERED:  { label: 'Delivered',  color: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: <FiCheckCircle size={13} /> },
-  CANCELLED:  { label: 'Cancelled',  color: 'bg-red-50 text-red-700 border-red-200',          icon: <FiXCircle size={13} /> },
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: 'bg-gray-100 text-gray-700 border-gray-200', icon: <FiAlertCircle size={13} /> };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
-      {cfg.icon} {cfg.label}
-    </span>
-  );
-}
+import { ORDER_STATUSES, getOrderStatusConfig } from '../lib/orderStatus';
+import OrderStatusBadge from '../components/OrderStatusBadge';
 
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
@@ -52,8 +31,6 @@ export default function OrdersPage() {
       o.items?.some((i: any) => i.productName.toLowerCase().includes(search.toLowerCase()));
     return matchStatus && matchSearch;
   });
-
-  const statuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
   return (
     <div className="min-h-screen">
@@ -93,16 +70,16 @@ export default function OrdersPage() {
               onClick={() => setStatusFilter('all')}
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition border ${
                 statusFilter === 'all'
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-[#10B982] text-white border-[#10B982]'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
               All ({orders.length})
             </button>
-            {statuses.map((s) => {
+            {ORDER_STATUSES.map((s) => {
               const count = orders.filter((o) => o.status === s).length;
               if (count === 0) return null;
-              const cfg = STATUS_CONFIG[s];
+              const cfg = getOrderStatusConfig(s);
               return (
                 <button
                   key={s}
@@ -156,7 +133,7 @@ export default function OrdersPage() {
               <Link
                 key={order.orderNumber}
                 to={`/orders/${order.orderNumber}`}
-                className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-blue-200 transition group"
+                className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-[#10B982]/30 transition group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   {/* Left: Order info */}
@@ -177,7 +154,7 @@ export default function OrdersPage() {
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="font-bold text-gray-900 text-sm">#{order.orderNumber}</span>
-                        <StatusBadge status={order.status} />
+                        <OrderStatusBadge status={order.status} size="sm" />
                       </div>
 
                       {/* Item names preview */}

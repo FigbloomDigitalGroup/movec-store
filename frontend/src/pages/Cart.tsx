@@ -1,9 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
-import type { Cart } from '../types';
+import { useCart } from '../hooks/useCart';
 import { FiShoppingBag, FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
@@ -15,20 +16,14 @@ export default function CartPage() {
   const { isAuthenticated } = useAuthStore();
   const guestCart = useCartStore();
 
-  const { data: apiCart, isLoading } = useQuery<Cart>({
-    queryKey: ['cart'],
-    queryFn: async () => {
-      const { data } = await api.get('/cart');
-      return data;
-    },
-    enabled: isAuthenticated,
-  });
+  const { data: apiCart, isLoading } = useCart();
 
   const updateQuantity = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
       await api.patch(`/cart/items/${itemId}`, { quantity });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   const removeItem = useMutation({
@@ -36,6 +31,7 @@ export default function CartPage() {
       await api.delete(`/cart/items/${itemId}`);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+    onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
   if ((isAuthenticated && isLoading) || guestCart.isSyncing) {
@@ -150,7 +146,7 @@ export default function CartPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
-                              disabled={item.quantity <= 1}
+                              disabled={item.quantity <= 1 || updateQuantity.isPending}
                             >
                               <FiMinus size={16} />
                             </Button>
@@ -159,6 +155,7 @@ export default function CartPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
+                              disabled={updateQuantity.isPending}
                             >
                               <FiPlus size={16} />
                             </Button>
@@ -191,6 +188,7 @@ export default function CartPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => isAuthenticated ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
+                        disabled={isAuthenticated && removeItem.isPending}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
                         <FiTrash2 size={18} />
