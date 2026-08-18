@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { FiMapPin, FiPhone, FiMail, FiShield } from 'react-icons/fi';
 import AnimatedContent from '../components/AnimatedContent';
 
@@ -77,7 +78,9 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Cookies</h2>
               <p className="text-gray-700">
-                We use cookies and similar technologies to keep you logged in, remember items in your cart, and understand how the Service is used. You can disable cookies in your browser settings, but some features, such as checkout, may not work correctly without them.
+                We use cookies and similar technologies to keep you logged in, remember items in your cart, and keep the Service secure. See our{' '}
+                <Link to="/cookies" className="text-[#10B982] hover:underline font-medium">Cookie Policy</Link>{' '}
+                for full details and how to manage your preferences.
               </p>
             </section>
             </AnimatedContent>

@@ -9,10 +9,11 @@ import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock } from 
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import Input from '../components/ui/Input';
+import PageLoader from '../components/PageLoader';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const guestCart = useCartStore();
   const isSyncing = useCartStore((s) => s.isSyncing);
   const [shippingId, setShippingId] = useState('');
@@ -94,6 +95,10 @@ export default function CheckoutPage() {
   const items = isAuthenticated ? (cart?.items || []) : guestCart.items;
   const total = isAuthenticated ? (cart?.total || 0) : guestCart.getTotal();
   const cartEmpty = isAuthenticated ? items.length === 0 && cart !== undefined : items.length === 0;
+
+  if (!isHydrated) {
+    return <PageLoader />;
+  }
 
   if (!isAuthenticated) {
     return (

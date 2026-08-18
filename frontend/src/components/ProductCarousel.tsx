@@ -17,37 +17,45 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
       align: 'start',
       slidesToScroll: 1,
       dragFree: false,
-      loop: true,
+      // Embla's native `loop` clones slides to fake infinite scroll, which gets visibly
+      // unstable (arrows flicker, position jumps) once the slides only marginally overflow
+      // the viewport — the common case for a short curated row. Wraparound is handled
+      // manually below instead, which stays stable at any slide count.
+      loop: false,
     },
     [Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })],
   );
 
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
+  const [canScroll, setCanScroll] = useState(false);
 
   const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
+    if (!emblaApi) return;
+    if (emblaApi.canScrollPrev()) {
+      emblaApi.scrollPrev();
+    } else {
+      emblaApi.scrollTo(emblaApi.scrollSnapList().length - 1);
+    }
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (!emblaApi) return;
+    if (emblaApi.canScrollNext()) {
+      emblaApi.scrollNext();
+    } else {
+      emblaApi.scrollTo(0);
+    }
   }, [emblaApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
 
-    const onSelect = () => {
-      setCanScrollPrev(emblaApi.canScrollPrev());
-      setCanScrollNext(emblaApi.canScrollNext());
-    };
+    const onInit = () => setCanScroll(emblaApi.scrollSnapList().length > 1);
 
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    onSelect();
+    emblaApi.on('reInit', onInit);
+    onInit();
 
     return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
+      emblaApi.off('reInit', onInit);
     };
   }, [emblaApi]);
 
@@ -75,7 +83,7 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
       {/* Carousel Container */}
       <div className="relative">
         {/* Left Arrow - Desktop Only */}
-        {canScrollPrev && (
+        {canScroll && (
           <button
             onClick={scrollPrev}
             className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 bg-white border border-gray-300 rounded-full items-center justify-center shadow-md hover:bg-gray-50 hover:border-gray-400 transition-all"
@@ -86,7 +94,7 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
         )}
 
         {/* Right Arrow - Desktop Only */}
-        {canScrollNext && (
+        {canScroll && (
           <button
             onClick={scrollNext}
             className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 bg-white border border-gray-300 rounded-full items-center justify-center shadow-md hover:bg-gray-50 hover:border-gray-400 transition-all"
@@ -109,7 +117,7 @@ export default function ProductCarousel({ products, title, viewAllLink }: Produc
       </div>
 
       {/* Mobile: Scroll Hint */}
-      {canScrollNext && (
+      {canScroll && (
         <div className="md:hidden text-center mt-3">
           <p className="text-xs text-gray-500">Swipe to see more →</p>
         </div>

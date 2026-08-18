@@ -11,6 +11,7 @@ import ScrollToTop from './components/ScrollToTop';
 import BackToTop from './components/BackToTop';
 import PageLoader from './components/PageLoader';
 import AuthBootstrap from './components/AuthBootstrap';
+import CookieConsentBanner from './components/CookieConsentBanner';
 
 const Home = lazy(() => import('./pages/Home'));
 const Landing = lazy(() => import('./pages/Landing'));
@@ -48,6 +49,7 @@ const AdminBanners = lazy(() => import('./pages/admin/AdminBanners'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -98,6 +100,7 @@ export default function App() {
         <AuthBootstrap />
         <ScrollToTop />
         <BackToTop />
+        <CookieConsentBanner />
 
         <Toaster position="top-right" toastOptions={{ duration: 1800 }} />
         <Suspense fallback={<PageLoader />}>
@@ -132,6 +135,7 @@ export default function App() {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/refund" element={<RefundPolicy />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
             </Route>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
