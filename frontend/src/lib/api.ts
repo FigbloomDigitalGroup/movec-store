@@ -7,6 +7,16 @@ const api = axios.create({
 
 let csrfToken: string | null = null;
 
+// Tracks whether the app believes there's an active session (set by authStore on
+// login/loadUser/logout). Without this, every 401 — including the background
+// loadUser() check that runs on every page load for anonymous visitors — would
+// attempt a refresh and hard-redirect to /login even though the visitor never had
+// a session to begin with.
+let hasSession = false;
+export function setHasSession(value: boolean) {
+  hasSession = value;
+}
+
 const fetchCsrfToken = () =>
   api.get('/auth/csrf').then(({ data }) => {
     csrfToken = data.csrfToken;
@@ -26,12 +36,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && hasSession) {
       originalRequest._retry = true;
       try {
         await api.post('/auth/refresh');
         return api(originalRequest);
       } catch {
+        setHasSession(false);
         window.location.href = '/login';
       }
     }

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api from '../lib/api';
+import api, { setHasSession } from '../lib/api';
 import type { User } from '../types';
 
 interface AuthState {
@@ -19,6 +19,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
+    setHasSession(true);
     set({ user: data.user, isAuthenticated: true });
   },
 
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // ignore — clear local state regardless
     } finally {
+      setHasSession(false);
       set({ user: null, isAuthenticated: false });
     }
   },
@@ -39,8 +41,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadUser: async () => {
     try {
       const { data } = await api.get('/users/me');
+      setHasSession(true);
       set({ user: data, isAuthenticated: true, isHydrated: true });
     } catch {
+      setHasSession(false);
       set({ user: null, isAuthenticated: false, isHydrated: true });
     }
   },
