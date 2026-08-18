@@ -47,20 +47,23 @@ interface StoreModule {
   categories?: { id: string; name: string; slug: string }[];
 }
 
-const MODULE_CONFIG: Record<string, { icon: React.ReactNode; gradient: string }> = {
+const MODULE_CONFIG: Record<string, { icon: React.ReactNode; gradient: string; image?: string }> = {
   starlink: {
     icon: <FiWifi size={36} />,
     gradient: 'from-[#10B982] via-[#48c79d] to-[#f8a16b]',
+    image: '/starlink-image.jpg',
   },
   cctv: {
     icon: <FiCamera size={36} />,
     gradient: 'from-[#10B982] via-[#34c38f] to-[#FC6501]',
+    image: '/cctv-image.jpg',
   },
 };
 
 const DEFAULT_CONFIG = {
   icon: <FiPackage size={36} />,
   gradient: 'from-slate-700 to-slate-600',
+  image: undefined as string | undefined,
 };
 
 const FALLBACK_MODULES: StoreModule[] = [
@@ -103,12 +106,22 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
     <Link to={`/solutions/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10B982] focus-visible:ring-offset-2 rounded-xl">
       <Card hover className="h-full transition-shadow group-hover:border-[#10B982]/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
         <CardBody className="flex h-full flex-col">
-          <div className={`mb-6 rounded-2xl bg-gradient-to-br ${config.gradient} p-8 text-white shadow-lg`}>
-            <div className="flex items-start justify-between">
-              <div className="rounded-xl bg-white/20 p-4 backdrop-blur-sm">{config.icon}</div>
-              {productCount > 0 && <Badge variant="gray" className="!bg-white/20 !text-white">{productCount} Products</Badge>}
+          <div className="relative mb-6 overflow-hidden rounded-2xl p-8 text-white shadow-lg">
+            {config.image && (
+              <img
+                src={config.image}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+            <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} ${config.image ? 'opacity-80' : ''}`} />
+            <div className="relative">
+              <div className="flex items-start justify-between">
+                <div className="rounded-xl bg-white/20 p-4 backdrop-blur-sm">{config.icon}</div>
+                {productCount > 0 && <Badge variant="gray" className="!bg-white/20 !text-white">{productCount} Products</Badge>}
+              </div>
+              <h2 className="mt-6 text-2xl font-bold md:text-3xl">{mod.name}</h2>
             </div>
-            <h2 className="mt-6 text-2xl font-bold md:text-3xl">{mod.name}</h2>
           </div>
 
           <p className="mb-6 flex-1 leading-relaxed text-slate-700">{mod.description}</p>
