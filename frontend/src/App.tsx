@@ -6,6 +6,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
+import RequireAdmin from './components/RequireAdmin';
 
 import ScrollToTop from './components/ScrollToTop';
 import BackToTop from './components/BackToTop';
@@ -137,19 +138,21 @@ export default function App() {
               <Route path="/refund" element={<RefundPolicy />} />
               <Route path="/cookies" element={<CookiePolicy />} />
             </Route>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/modules" element={<AdminModules />} />
-              <Route path="/admin/products" element={<AdminProducts />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/inventory" element={<AdminInventory />} />
-              <Route path="/admin/installations" element={<AdminInstallations />} />
-              <Route path="/admin/support" element={<AdminSupport />} />
-              <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/reviews" element={<AdminReviews />} />
-              <Route path="/admin/notifications" element={<AdminNotifications />} />
-              <Route path="/admin/homepage" element={<AdminBanners />} />
+            <Route element={<RequireAdmin />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/modules" element={<AdminModules />} />
+                <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/inventory" element={<AdminInventory />} />
+                <Route path="/admin/installations" element={<AdminInstallations />} />
+                <Route path="/admin/support" element={<AdminSupport />} />
+                <Route path="/admin/reports" element={<AdminReports />} />
+                <Route path="/admin/reviews" element={<AdminReviews />} />
+                <Route path="/admin/notifications" element={<AdminNotifications />} />
+                <Route path="/admin/homepage" element={<AdminBanners />} />
+              </Route>
             </Route>
           </Routes>
         </Suspense>

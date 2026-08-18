@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { getModules } from '../lib/api';
@@ -168,6 +169,14 @@ function isInternalLink(href: string) {
   return href.startsWith('/');
 }
 
+function getSlideBackgroundImage(slide: PromoBanner): string | undefined {
+  const haystack = `${slide.ctaLink} ${slide.badge ?? ''}`.toLowerCase();
+  if (haystack.includes('starlink')) return '/starlink-image.jpg';
+  if (haystack.includes('cctv')) return '/cctv-image.jpg';
+  if (haystack.includes('installation') || haystack.includes('installer')) return '/installation-image.jpg';
+  return undefined;
+}
+
 export default function Landing() {
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: banners = [] } = useQuery<PromoBanner[]>({
@@ -217,6 +226,7 @@ export default function Landing() {
   }, [slides.length]);
 
   const hasProduct = Boolean(activeSlide.product);
+  const slideBackgroundImage = getSlideBackgroundImage(activeSlide);
 
   return (
     <div className="min-h-screen text-slate-900">
@@ -225,9 +235,29 @@ export default function Landing() {
       </div>
 
       <section className="relative overflow-hidden pt-8">
+        {slideBackgroundImage && (
+          <img
+            key={slideBackgroundImage}
+            src={slideBackgroundImage}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-[0.22] transition-opacity duration-700"
+            style={{
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)',
+            }}
+          />
+        )}
         <div className="absolute inset-x-0 top-0 h-48 bg-[#10B982]/10" />
-        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-          <div className="grid items-center gap-12 justify-items-center text-center lg:grid-cols-[1.05fr_0.95fr] lg:text-left">
+        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16 overflow-hidden">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+              className="hero-slide grid items-center gap-12 justify-items-center text-center lg:grid-cols-[1.05fr_0.95fr] lg:text-left"
+            >
             <div className="space-y-6 max-w-3xl lg:max-w-none">
               {activeSlide.badge && (
                 <span
@@ -299,7 +329,8 @@ export default function Landing() {
                 )}
               </div>
             </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
 
           <div className="mt-10 flex items-center justify-center gap-3">
             {slides.map((_, index) => (
