@@ -143,7 +143,7 @@ export default function SupportPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen pb-16">
       <SectionHero title="Frequently Asked Questions" subtitle="Find quick answers about products, installation, delivery, and warranty.">
         <div className="mt-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-100 text-accent border border-accent mb-4">
@@ -252,14 +252,14 @@ export default function SupportPage() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#20bd5a] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition shadow-lg"
+              className="inline-flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#20bd5a] text-white! px-6 py-3.5 rounded-xl font-bold text-sm transition shadow-lg"
             >
               <FaWhatsapp size={18} />
               WhatsApp Us
             </a>
             <Link
               to="/contact"
-              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white px-6 py-3.5 rounded-xl font-bold text-sm transition"
+              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white! px-6 py-3.5 rounded-xl font-bold text-sm transition"
             >
               <FiMail size={16} />
               Contact Page

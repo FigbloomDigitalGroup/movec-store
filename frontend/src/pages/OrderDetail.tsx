@@ -129,7 +129,7 @@ export default function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-gray-500">
           <FiPackage size={40} className="animate-pulse text-gray-300" />
           <p className="text-sm">Loading order...</p>
@@ -140,7 +140,7 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <FiAlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
           <h2 className="text-lg font-bold text-gray-800">Order not found</h2>
@@ -153,7 +153,7 @@ export default function OrderDetailPage() {
   const canCancel = ['PENDING', 'CONFIRMED'].includes(order.status);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 py-6">

@@ -2,12 +2,31 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
+  withCredentials: true,
 });
 
+let csrfToken: string | null = null;
+
+// Tracks whether the app believes there's an active session (set by authStore on
+// login/loadUser/logout). Without this, every 401 — including the background
+// loadUser() check that runs on every page load for anonymous visitors — would
+// attempt a refresh and hard-redirect to /login even though the visitor never had
+// a session to begin with.
+let hasSession = false;
+export function setHasSession(value: boolean) {
+  hasSession = value;
+}
+
+const fetchCsrfToken = () =>
+  api.get('/auth/csrf').then(({ data }) => {
+    csrfToken = data.csrfToken;
+  }).catch(() => {});
+
+fetchCsrfToken();
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (csrfToken) {
+    config.headers['X-XSRF-TOKEN'] = csrfToken;
   }
   return config;
 });
@@ -16,23 +35,28 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    if (error.response?.status === 401 && !originalRequest._retry && hasSession) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/auth/refresh`, { refreshToken });
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-          return api(originalRequest);
-        } catch {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
-        }
+      try {
+        await api.post('/auth/refresh');
+        return api(originalRequest);
+      } catch {
+        setHasSession(false);
+        window.location.href = '/login';
       }
     }
+
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.message === 'Invalid CSRF token' &&
+      !originalRequest._csrfRetry
+    ) {
+      originalRequest._csrfRetry = true;
+      await fetchCsrfToken();
+      return api(originalRequest);
+    }
+
     return Promise.reject(error);
   }
 );

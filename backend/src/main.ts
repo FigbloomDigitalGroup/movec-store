@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import * as express from 'express';
 import { Reflector } from '@nestjs/core';
+import { createCsrfMiddleware } from './common/middleware/csrf.middleware';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
@@ -23,12 +24,19 @@ async function bootstrap() {
   // Support comma-separated list of allowed origins (e.g. production + preview URLs)
   const allowedOrigins = frontendUrl.split(',').map((url) => url.trim());
 
+  const isLocalhostOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
       // Allow any Vercel preview deployment for this project
       if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      // In dev, allow any localhost port — Vite auto-increments (5173, 5174, ...) when the
+      // preferred port is busy, so pinning to one exact port breaks on every collision.
+      if (configService.get<string>('NODE_ENV') !== 'production' && isLocalhostOrigin(origin)) {
         return callback(null, true);
       }
       callback(new Error(`CORS: origin ${origin} not allowed`));
@@ -38,6 +46,7 @@ async function bootstrap() {
 
   app.use(helmet({ crossOriginResourcePolicy: false }));
   app.use(cookieParser());
+  app.use(createCsrfMiddleware(configService));
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   // NOTE: Local /uploads/ folder removed — use Cloudinary for all media storage.

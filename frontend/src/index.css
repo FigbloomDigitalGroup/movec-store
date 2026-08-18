@@ -37,7 +37,7 @@ html {
 }
 
 body {
-  background: var(--color-neutral-50);
+  background: linear-gradient(180deg, #c9f2e0 0%, #e3f7ed 20%, #f2f4f0 45%, #fbe9d9 75%, #f8d9bd 100%);
   color: var(--color-neutral-800);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -168,6 +168,31 @@ a:hover {
   background-color: var(--color-neutral-50);
 }
 
+.btn-accent {
+  background-color: var(--color-brand-green);
+  color: white;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-accent:hover {
+  background-color: var(--color-brand-green-dark);
+}
+
+/* Embla drives this element's transform on every animation frame during scroll/drag.
+   The global transition rule above fights that, producing laggy, stuttery scrolling. */
+.embla__container {
+  transition: none;
+}
+
+/* Framer Motion drives this element's transform/opacity every frame during the hero
+   slide transition. The global transition rule above fights that — it makes the CSS
+   engine try to interpolate its own 200ms transition on top of Framer's animation,
+   which cuts the motion short and makes it snap instead of gliding smoothly. */
+.hero-slide {
+  transition: none;
+}
+
 .bg-accent-100 {
   background-color: rgba(16, 185, 130, 0.1) !important;
 }
@@ -178,4 +203,13 @@ a:hover {
 
 .orange-ring {
   box-shadow: 0 0 0 4px rgba(252, 101, 1, 0.14);
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }

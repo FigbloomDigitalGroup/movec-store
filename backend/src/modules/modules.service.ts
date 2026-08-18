@@ -143,6 +143,22 @@ export class ModulesService {
       this.prisma.product.count({ where }),
     ]);
 
+    const productIds = products.map((p) => p.id);
+    const ratingAggregates = productIds.length
+      ? await this.prisma.review.groupBy({
+          by: ['productId'],
+          where: { productId: { in: productIds }, isApproved: true },
+          _avg: { rating: true },
+          _count: { rating: true },
+        })
+      : [];
+    const ratings = new Map(
+      ratingAggregates.map((r) => [
+        r.productId,
+        { avgRating: r._avg.rating, reviewCount: r._count.rating },
+      ]),
+    );
+
     return {
       module: mod,
       data: products.map((p) => ({
@@ -150,6 +166,7 @@ export class ModulesService {
         price: p.price.toNumber(),
         compareAtPrice: p.compareAtPrice?.toNumber(),
         categories: p.categories.map((pc) => pc.category),
+        ...(ratings.get(p.id) ?? { avgRating: null, reviewCount: 0 }),
       })),
       meta: { page, limit, total },
     };

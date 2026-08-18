@@ -102,27 +102,22 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-[#E3E8E5] mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-[#4B534D] text-sm">&copy; {new Date().getFullYear()} Movec Store. All rights reserved.</p>
-            <div className="flex gap-6 text-sm">
-              <Link to="/privacy" className="text-[#4B534D] hover:text-[#10B982] transition">Privacy Policy</Link>
-              <Link to="/terms" className="text-[#4B534D] hover:text-[#10B982] transition">Terms of Service</Link>
-              <Link to="/refund" className="text-[#4B534D] hover:text-[#10B982] transition">Refund Policy</Link>
-            </div>
+        <div className="border-t border-[#E3E8E5] mt-10 pt-6">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#86898B]">
+            <span>Copyright &copy; {new Date().getFullYear()} Movec Store. All rights reserved.</span>
+            <span className="hidden sm:inline">&nbsp;</span>
+            <Link to="/privacy" className="hover:text-[#10B982] transition">Privacy Policy</Link>
+            <span aria-hidden="true">|</span>
+            <Link to="/terms" className="hover:text-[#10B982] transition">Terms of Service</Link>
+            <span aria-hidden="true">|</span>
+            <Link to="/refund" className="hover:text-[#10B982] transition">Refund Policy</Link>
+            <span aria-hidden="true">|</span>
+            <Link to="/cookies" className="hover:text-[#10B982] transition">Cookie Policy</Link>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#10B982] py-3">
-        <div className="w-full px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10 text-white text-xs font-semibold">
-            <span className="flex items-center gap-2">🇰🇪 Proudly Serving Kenya</span>
-            <span className="flex items-center gap-2">Trusted by Thousands of Customers</span>
-            <span className="flex items-center gap-2">Your Connectivity &amp; Security Partner</span>
-          </div>
-        </div>
-      </div>
+      
     </footer>
   );
 }

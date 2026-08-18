@@ -92,15 +92,39 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
+    const ratings = await this.getRatingsByProductIds(products.map((p) => p.id));
+
     return {
       data: products.map((p) => ({
         ...p,
         price: p.price.toNumber(),
         compareAtPrice: p.compareAtPrice?.toNumber(),
         categories: p.categories.map((pc) => pc.category),
+        ...(ratings.get(p.id) ?? { avgRating: null, reviewCount: 0 }),
       })),
       meta: { page, limit, total },
     };
+  }
+
+  /** Aggregate approved review ratings for a batch of product IDs in a single query. */
+  private async getRatingsByProductIds(productIds: string[]) {
+    const map = new Map<string, { avgRating: number | null; reviewCount: number }>();
+    if (productIds.length === 0) return map;
+
+    const aggregates = await this.prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds }, isApproved: true },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    for (const agg of aggregates) {
+      map.set(agg.productId, {
+        avgRating: agg._avg.rating,
+        reviewCount: agg._count.rating,
+      });
+    }
+    return map;
   }
 
   async findAllAdmin(query: QueryProductDto) {
@@ -220,11 +244,19 @@ export class ProductsService {
 
     if (!product) throw new NotFoundException('Product not found');
 
+    const approvedReviews = product.reviews ?? [];
+    const reviewCount = approvedReviews.length;
+    const avgRating = reviewCount
+      ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+      : null;
+
     const result = {
       ...product,
       price: product.price.toNumber(),
       compareAtPrice: product.compareAtPrice?.toNumber(),
       categories: product.categories.map((pc) => pc.category),
+      avgRating,
+      reviewCount,
     };
 
     await this.cacheManager.set(cacheKey, result, 10 * 60 * 1000);

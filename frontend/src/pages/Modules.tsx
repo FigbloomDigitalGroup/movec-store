@@ -126,7 +126,7 @@ export default function Modules() {
     modules && modules.length > 0 ? modules : FALLBACK_MODULES;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white">
         <div className="w-full px-4 py-12 sm:px-6 lg:px-8">

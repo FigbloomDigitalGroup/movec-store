@@ -103,7 +103,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       to={`/products/${product.slug}`}
-      className="group block bg-transparent rounded-lg hover:shadow-md transition-shadow duration-200 relative"
+      className="group block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-200 relative overflow-hidden"
     >
       {/* Discount Badge */}
       {discount > 0 && (
@@ -115,7 +115,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Image Container — white bg, object-contain, padded to match home page */}
       <div
         className="relative bg-gray-50 overflow-hidden flex items-center justify-center"
-        style={{ height: '200px' }}
+        style={{ height: '120px' }}
       >
         <div className="w-full h-full flex items-center justify-center">
           {images.length > 0 ? (
@@ -168,85 +168,95 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Out of Stock overlay */}
         {!inStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t-lg z-10">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
             <span className="text-white text-xs font-semibold">Out of Stock</span>
           </div>
         )}
       </div>
 
       {/* Product info */}
-      <div className="px-3 pb-3 pt-2">
+      <div className="px-2 pb-2 pt-1.5">
         {/* Brand */}
         {product.brand && (
-          <p className="text-[10px] text-gray-500 mb-0.5 truncate">{product.brand.name}</p>
+          <p className="text-[9px] text-gray-500 mb-0.5 truncate">{product.brand.name}</p>
         )}
 
         {/* Name */}
         <h3
-          className="text-sm font-medium text-gray-900 mb-1 leading-tight text-center group-hover:text-accent transition-colors"
+          className="text-xs font-medium text-gray-900 mb-0.5 leading-tight text-center group-hover:text-accent transition-colors"
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            minHeight: '2rem',
+            minHeight: '1.6rem',
           }}
         >
           {product.name}
         </h3>
 
+        {/* Rating — falls back to a placeholder until the product has real reviews */}
+        {(() => {
+          const displayRating = product.avgRating ?? 4;
+          return (
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <div className="flex items-center gap-0.5 text-yellow-400">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <FiStar
+                    key={i}
+                    size={10}
+                    className={i <= Math.round(displayRating) ? 'fill-yellow-400' : 'text-gray-300'}
+                  />
+                ))}
+              </div>
+              {product.reviewCount > 0 && (
+                <span className="text-[9px] text-gray-500">({product.reviewCount})</span>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Price */}
-        <div className="mb-1">
+        <div className="mb-0.5">
           <div className="flex items-baseline gap-1 flex-wrap">
-            <span className="text-sm font-bold text-gray-900">
+            <span className="text-xs font-bold text-gray-900">
               KES {product.price.toLocaleString()}
             </span>
           </div>
           {product.compareAtPrice && (
-            <span className="text-[10px] text-gray-400 line-through">
+            <span className="text-[9px] text-gray-400 line-through">
               KES {product.compareAtPrice.toLocaleString()}
             </span>
           )}
         </div>
 
         {/* Stock status */}
-        <div className="flex items-center gap-1 mb-1.5">
-          <span className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>●</span>
-          <p className={`text-[10px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>
+        <div className="flex items-center gap-1 mb-1">
+          <span className={`text-[9px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>●</span>
+          <p className={`text-[9px] ${inStock ? 'text-green-600' : 'text-red-500'}`}>
             {inStock ? 'In Stock' : 'Out of Stock'}
           </p>
         </div>
 
-        {/* Rating placeholder */}
-        <div className="flex items-center gap-0.5 text-[10px] mb-2.5">
-          <div className="flex items-center gap-0.5 text-yellow-400">
-            {[1, 2, 3, 4].map((i) => (
-              <FiStar key={i} size={10} className="fill-yellow-400" />
-            ))}
-            <FiStar size={10} className="text-gray-300" />
-          </div>
-          <span className="text-gray-500">(4.0)</span>
-        </div>
-
         {/* Action Buttons */}
-        <div className="flex gap-1.5">
+        <div className="flex gap-1">
           <button
             onClick={handleAddToCart}
             disabled={!inStock}
-            className="flex-1 btn-accent text-xs rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5"
+            className="flex-1 btn-accent text-[11px] py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1"
           >
-            <FiShoppingCart size={13} />
+            <FiShoppingCart size={11} />
             Add to Cart
           </button>
           <button
             onClick={handleToggleWishlist}
-            className={`p-2 rounded-lg border-2 transition flex items-center justify-center ${
+            className={`p-1.5 rounded-lg border-2 transition flex items-center justify-center ${
               wishlistStore.isInWishlist(product.id)
                 ? 'border-red-500 bg-red-50 text-red-500'
                 : 'border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500'
             }`}
           >
-            <FiHeart size={14} fill={wishlistStore.isInWishlist(product.id) ? 'currentColor' : 'none'} />
+            <FiHeart size={12} fill={wishlistStore.isInWishlist(product.id) ? 'currentColor' : 'none'} />
           </button>
         </div>
       </div>

@@ -1,26 +1,55 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { Product } from '../types';
-import { FiSearch, FiChevronLeft, FiChevronRight, FiFilter } from 'react-icons/fi';
+import { FiSearch, FiFilter } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Skeleton from '../components/ui/Skeleton';
 import ProductCard from '../components/ProductCard';
 import SectionHero from '../components/ui/SectionHero';
+import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['products', searchParams.toString()],
-    queryFn: async () => {
-      const { data } = await api.get(`/products?${searchParams.toString()}`);
+  const paramsWithoutPage = new URLSearchParams(searchParams);
+  paramsWithoutPage.delete('page');
+  const paramsKey = paramsWithoutPage.toString();
+
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['products-infinite', paramsKey],
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams(searchParams);
+      params.delete('page');
+      params.set('page', String(pageParam));
+      const { data } = await api.get(`/products?${params.toString()}`);
       return data;
     },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, limit, total } = lastPage.meta;
+      return page * limit < total ? page + 1 : undefined;
+    },
   });
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    onIntersect: () => {
+      fetchNextPage();
+    },
+    enabled: !!hasNextPage && !isFetchingNextPage,
+  });
+
+  const products = data?.pages.flatMap((p) => p.data) ?? [];
+  const total = data?.pages[0]?.meta.total;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +61,6 @@ export default function Products() {
     }
     setSearchParams(params);
   };
-
-  const currentPage = parseInt(searchParams.get('page') || '1');
-  const totalPages = data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 1;
 
   return (
     <div className="min-h-screen">
@@ -115,7 +141,7 @@ export default function Products() {
         {/* Results Info */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-gray-700">
-            {data?.meta ? `${data.meta.total} product${data.meta.total === 1 ? '' : 's'} found` : 'Loading products...'}
+            {total !== undefined ? `${total} product${total === 1 ? '' : 's'} found` : 'Loading products...'}
           </p>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-700">Sort by:</span>
@@ -131,20 +157,20 @@ export default function Products() {
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <Skeleton className="h-64 w-full" />
-                <div className="p-5">
-                  <Skeleton className="h-4 w-16 mb-2" />
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-6 w-3/4 mb-3" />
-                  <Skeleton className="h-8 w-24" />
+              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <Skeleton className="h-[120px] w-full" />
+                <div className="p-2">
+                  <Skeleton className="h-3 w-12 mb-1.5" />
+                  <Skeleton className="h-3 w-full mb-1.5" />
+                  <Skeleton className="h-3 w-3/4 mb-2" />
+                  <Skeleton className="h-6 w-full" />
                 </div>
               </div>
             ))}
           </div>
-        ) : data?.meta?.total === 0 ? (
+        ) : total === 0 ? (
           <div className="rounded-3xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
             <FiSearch size={48} className="mx-auto mb-4" />
             <p className="text-lg font-semibold">No products match your search.</p>
@@ -173,66 +199,21 @@ export default function Products() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {data?.data?.map((product: Product) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+            {products.map((product: Product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
 
-        {/* Pagination */}
-        {data?.meta && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-8">
-            <Button
-              variant="outline"
-              disabled={currentPage <= 1}
-              onClick={() => {
-                const page = currentPage - 1;
-                const params = new URLSearchParams(searchParams);
-                if (page <= 1) params.delete('page'); else params.set('page', String(page));
-                setSearchParams(params);
-              }}
-            >
-              <FiChevronLeft className="mr-2" size={16} />
-              Previous
-            </Button>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const pageNum = i + 1;
-                const isCurrentPage = pageNum === currentPage;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => {
-                      const params = new URLSearchParams(searchParams);
-                      if (pageNum === 1) params.delete('page'); else params.set('page', String(pageNum));
-                      setSearchParams(params);
-                    }}
-                    className={`w-10 h-10 rounded-lg font-medium transition ${
-                      isCurrentPage
-                        ? 'bg-[#10B982] text-white'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-            <Button
-              variant="outline"
-              disabled={currentPage >= totalPages}
-              onClick={() => {
-                const page = currentPage + 1;
-                const params = new URLSearchParams(searchParams);
-                params.set('page', String(page));
-                setSearchParams(params);
-              }}
-            >
-              Next
-              <FiChevronRight className="ml-2" size={16} />
-            </Button>
+        {hasNextPage && <div ref={sentinelRef} className="h-10" />}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#10B982]" />
           </div>
+        )}
+        {!hasNextPage && products.length > 0 && (
+          <p className="text-center text-sm text-gray-500 py-8">You've reached the end of the catalog.</p>
         )}
       </div>
     </div>

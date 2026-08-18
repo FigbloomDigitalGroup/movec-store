@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getModule, getModuleProducts } from '../lib/api';
 import { FiSearch, FiArrowRight, FiGlobe, FiVideo, FiPackage } from 'react-icons/fi';
 import SectionHero from '../components/ui/SectionHero';
 import ProductCard from '../components/ProductCard';
+import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
 
 interface StoreModule {
   id: string;
@@ -50,8 +51,6 @@ export default function ModuleLanding() {
   }, [searchParams]);
 
   const selectedCategory = searchParams.get('category') || '';
-  const pageNumber = parseInt(searchParams.get('page') || '1', 10);
-  const currentPage = Number.isNaN(pageNumber) ? 1 : pageNumber;
 
   const { data: mod, isLoading: isModuleLoading } = useQuery<StoreModule>({
     queryKey: ['module', moduleSlug],
@@ -59,14 +58,36 @@ export default function ModuleLanding() {
     enabled: !!moduleSlug,
   });
 
-  const { data, isLoading: isProductsLoading } = useQuery<ModuleProductsResponse>({
-    queryKey: ['module-products', moduleSlug, searchParams.toString()],
-    queryFn: () => getModuleProducts(moduleSlug!, Object.fromEntries(searchParams)),
+  const paramsWithoutPage = Object.fromEntries(searchParams);
+  delete paramsWithoutPage.page;
+
+  const {
+    data,
+    isLoading: isProductsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<ModuleProductsResponse>({
+    queryKey: ['module-products-infinite', moduleSlug, JSON.stringify(paramsWithoutPage)],
+    queryFn: async ({ pageParam }) => {
+      const params = Object.fromEntries(searchParams);
+      delete params.page;
+      return getModuleProducts(moduleSlug!, { ...params, page: String(pageParam) });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, limit, total } = lastPage.meta;
+      return page * limit < total ? page + 1 : undefined;
+    },
     enabled: !!moduleSlug,
   });
 
-  const products: Product[] = data?.data || [];
-  const totalPages = data?.meta ? Math.ceil(data.meta.total / data.meta.limit) : 1;
+  const products: Product[] = data?.pages.flatMap((p) => p.data) ?? [];
+
+  const sentinelRef = useInfiniteScrollTrigger({
+    onIntersect: () => fetchNextPage(),
+    enabled: !!hasNextPage && !isFetchingNextPage,
+  });
 
   const title = mod?.name || theme.title;
   const subtitle = mod?.description || theme.description;
@@ -88,7 +109,7 @@ export default function ModuleLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <SectionHero title={title} subtitle={subtitle}>
         <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -182,41 +203,23 @@ export default function ModuleLanding() {
         )}
 
         {!isProductsLoading && products.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {products.map((product) => (
               <ProductCard key={product.id} product={product as any} />
             ))}
           </div>
         )}
 
-        {!isProductsLoading && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-8">
-            <button
-              disabled={currentPage <= 1}
-              onClick={() => {
-                const params = new URLSearchParams(searchParams);
-                currentPage <= 2 ? params.delete('page') : params.set('page', String(currentPage - 1));
-                setSearchParams(params);
-              }}
-              className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-gray-700">
-              Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
-            </span>
-            <button
-              disabled={currentPage >= totalPages}
-              onClick={() => {
-                const params = new URLSearchParams(searchParams);
-                params.set('page', String(currentPage + 1));
-                setSearchParams(params);
-              }}
-              className="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next
-            </button>
+        {hasNextPage && (
+          <div ref={sentinelRef} className="h-10" />
+        )}
+        {isFetchingNextPage && (
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 text-center text-gray-500 shadow-sm">
+            Loading more products...
           </div>
+        )}
+        {!hasNextPage && products.length > 0 && (
+          <p className="text-center text-sm text-gray-500 py-8">You've reached the end.</p>
         )}
       </div>
     </div>
