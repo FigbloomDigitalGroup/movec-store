@@ -93,7 +93,7 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
                   {ticket.user?.firstName} {ticket.user?.lastName} · {ticket.user?.email}
                 </p>
               </div>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+              <button onClick={onClose} className="text-gray-500 hover:text-gray-600 transition">
                 <FiX size={20} />
               </button>
             </div>
@@ -124,14 +124,14 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
                     </div>
                     <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${m.isStaffReply ? 'bg-primary-50 text-gray-900' : 'bg-gray-100 text-gray-900'}`}>
                       <p>{m.message}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">
+                      <p className="text-[10px] text-gray-500 mt-1">
                         {new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-400 text-center py-8">No messages yet.</p>
+                <p className="text-sm text-gray-500 text-center py-8">No messages yet.</p>
               )}
             </div>
 
@@ -197,7 +197,7 @@ export default function AdminSupport() {
         subtitle={`${total} ticket${total !== 1 ? 's' : ''} — view, reply, and update status.`}
         action={
           <div className="relative w-full md:w-72">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
             <input
               type="text"
               placeholder="Search subject or customer..."
@@ -262,7 +262,7 @@ export default function AdminSupport() {
                     <td className="px-5 py-4 text-sm font-semibold text-gray-900">{t.subject}</td>
                     <td className="px-5 py-4">
                       <p className="text-xs font-semibold text-gray-900">{t.user?.firstName} {t.user?.lastName}</p>
-                      <p className="text-[11px] text-gray-400">{t.user?.email}</p>
+                      <p className="text-[11px] text-gray-500">{t.user?.email}</p>
                     </td>
                     <td className="px-5 py-4 text-xs text-gray-600">{t._count?.messages ?? 0}</td>
                     <td className="px-5 py-4"><StatusBadge status={t.status} /></td>

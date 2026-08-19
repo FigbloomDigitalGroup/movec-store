@@ -5,6 +5,7 @@ import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import CustomCalendar from '../components/CustomCalendar';
 import CustomDropdown from '../components/CustomDropdown';
+import Alert from '../components/ui/Alert';
 
 export default function InstallationPage() {
   const [serviceId, setServiceId] = useState('');
@@ -45,21 +46,21 @@ export default function InstallationPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900">Book Installation</h1>
+      <h1 className="text-3xl md:text-4xl font-section-title mb-6 text-gray-900">Book Installation</h1>
       
       {submitted && (
-        <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 text-sm">
+        <Alert variant="success" className="mb-4">
           Your installation request has been submitted. Our team will contact you shortly to confirm scheduling.
-        </div>
+        </Alert>
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="space-y-6">
           {hasNoAddress && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-sm">
+            <Alert variant="warning">
               You don't have a saved address yet. Add one from your{' '}
               <Link to="/profile" className="font-semibold underline">Profile</Link> before booking installation.
-            </div>
+            </Alert>
           )}
           {/* Service Selection with Custom Dropdown */}
           <div>

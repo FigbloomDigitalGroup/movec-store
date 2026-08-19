@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { IoChevronDown, IoCheckmark } from 'react-icons/io5';
+import { FiChevronDown, FiCheck } from 'react-icons/fi';
 
 interface DropdownOption {
   id: string;
@@ -24,6 +24,7 @@ export default function CustomDropdown({
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,7 +42,10 @@ export default function CustomDropdown({
   useEffect(() => {
     if (!isOpen) return;
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsOpen(false);
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        triggerRef.current?.focus();
+      }
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -50,7 +54,10 @@ export default function CustomDropdown({
   const handleSelect = (optionId: string) => {
     onChange(optionId);
     setIsOpen(false);
-    
+    // The option button that was just clicked unmounts along with the list;
+    // without this, focus drops to <body> and keyboard/screen-reader users lose their place.
+    triggerRef.current?.focus();
+
     // Trigger auto-progression after selection
     setTimeout(() => {
       onComplete?.();
@@ -63,6 +70,7 @@ export default function CustomDropdown({
     <div className="relative w-full" ref={dropdownRef}>
       {/* Dropdown Button */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`
@@ -84,8 +92,8 @@ export default function CustomDropdown({
             : placeholder
           }
         </span>
-        <IoChevronDown 
-          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+        <FiChevronDown
+          className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -126,7 +134,7 @@ export default function CustomDropdown({
                 </div>
                 
                 {isSelected && (
-                  <IoCheckmark className="w-5 h-5 text-emerald-600" />
+                  <FiCheck className="w-5 h-5 text-emerald-600" />
                 )}
               </button>
             );

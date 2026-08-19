@@ -253,7 +253,7 @@ export default function AdminProducts() {
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-4 mb-6">
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[200px]">
-            <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
+            <FiSearch className="absolute left-3 top-2.5 text-gray-500" />
             <input type="text" placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg" />
           </div>
           <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }} className="border rounded-lg px-4 py-2">
@@ -326,7 +326,7 @@ export default function AdminProducts() {
           <div className="mt-6 border-t pt-5">
             <p className="text-sm font-medium mb-2">
               Product Images
-              {previews.length > 0 && <span className="ml-2 text-xs text-gray-400 font-normal">{previews.length} image{previews.length > 1 ? 's' : ''} selected</span>}
+              {previews.length > 0 && <span className="ml-2 text-xs text-gray-500 font-normal">{previews.length} image{previews.length > 1 ? 's' : ''} selected</span>}
               {editing && editing.images && editing.images.length > 0 && <span className="ml-2 text-xs text-primary-500 font-normal">{editing.images.length} already uploaded</span>}
             </p>
 
@@ -350,7 +350,7 @@ export default function AdminProducts() {
             )}
 
             <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} className={`border-2 border-dashed rounded-xl p-6 text-center transition ${dragOver ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-gray-400'}`}>
-              <FiUpload className="mx-auto text-gray-400 mb-2" size={32} />
+              <FiUpload className="mx-auto text-gray-500 mb-2" size={32} />
               <p className="text-sm text-gray-500 mb-2">Drag & drop images here</p>
               <button type="button" onClick={() => { setImageProductId(null); fileInputRef.current?.click(); }} className="text-primary-500 text-sm font-medium hover:underline">or click to browse</button>
             </div>
@@ -407,7 +407,7 @@ export default function AdminProducts() {
         <div className="space-y-3">
           {data?.data?.length === 0 && (
             <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl">
-              <FiFilter className="mx-auto text-gray-400 mb-2" size={32} />
+              <FiFilter className="mx-auto text-gray-500 mb-2" size={32} />
               <p className="text-gray-500">No products found matching your filters.</p>
             </div>
           )}
@@ -420,7 +420,7 @@ export default function AdminProducts() {
                 <div className="p-4 flex items-center gap-4 cursor-pointer" onClick={() => setExpandedProduct(isExpanded ? null : p.id)}>
                   <div className="flex-shrink-0">
                     {!p.images || p.images.length === 0 ? (
-                      <div className="w-20 h-20 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center"><FiImage className="text-gray-400" size={24} /></div>
+                      <div className="w-20 h-20 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center"><FiImage className="text-gray-500" size={24} /></div>
                     ) : (
                       <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
                         <img src={p.images[0].url} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
@@ -446,15 +446,15 @@ export default function AdminProducts() {
                   </div>
 
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); toggleFeatured.mutate({ id: p.id, isFeatured: p.isFeatured || false }); }} title={p.isFeatured ? 'Remove from featured' : 'Mark as featured'} className={`p-2 rounded-lg transition ${p.isFeatured ? 'text-yellow-600 bg-yellow-100' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-50'}`}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleFeatured.mutate({ id: p.id, isFeatured: p.isFeatured || false }); }} title={p.isFeatured ? 'Remove from featured' : 'Mark as featured'} className={`p-2 rounded-lg transition ${p.isFeatured ? 'text-yellow-600 bg-yellow-100' : 'text-gray-500 hover:text-yellow-600 hover:bg-yellow-50'}`}>
                       <FiStar size={18} fill={p.isFeatured ? 'currentColor' : 'none'} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); toggleBestSeller.mutate({ id: p.id, isBestSeller: (p as any).isBestSeller || false }); }} title={(p as any).isBestSeller ? 'Remove from best sellers' : 'Mark as best seller'} className={`p-2 rounded-lg transition ${(p as any).isBestSeller ? 'text-orange-600 bg-orange-100' : 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'}`}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleBestSeller.mutate({ id: p.id, isBestSeller: (p as any).isBestSeller || false }); }} title={(p as any).isBestSeller ? 'Remove from best sellers' : 'Mark as best seller'} className={`p-2 rounded-lg transition ${(p as any).isBestSeller ? 'text-orange-600 bg-orange-100' : 'text-gray-500 hover:text-orange-600 hover:bg-orange-50'}`}>
                       <FiTrendingUp size={18} />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); openEdit(p); }} className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition"><FiEdit size={18} /></button>
                     <button onClick={(e) => { e.stopPropagation(); setPendingDeleteProductId(p.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"><FiTrash2 size={18} /></button>
-                    <div className="p-2 text-gray-400">{isExpanded ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}</div>
+                    <div className="p-2 text-gray-500">{isExpanded ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}</div>
                   </div>
                 </div>
 
@@ -489,13 +489,13 @@ export default function AdminProducts() {
                               </div>
                               <div className="text-right">
                                 <p className={`text-sm font-bold ${inv.quantity <= inv.lowStockThreshold ? 'text-red-600' : 'text-green-700'}`}>{inv.quantity} units</p>
-                                <p className="text-xs text-gray-400">threshold: {inv.lowStockThreshold}</p>
+                                <p className="text-xs text-gray-500">threshold: {inv.lowStockThreshold}</p>
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-400 italic">No inventory records yet. Click "Add Stock" to create one.</p>
+                        <p className="text-sm text-gray-500 italic">No inventory records yet. Click "Add Stock" to create one.</p>
                       )}
 
                       {stockPanel?.productId === p.id && (

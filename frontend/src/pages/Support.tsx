@@ -155,7 +155,7 @@ export default function SupportPage() {
           </p>
 
           <div className="relative max-w-xl mx-auto">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
             <input
               type="text"
               placeholder="Search questions (e.g. Starlink, CCTV night vision, delivery...)"
@@ -221,7 +221,7 @@ export default function SupportPage() {
                     {isOpen ? (
                       <FiChevronUp size={20} className="text-accent flex-shrink-0" />
                     ) : (
-                      <FiChevronDown size={20} className="text-gray-400 flex-shrink-0" />
+                      <FiChevronDown size={20} className="text-gray-500 flex-shrink-0" />
                     )}
                   </button>
                   {isOpen && (

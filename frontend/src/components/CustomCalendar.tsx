@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { IoChevronBack, IoChevronForward, IoCalendarOutline } from 'react-icons/io5';
+import { FiChevronLeft, FiChevronRight, FiCalendar } from 'react-icons/fi';
 
 interface CustomCalendarProps {
   value: string;
@@ -36,7 +36,10 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
   useEffect(() => {
     if (!isOpen) return;
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsOpen(false);
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        inputRef.current?.focus();
+      }
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -76,9 +79,12 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
     const formattedDate = selected.toISOString().split('T')[0];
     onChange(formattedDate);
     
-    // Close popup and trigger auto-progression
+    // Close popup and trigger auto-progression. The day button that was just
+    // clicked unmounts along with the grid; without refocusing the input,
+    // focus drops to <body> and keyboard/screen-reader users lose their place.
     setTimeout(() => {
       setIsOpen(false);
+      inputRef.current?.focus();
       onComplete?.();
     }, 200);
   };
@@ -164,8 +170,8 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
           aria-label="Select installation date"
         />
-        <IoCalendarOutline 
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer"
+        <FiCalendar
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 cursor-pointer"
           onClick={() => setIsOpen(true)}
         />
       </div>
@@ -183,7 +189,7 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
               }`}
               aria-label="Previous month"
             >
-              <IoChevronBack className="w-5 h-5" />
+              <FiChevronLeft className="w-5 h-5" />
             </button>
             
             <div className="font-medium text-gray-900">
@@ -195,7 +201,7 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
               className="p-1 rounded hover:bg-gray-100 transition"
               aria-label="Next month"
             >
-              <IoChevronForward className="w-5 h-5" />
+              <FiChevronRight className="w-5 h-5" />
             </button>
           </div>
 

@@ -160,7 +160,7 @@ export default function AdminBanners() {
                   <div className="md:col-span-2">
                     <div className="flex items-start gap-2 mb-2">
                       <div className="flex items-center gap-2" title="Edit the banner to change its sort order">
-                        <FiHash className="text-gray-400" size={14} />
+                        <FiHash className="text-gray-500" size={14} />
                         <span className="text-xs text-gray-500 font-medium">Sort position {banner.sortOrder}</span>
                       </div>
                       {banner.badge && (
@@ -389,7 +389,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
         <form onSubmit={handleSubmit}>
           {/* Header */}
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
-            <h2 className="text-xl font-bold">
+            <h2 className="text-base font-bold">
               {banner ? 'Edit Banner' : 'Create Banner'}
             </h2>
           </div>
@@ -510,7 +510,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <FiImage size={40} className="text-gray-400 mb-2" />
+                    <FiImage size={40} className="text-gray-500 mb-2" />
                     <p className="mb-2 text-sm text-gray-500">
                       <span className="font-semibold">Click to upload</span> or drag and drop
                     </p>

@@ -45,7 +45,8 @@ export default function AdminInstallations() {
         <PageHeader icon={FiTool} title="Installation Requests" subtitle="Review and schedule customer installation requests." />
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Customer</th>
@@ -64,7 +65,7 @@ export default function AdminInstallations() {
               ))
             ) : !requests.length ? (
               <tr>
-                <td className="p-12 text-center text-gray-400" colSpan={5}>
+                <td className="p-12 text-center text-gray-500" colSpan={5}>
                   <FiTool size={36} className="mx-auto text-gray-300 mb-2" />
                   <p className="text-sm font-semibold">No installation requests yet</p>
                 </td>
@@ -95,6 +96,7 @@ export default function AdminInstallations() {
             )}
           </tbody>
         </table>
+        </div>
         <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
       </div>
     </div>

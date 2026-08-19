@@ -146,7 +146,7 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="w-full px-4 py-8">
-          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Checkout</h1>
+          <h1 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-2">Checkout</h1>
           <p className="text-gray-700">Complete your order</p>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
               <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">2</div>
               <div>
                 <p className="font-medium text-gray-500">Payment</p>
-                <p className="text-xs text-gray-400">Select payment method</p>
+                <p className="text-xs text-gray-500">Select payment method</p>
               </div>
             </div>
             <div className="flex-1 h-px bg-gray-200 mx-4" />
@@ -175,7 +175,7 @@ export default function CheckoutPage() {
               <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">3</div>
               <div>
                 <p className="font-medium text-gray-500">Confirmation</p>
-                <p className="text-xs text-gray-400">Review and complete</p>
+                <p className="text-xs text-gray-500">Review and complete</p>
               </div>
             </div>
           </div>

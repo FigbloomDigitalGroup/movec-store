@@ -72,7 +72,7 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
           className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-colors duration-200 z-10 disabled:opacity-40 disabled:cursor-not-allowed ${
             isWishlisted
               ? 'bg-red-50 text-red-500'
-              : 'bg-white text-gray-400 hover:text-red-500'
+              : 'bg-white text-gray-500 hover:text-red-500'
           }`}
           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           aria-pressed={isWishlisted}
@@ -126,7 +126,7 @@ export default function CompactProductCard({ product }: CompactProductCardProps)
             KES {product.price.toLocaleString()}
           </span>
           {product.compareAtPrice && (
-            <span className="text-xs text-gray-400 line-through ml-1">
+            <span className="text-xs text-gray-500 line-through ml-1">
               KES {product.compareAtPrice.toLocaleString()}
             </span>
           )}

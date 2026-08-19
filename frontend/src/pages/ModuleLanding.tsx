@@ -6,6 +6,7 @@ import { FiSearch, FiArrowRight, FiGlobe, FiVideo, FiPackage } from 'react-icons
 import SectionHero from '../components/ui/SectionHero';
 import ProductCard from '../components/ProductCard';
 import Skeleton from '../components/ui/Skeleton';
+import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
 
 interface StoreModule {
@@ -111,6 +112,12 @@ export default function ModuleLanding() {
 
   return (
     <div className="min-h-screen">
+      <div className="bg-white border-b border-gray-200">
+        <div className="w-full px-4 py-4">
+          <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: title }]} />
+        </div>
+      </div>
+
       <SectionHero title={title} subtitle={subtitle}>
         <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -138,7 +145,7 @@ export default function ModuleLanding() {
 
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="relative">
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

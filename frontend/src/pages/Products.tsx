@@ -152,7 +152,7 @@ export default function Products() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <form onSubmit={handleSearch} className="relative flex-1">
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
               <input
                 type="text"
                 placeholder="Search products..."

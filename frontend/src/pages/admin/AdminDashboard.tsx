@@ -165,7 +165,7 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-400 py-8">No categories found</p>
+                <p className="text-center text-gray-500 py-8">No categories found</p>
               )}
             </div>
           </div>
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                            <FiPackage className="text-gray-400" size={20} />
+                            <FiPackage className="text-gray-500" size={20} />
                           </div>
                         )}
                         <div>
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                 
                 {!recentProducts?.data?.length && (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-gray-400">
+                    <td colSpan={4} className="py-8 text-center text-gray-500">
                       No products added yet
                     </td>
                   </tr>

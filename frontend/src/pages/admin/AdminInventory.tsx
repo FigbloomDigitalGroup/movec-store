@@ -101,7 +101,8 @@ export default function AdminInventory() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Product</th>
@@ -119,7 +120,7 @@ export default function AdminInventory() {
               ))
             ) : !data?.length ? (
               <tr>
-                <td className="p-8 text-center text-gray-400 text-sm" colSpan={4}>No inventory records yet.</td>
+                <td className="p-8 text-center text-gray-500 text-sm" colSpan={4}>No inventory records yet.</td>
               </tr>
             ) : (
               data?.map((item: any) => (
@@ -133,6 +134,7 @@ export default function AdminInventory() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

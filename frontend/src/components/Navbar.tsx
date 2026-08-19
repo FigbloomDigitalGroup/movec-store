@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useAuthStore } from '../store/authStore';
@@ -12,8 +12,18 @@ import {
   FiSearch,
   FiX,
 } from 'react-icons/fi';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import logo from '../assets/logo.png';
+
+const NAV_LINKS = [
+  { to: '/shop', label: 'Shop' },
+  { to: '/solutions/starlink', label: 'Starlink' },
+  { to: '/solutions/cctv', label: 'CCTV' },
+  { to: '/products?category=networking', label: 'Networking' },
+  { to: '/products?category=accessories', label: 'Accessories' },
+  { to: '/installation', label: 'Installation' },
+  { to: '/support/faqs', label: 'Support' },
+];
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -34,12 +44,30 @@ export default function Navbar() {
   const wishlistCount = isAuthenticated ? apiWishlist?.length || 0 : guestWishlistCount;
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname + location.search;
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [accountOpen]);
 
   return (
     <>
-      <nav className="bg-white/95 border-b border-neutral-200 sticky top-0 z-50 backdrop-blur-xl">
+      <nav aria-label="Main" className="bg-white/95 border-b border-neutral-200 sticky top-0 z-50 backdrop-blur-xl">
         <div className="w-full px-4">
           <div className="flex items-center justify-between gap-6 h-14">
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
@@ -47,23 +75,25 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-              {[
-                { to: '/shop', label: 'Shop' },
-                { to: '/solutions/starlink', label: 'Starlink' },
-                { to: '/solutions/cctv', label: 'CCTV' },
-                { to: '/products?category=networking', label: 'Networking' },
-                { to: '/products?category=accessories', label: 'Accessories' },
-                { to: '/installation', label: 'Installation' },
-                { to: '/support/faqs', label: 'Support' },
-              ].map(({ to, label }) => (
-                <Link key={to} to={to} className="text-sm font-medium text-neutral-700 hover:text-accent transition">
-                  {label}
-                </Link>
-              ))}
+              {NAV_LINKS.map(({ to, label }) => {
+                const isActive = currentPath === to;
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`text-sm font-medium transition ${
+                      isActive ? 'text-accent font-semibold' : 'text-neutral-700 hover:text-accent'
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="flex items-center gap-4 flex-shrink-0">
-              <button onClick={() => {}} className="p-1.5 text-neutral-600 hover:text-accent transition" aria-label="Search">
+              <button onClick={() => navigate('/products')} className="p-1.5 text-neutral-600 hover:text-accent transition" aria-label="Search products">
                 <FiSearch size={18} />
               </button>
 
@@ -76,26 +106,32 @@ export default function Navbar() {
                 )}
               </Link>
 
-              <div className="relative">
-                <button onClick={() => setAccountOpen(!accountOpen)} className="p-1.5 text-neutral-600 hover:text-accent transition" aria-label="Account">
+              <div className="relative" ref={accountRef}>
+                <button
+                  onClick={() => setAccountOpen(!accountOpen)}
+                  className="p-1.5 text-neutral-600 hover:text-accent transition"
+                  aria-label="Account menu"
+                  aria-haspopup="menu"
+                  aria-expanded={accountOpen}
+                >
                   <FiUser size={18} />
                 </button>
                 {accountOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-neutral-200 rounded-lg shadow-xl z-50" onMouseLeave={() => setAccountOpen(false)}>
+                  <div role="menu" aria-label="Account" className="absolute right-0 top-full mt-2 w-48 bg-white border border-neutral-200 rounded-lg shadow-xl z-50">
                     {isAuthenticated ? (
                       <>
-                        <Link to="/profile" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">My Profile</Link>
-                        <Link to="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">My Orders</Link>
-                        <Link to="/wishlist" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Wishlist</Link>
+                        <Link role="menuitem" to="/profile" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">My Profile</Link>
+                        <Link role="menuitem" to="/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">My Orders</Link>
+                        <Link role="menuitem" to="/wishlist" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Wishlist</Link>
                         {user?.roles?.includes('ADMIN') && (
-                          <Link to="/admin" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Admin Panel</Link>
+                          <Link role="menuitem" to="/admin" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Admin Panel</Link>
                         )}
-                        <button onClick={() => { logout(); navigate('/'); setAccountOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 border-t border-neutral-100 transition">Sign Out</button>
+                        <button role="menuitem" onClick={() => { logout(); navigate('/'); setAccountOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 border-t border-neutral-100 transition">Sign Out</button>
                       </>
                     ) : (
                       <>
-                        <Link to="/login" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Sign In</Link>
-                        <Link to="/register" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Create Account</Link>
+                        <Link role="menuitem" to="/login" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Sign In</Link>
+                        <Link role="menuitem" to="/register" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-accent transition">Create Account</Link>
                       </>
                     )}
                   </div>
@@ -133,17 +169,22 @@ export default function Navbar() {
         </div>
 
         <div className="px-4 py-4 space-y-1">
-          {[
-            { to: '/shop', label: 'Shop' },
-            { to: '/solutions/starlink', label: 'Starlink' },
-            { to: '/solutions/cctv', label: 'CCTV' },
-            { to: '/products?category=networking', label: 'Networking' },
-            { to: '/products?category=accessories', label: 'Accessories' },
-            { to: '/installation', label: 'Installation' },
-            { to: '/support/faqs', label: 'Support' },
-          ].map(({ to, label }) => (
-            <Link key={to} to={to} onClick={() => setOpen(false)} className="block py-3 px-3 text-neutral-700 hover:text-accent font-medium transition">{label}</Link>
-          ))}
+          {NAV_LINKS.map(({ to, label }) => {
+            const isActive = currentPath === to;
+            return (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setOpen(false)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`block py-3 px-3 rounded-lg font-medium transition ${
+                  isActive ? 'bg-neutral-50 text-accent' : 'text-neutral-700 hover:text-accent'
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
 
           <div className="border-t border-neutral-100 pt-3 mt-3 space-y-1">
             <Link to="/cart" onClick={() => setOpen(false)} className="flex items-center justify-between py-3 px-3 text-neutral-700 hover:text-accent font-medium transition">

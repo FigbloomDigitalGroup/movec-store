@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { Toaster } from 'react-hot-toast';
@@ -51,6 +51,12 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+function RedirectToModule() {
+  const { moduleSlug } = useParams();
+  return <Navigate to={moduleSlug ? `/solutions/${moduleSlug}` : '/'} replace />;
+}
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -130,10 +136,10 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/solutions/:moduleSlug" element={<ModuleLanding />} />
-              <Route path="/solutions/:moduleSlug/products" element={<Navigate to="/solutions/:moduleSlug" replace />} />
+              <Route path="/solutions/:moduleSlug/products" element={<RedirectToModule />} />
               {/* Legacy redirects */}
               <Route path="/modules" element={<Navigate to="/" replace />} />
-              <Route path="/modules/:moduleSlug" element={<Navigate to="/solutions/:moduleSlug" replace />} />
+              <Route path="/modules/:moduleSlug" element={<RedirectToModule />} />
               <Route path="/cctv" element={<Navigate to="/solutions/cctv" replace />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
@@ -149,6 +155,7 @@ export default function App() {
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/refund" element={<RefundPolicy />} />
               <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
             <Route element={<RequireAdmin />}>
               <Route element={<AdminLayout />}>

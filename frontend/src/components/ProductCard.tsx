@@ -165,7 +165,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
           {product.compareAtPrice && (
-            <span className="text-[9px] text-gray-400 line-through">
+            <span className="text-[9px] text-gray-500 line-through">
               KES {product.compareAtPrice.toLocaleString()}
             </span>
           )}
@@ -197,7 +197,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className={`p-1.5 rounded-lg border-2 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed ${
               isWishlisted
                 ? 'border-red-500 bg-red-50 text-red-500'
-                : 'border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500'
+                : 'border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500'
             }`}
           >
             <FiHeart size={12} fill={isWishlisted ? 'currentColor' : 'none'} />

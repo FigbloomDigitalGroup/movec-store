@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiCheckCircle } from 'react-icons/fi';
 import api from '../lib/api';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
+import Input from '../components/ui/Input';
+import Alert from '../components/ui/Alert';
 import AnimatedContent from '../components/AnimatedContent';
 
 export default function ContactPage() {
@@ -40,7 +42,7 @@ export default function ContactPage() {
       <div className="w-full px-4">
         <AnimatedContent distance={30} direction="vertical" duration={0.6}>
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
+          <h1 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Have questions about Starlink or CCTV installations? We're here to help. Reach out to our team.
           </p>
@@ -137,67 +139,54 @@ export default function ContactPage() {
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {status === 'error' && (
-                      <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
-                        <FiAlertCircle size={20} />
-                        <span>Failed to send message. Please try again or contact us via WhatsApp.</span>
-                      </div>
+                      <Alert variant="danger">
+                        Failed to send message. Please try again or contact us via WhatsApp.
+                      </Alert>
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                        <input
-                          id="contact-name"
-                          type="text"
-                          name="name"
-                          required
-                          value={formData.name}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
-                          placeholder="John Doe"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                        <input
-                          id="contact-email"
-                          type="email"
-                          name="email"
-                          required
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
-                          placeholder="john@example.com"
-                        />
-                      </div>
+                      <Input
+                        id="contact-name"
+                        type="text"
+                        name="name"
+                        label="Full Name"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="John Doe"
+                      />
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        name="email"
+                        label="Email Address"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="john@example.com"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                        <input
-                          id="contact-phone"
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
-                          placeholder="+254 796285718"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="contact-subject" className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
-                        <input
-                          id="contact-subject"
-                          type="text"
-                          name="subject"
-                          required
-                          value={formData.subject}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
-                          placeholder="How can we help?"
-                        />
-                      </div>
+                      <Input
+                        id="contact-phone"
+                        type="tel"
+                        name="phone"
+                        label="Phone Number"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="+254 796285718"
+                      />
+                      <Input
+                        id="contact-subject"
+                        type="text"
+                        name="subject"
+                        label="Subject"
+                        required
+                        value={formData.subject}
+                        onChange={handleChange}
+                        placeholder="How can we help?"
+                      />
                     </div>
 
                     <div>

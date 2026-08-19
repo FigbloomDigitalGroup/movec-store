@@ -94,7 +94,7 @@ export default function CartPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="w-full px-4 py-8">
-          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Shopping Cart</h1>
+          <h1 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-2">Shopping Cart</h1>
           {!isAuthenticated && (
             <p className="text-gray-700 text-sm">
               You're browsing as a guest.{' '}
@@ -130,7 +130,7 @@ export default function CartPage() {
                         {item.image ? (
                           <img src={item.image} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <FiShoppingBag className="text-gray-400" size={32} />
+                          <FiShoppingBag className="text-gray-500" size={32} />
                         )}
                       </div>
                       <div className="flex-1">

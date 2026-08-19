@@ -41,7 +41,7 @@ export default function OrdersPage() {
             <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center">
               <FiPackage className="text-primary-500" size={20} />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Orders</h1>
+            <h1 className="text-3xl md:text-4xl font-section-title text-gray-900">My Orders</h1>
           </div>
           <p className="text-gray-500 text-sm ml-14">
             Track and manage all your purchases in one place.
@@ -54,7 +54,7 @@ export default function OrdersPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search */}
           <div className="relative flex-1">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
             <input
               type="text"
               placeholder="Search by order number or product..."
@@ -147,7 +147,7 @@ export default function OrdersPage() {
                           className="w-full h-full object-contain p-1"
                         />
                       ) : (
-                        <FiPackage className="text-gray-400" size={22} />
+                        <FiPackage className="text-gray-500" size={22} />
                       )}
                     </div>
 
@@ -162,7 +162,7 @@ export default function OrdersPage() {
                         {order.items?.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
                       </p>
 
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         Placed {new Date(order.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric', month: 'short', day: 'numeric',
                         })}

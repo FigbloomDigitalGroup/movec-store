@@ -54,7 +54,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
               <div className="min-w-0">{title}</div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+                className="text-gray-500 hover:text-gray-600 transition flex-shrink-0"
                 aria-label="Close"
               >
                 <FiX size={20} />

@@ -82,7 +82,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
               {order.customer?.firstName} {order.customer?.lastName} · {order.customer?.email}
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition" aria-label="Close">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600 transition" aria-label="Close">
             <FiX size={20} />
           </button>
         </div>
@@ -249,7 +249,7 @@ export default function AdminOrders() {
         subtitle={`${grandTotal} total order${grandTotal !== 1 ? 's' : ''} — update status, track shipments, and manage fulfilment.`}
         action={
           <div className="relative w-full md:w-72">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
             <input
               type="text"
               placeholder="Search order # or customer..."
@@ -348,7 +348,7 @@ export default function AdminOrders() {
                           <p className="text-xs font-semibold text-gray-900">
                             {order.customer?.firstName} {order.customer?.lastName}
                           </p>
-                          <p className="text-[11px] text-gray-400">{order.customer?.email}</p>
+                          <p className="text-[11px] text-gray-500">{order.customer?.email}</p>
                         </div>
                       </div>
                     </td>
@@ -371,7 +371,7 @@ export default function AdminOrders() {
                           {order.paymentStatus}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-gray-400">—</span>
+                        <span className="text-[11px] text-gray-500">—</span>
                       )}
                     </td>
 

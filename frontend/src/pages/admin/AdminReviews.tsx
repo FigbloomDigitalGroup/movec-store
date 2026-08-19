@@ -134,7 +134,7 @@ export default function AdminReviews() {
         subtitle="Review, approve, or reject customer feedback for products in your store."
         action={
           <div className="relative w-full md:w-72">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
             <input
               type="text"
               placeholder="Search reviews, customers, products..."
@@ -187,7 +187,7 @@ export default function AdminReviews() {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Average Rating</p>
             <div className="flex items-baseline gap-2 mt-1">
               <h2 className="text-3xl font-bold text-gray-900">{averageRating}</h2>
-              <span className="text-xs text-gray-400">/ 5.0</span>
+              <span className="text-xs text-gray-500">/ 5.0</span>
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-yellow-50 text-yellow-500 flex items-center justify-center">
@@ -236,7 +236,7 @@ export default function AdminReviews() {
 
         {/* Rating Filter Dropdown */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <FiFilter size={14} className="text-gray-400" />
+          <FiFilter size={14} className="text-gray-500" />
           <span className="text-xs text-gray-500 font-medium">Filter by Rating:</span>
           <select
             value={ratingFilter}
@@ -332,7 +332,7 @@ export default function AdminReviews() {
                       </div>
                       <span className="text-xs font-bold text-gray-900">{review.rating}.0</span>
                       <span className="text-gray-300">•</span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-500">
                         {new Date(review.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api, { getErrorMessage } from '../lib/api';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
+import Alert from '../components/ui/Alert';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -38,15 +41,17 @@ export default function ResetPasswordPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">Reset Password</h1>
+        <h1 className="text-3xl md:text-4xl font-section-title text-center mb-8">Reset Password</h1>
         {message && (
-          <p className={`p-3 rounded mb-4 ${isError ? 'bg-red-50 text-red-700' : 'bg-primary-50 text-primary-500'}`}>
+          <Alert variant={isError ? 'danger' : 'success'} className="mb-4">
             {message}
-          </p>
+          </Alert>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password<span className="text-red-500" aria-hidden="true"> *</span>
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -54,7 +59,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full border rounded-lg pl-4 pr-10 py-2"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-10"
               />
               <button
                 type="button"
@@ -66,25 +71,18 @@ export default function ResetPasswordPage() {
               </button>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Confirm New Password</label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full border rounded-lg px-4 py-2"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
-          >
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            label="Confirm New Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          <Button type="submit" disabled={loading} fullWidth>
             {loading ? (
               <>
-                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white mr-2" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
@@ -93,7 +91,7 @@ export default function ResetPasswordPage() {
             ) : (
               'Reset Password'
             )}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

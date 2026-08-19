@@ -71,7 +71,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav aria-label="Admin sidebar" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {sidebarLinks.map((link) => (
             <Link
               key={link.to}
@@ -126,7 +126,7 @@ export default function AdminLayout() {
 
             {/* Right: clock + View Site */}
             <div className="flex items-center gap-3 ml-auto">
-              <span className="text-sm text-gray-400 font-medium hidden sm:block">{time}</span>
+              <span className="text-sm text-gray-500 font-medium hidden sm:block">{time}</span>
               <Link
                 to="/"
                 target="_blank"

@@ -88,7 +88,8 @@ export default function AdminUsers() {
       </div>
 
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gray-50 text-gray-600 uppercase tracking-wide text-xs">
             <tr>
               <th className="text-left p-4">Name</th>
@@ -99,6 +100,11 @@ export default function AdminUsers() {
             </tr>
           </thead>
           <tbody>
+            {!data?.data?.length && (
+              <tr>
+                <td colSpan={5} className="p-8 text-center text-gray-500 text-sm">No users found.</td>
+              </tr>
+            )}
             {data?.data?.map((user: any) => (
               <tr key={user.id} className="border-t hover:bg-gray-50 transition">
                 {/* Name */}
@@ -121,7 +127,7 @@ export default function AdminUsers() {
                               key={role}
                               onClick={() => toggleRole(role)}
                               className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium transition
-                                ${selected ? ROLE_COLORS[role] : 'bg-gray-100 text-gray-400 border-gray-200'}`}
+                                ${selected ? ROLE_COLORS[role] : 'bg-gray-100 text-gray-500 border-gray-200'}`}
                             >
                               {selected && <FiCheck size={11} />}
                               {role}
@@ -161,7 +167,7 @@ export default function AdminUsers() {
                       <button
                         onClick={() => openRoleEditor(user)}
                         title="Edit roles"
-                        className="ml-1 text-gray-400 hover:text-primary-500 transition"
+                        className="ml-1 text-gray-500 hover:text-primary-500 transition"
                       >
                         <FiShield size={14} />
                       </button>
@@ -209,6 +215,7 @@ export default function AdminUsers() {
             ))}
           </tbody>
         </table>
+        </div>
         {!isLoading && (
           <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
         )}

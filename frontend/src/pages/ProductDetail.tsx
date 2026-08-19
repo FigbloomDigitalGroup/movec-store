@@ -21,6 +21,7 @@ import {
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import SectionHero from '../components/ui/SectionHero';
+import Breadcrumbs from '../components/ui/Breadcrumbs';
 
 /* ─── Star Picker Component ─────────────────────────────────── */
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -44,7 +45,8 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
             onClick={() => onChange(star)}
             onMouseEnter={() => setHovered(star)}
             onMouseLeave={() => setHovered(0)}
-            className="transition-transform hover:scale-125 focus:outline-none"
+            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+            className="transition-transform hover:scale-125 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
           >
             <FiStar
               size={28}
@@ -110,7 +112,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   if (!isAuthenticated) {
     return (
       <div className="mt-10 border-t border-gray-200 pt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-section-title text-gray-900 mb-6 flex items-center gap-2">
           <FiEdit3 className="text-accent" /> Write a Review
         </h2>
         <div className="bg-accent-100 border border-accent rounded-2xl p-8 text-center">
@@ -145,7 +147,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   if (submitted) {
     return (
       <div className="mt-10 border-t border-gray-200 pt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-section-title text-gray-900 mb-6 flex items-center gap-2">
           <FiEdit3 className="text-accent" /> Write a Review
         </h2>
         <div className="bg-accent-100 border border-accent rounded-2xl p-8 text-center">
@@ -165,7 +167,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   /* Review form */
   return (
     <div className="mt-10 border-t border-gray-200 pt-10">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+      <h2 className="text-2xl font-section-title text-gray-900 mb-6 flex items-center gap-2">
             <FiEdit3 className="text-accent" /> Write a Review
       </h2>
 
@@ -182,7 +184,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
           {/* Review Title */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Review Title <span className="text-gray-400 font-normal">(optional)</span>
+              Review Title <span className="text-gray-500 font-normal">(optional)</span>
             </label>
             <input
               type="text"
@@ -207,7 +209,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               maxLength={2000}
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent focus:bg-white transition resize-none"
             />
-            <p className="text-xs text-gray-400 mt-1 text-right">{body.length}/2000</p>
+            <p className="text-xs text-gray-500 mt-1 text-right">{body.length}/2000</p>
           </div>
 
           {/* Moderation notice + submit */}
@@ -243,7 +245,7 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 
   return (
     <div className="mt-10 border-t border-gray-200 pt-10">
-      <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+      <h2 className="text-2xl font-section-title text-gray-900 mb-8 flex items-center gap-2">
         <FiStar className="text-yellow-400 fill-yellow-400" /> Customer Reviews
       </h2>
 
@@ -305,7 +307,7 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
                   <p className="font-semibold text-gray-900 text-sm">
                     {review.user?.firstName} {review.user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     {new Date(review.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric', month: 'short', day: 'numeric',
                     })}
@@ -416,18 +418,19 @@ export default function ProductDetail() {
   const inStock = product.inventory?.reduce((sum: number, i: any) => sum + i.quantity, 0) > 0;
   const approvedReviews = (product.reviews || []).filter((r: any) => r.isApproved);
 
+  const primaryCategory = product.categories?.[0];
+
   return (
     <div className="min-h-screen">
-      {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="w-full px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm">
-            <Link to="/shop" className="text-gray-500 hover:text-gray-700">Shop</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/products" className="text-gray-500 hover:text-gray-700">Products</Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">{product.name}</span>
-          </nav>
+          <Breadcrumbs
+            items={[
+              { label: 'Products', to: '/products' },
+              ...(primaryCategory ? [{ label: primaryCategory.name, to: `/products?category=${primaryCategory.slug}` }] : []),
+              { label: product.name },
+            ]}
+          />
         </div>
       </div>
 
@@ -447,7 +450,7 @@ export default function ProductDetail() {
                   loading="lazy"
                 />
               ) : (
-                <div className="text-gray-400 text-xl">No image available</div>
+                <div className="text-gray-500 text-xl">No image available</div>
               )}
               {images.length > 1 && (
                 <>
@@ -533,7 +536,7 @@ export default function ProductDetail() {
               </span>
               {product.compareAtPrice && (
                 <>
-                  <span className="text-lg text-gray-400 line-through">
+                  <span className="text-lg text-gray-500 line-through">
                     KES {product.compareAtPrice.toLocaleString()}
                   </span>
                   <Badge variant="success">

@@ -92,14 +92,14 @@ export default function AdminReports() {
         <div className="flex items-center gap-3 flex-wrap">
           {/* Date Filter Inputs */}
           <div className="flex items-center gap-2 bg-gray-50 px-3.5 py-2 rounded-xl border border-gray-200 text-xs text-gray-700">
-            <FiCalendar className="text-gray-400" size={14} />
+            <FiCalendar className="text-gray-500" size={14} />
             <input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
               className="bg-transparent border-none outline-none text-xs text-gray-800"
             />
-            <span className="text-gray-400">-</span>
+            <span className="text-gray-500">-</span>
             <input
               type="date"
               value={to}
@@ -124,12 +124,12 @@ export default function AdminReports() {
             >
               <FiDownload size={14} className="text-gray-600" />
               Export Report
-              <FiChevronDown size={14} className="text-gray-400" />
+              <FiChevronDown size={14} className="text-gray-500" />
             </button>
 
             {exportOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl z-30 p-2 text-xs space-y-1">
-                <div className="px-3 py-1.5 font-bold text-gray-400 uppercase text-[10px] border-b border-gray-100">
+                <div className="px-3 py-1.5 font-bold text-gray-500 uppercase text-[10px] border-b border-gray-100">
                   Select Report to Download
                 </div>
                 {[
@@ -149,7 +149,7 @@ export default function AdminReports() {
                     className="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-xl transition flex items-center justify-between"
                   >
                     <span>{item.label}</span>
-                    <FiDownload size={12} className="text-gray-400" />
+                    <FiDownload size={12} className="text-gray-500" />
                   </button>
                 ))}
               </div>
@@ -231,9 +231,9 @@ export default function AdminReports() {
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-base font-bold text-gray-900">Orders by Payment Method</h3>
-              <p className="text-xs text-gray-400 mt-0.5">{paymentMethodTotal} orders in the selected period</p>
+              <p className="text-xs text-gray-500 mt-0.5">{paymentMethodTotal} orders in the selected period</p>
             </div>
-            <button onClick={() => downloadReport('sales', 'csv')} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
+            <button onClick={() => downloadReport('sales', 'csv')} className="text-gray-500 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
               <FiMoreHorizontal size={18} />
             </button>
           </div>
@@ -243,7 +243,7 @@ export default function AdminReports() {
               {[1, 2, 3].map((i) => <div key={i} className="h-8 bg-gray-100 rounded-lg animate-pulse" />)}
             </div>
           ) : paymentMethodEntries.length === 0 ? (
-            <p className="text-sm text-gray-400 py-10 text-center">No orders in this period yet.</p>
+            <p className="text-sm text-gray-500 py-10 text-center">No orders in this period yet.</p>
           ) : (
             <div className="space-y-3">
               {paymentMethodEntries
@@ -280,7 +280,7 @@ export default function AdminReports() {
           <div>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-base font-bold text-gray-900">Top Products</h3>
-              <button className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
+              <button className="text-gray-500 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
                 <FiMoreHorizontal size={18} />
               </button>
             </div>
@@ -303,14 +303,14 @@ export default function AdminReports() {
                     className="flex items-center justify-between p-2.5 hover:bg-gray-50 rounded-2xl transition border border-transparent hover:border-gray-100"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200/60 flex items-center justify-center flex-shrink-0 text-gray-400">
+                      <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200/60 flex items-center justify-center flex-shrink-0 text-gray-500">
                         <FiPackage size={20} />
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-xs font-bold text-gray-900 truncate" title={prod.name}>
                           {prod.name}
                         </h4>
-                        <p className="text-[10px] text-gray-400 mt-0.5">{prod.totalSold} sold</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{prod.totalSold} sold</p>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-gray-900 flex-shrink-0 ml-2">
@@ -319,7 +319,7 @@ export default function AdminReports() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-400 py-10 text-center">No sales recorded in this period yet.</p>
+                <p className="text-sm text-gray-500 py-10 text-center">No sales recorded in this period yet.</p>
               )}
             </div>
           </div>
@@ -341,16 +341,16 @@ export default function AdminReports() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-base font-bold text-gray-900">Installations by Status</h3>
-              <button className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
+              <button className="text-gray-500 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
                 <FiMoreHorizontal size={18} />
               </button>
             </div>
-            <p className="text-xs text-gray-400 mb-4">{installationStatusTotal} total requests</p>
+            <p className="text-xs text-gray-500 mb-4">{installationStatusTotal} total requests</p>
 
             {instLoading ? (
               <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-6 bg-gray-100 rounded animate-pulse" />)}</div>
             ) : installationStatusEntries.length === 0 ? (
-              <p className="text-sm text-gray-400 py-6 text-center">No installation requests in this period yet.</p>
+              <p className="text-sm text-gray-500 py-6 text-center">No installation requests in this period yet.</p>
             ) : (
               <div className="space-y-3 pt-2">
                 {installationStatusEntries.map(({ status, count }) => {
@@ -386,9 +386,9 @@ export default function AdminReports() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Top Customers</h3>
-                <p className="text-xs text-gray-400">Ranked by total spend in the selected period</p>
+                <p className="text-xs text-gray-500">Ranked by total spend in the selected period</p>
               </div>
-              <button className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
+              <button className="text-gray-500 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-50 transition">
                 <FiMoreHorizontal size={18} />
               </button>
             </div>
@@ -405,18 +405,18 @@ export default function AdminReports() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-gray-800 truncate">{c.firstName} {c.lastName}</p>
-                        <p className="text-[10px] text-gray-400 truncate">{c.email}</p>
+                        <p className="text-[10px] text-gray-500 truncate">{c.email}</p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
                       <span className="text-xs font-bold text-gray-900 block">KES {(c.totalSpent ?? 0).toLocaleString()}</span>
-                      <span className="text-[10px] text-gray-400">{c.ordersCount} orders</span>
+                      <span className="text-[10px] text-gray-500">{c.ordersCount} orders</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400 py-10 text-center">No customer orders in this period yet.</p>
+              <p className="text-sm text-gray-500 py-10 text-center">No customer orders in this period yet.</p>
             )}
           </div>
 

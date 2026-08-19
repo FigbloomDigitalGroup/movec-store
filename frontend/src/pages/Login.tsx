@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getErrorMessage, resendVerification } from '../lib/api';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
+import Alert from '../components/ui/Alert';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -58,9 +61,9 @@ export default function Login() {
   return (
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">Login</h1>
+        <h1 className="text-3xl md:text-4xl font-section-title text-center mb-8">Login</h1>
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          <Alert variant="danger" className="mb-4">
             <p>{error}</p>
             {error.includes('Please verify your email') && (
               <div className="mt-2 text-sm">
@@ -78,15 +81,21 @@ export default function Login() {
                 )}
               </div>
             )}
-          </div>
+          </Alert>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            id="login-email"
+            type="email"
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
           <div>
-            <label htmlFor="login-email" className="block text-sm font-medium mb-1">Email</label>
-            <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full border rounded-lg px-4 py-2" />
-          </div>
-          <div>
-            <label htmlFor="login-password" className="block text-sm font-medium mb-1">Password</label>
+            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password<span className="text-red-500" aria-hidden="true"> *</span>
+            </label>
             <div className="relative">
               <input
                 id="login-password"
@@ -94,7 +103,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full border rounded-lg pl-4 pr-10 py-2"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-10"
               />
               <button
                 type="button"
@@ -106,14 +115,10 @@ export default function Login() {
               </button>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
-          >
+          <Button type="submit" disabled={loading} fullWidth>
             {loading ? (
               <>
-                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white mr-2" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
@@ -122,7 +127,7 @@ export default function Login() {
             ) : (
               'Login'
             )}
-          </button>
+          </Button>
         </form>
         <p className="text-center mt-4 text-sm">
           Don't have an account?{' '}

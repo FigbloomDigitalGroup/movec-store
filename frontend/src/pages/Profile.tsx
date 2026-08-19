@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { FiUser, FiMapPin, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiSave } from 'react-icons/fi';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import Input from '../components/ui/Input';
+import Skeleton from '../components/ui/Skeleton';
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
@@ -41,7 +43,7 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  const { data: addresses } = useQuery({
+  const { data: addresses, isLoading: addressesLoading } = useQuery({
     queryKey: ['addresses'],
     queryFn: () => api.get('/users/me/addresses').then(r => r.data),
   });
@@ -97,7 +99,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2 text-gray-900">My Account</h1>
+      <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">My Account</h1>
       <p className="text-gray-600 mb-8">Manage your profile, addresses, and password</p>
 
       {/* Tabs */}
@@ -166,7 +168,7 @@ export default function ProfilePage() {
       {activeTab === 'addresses' && (
         <div role="tabpanel" id="account-panel-addresses" aria-labelledby="account-tab-addresses">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Saved Addresses</h2>
+            <h2 className="text-xl font-section-title text-gray-900">Saved Addresses</h2>
             <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-primary-500 text-white px-4 py-2 rounded-lg flex items-center gap-2">
               <FiPlus size={16} /> Add Address
             </button>
@@ -184,12 +186,12 @@ export default function ProfilePage() {
                   <input type="checkbox" checked={addressForm.isDefault} onChange={e => setAddressForm({ ...addressForm, isDefault: e.target.checked })} className="w-4 h-4" />
                   Set as default
                 </label>
-                <input aria-label="Address Line 1" placeholder="Address Line 1" value={addressForm.line1} onChange={e => setAddressForm({ ...addressForm, line1: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input aria-label="Address Line 2" placeholder="Address Line 2" value={addressForm.line2} onChange={e => setAddressForm({ ...addressForm, line2: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input aria-label="City" placeholder="City" value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input aria-label="State" placeholder="State" value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input aria-label="Postal Code" placeholder="Postal Code" value={addressForm.postalCode} onChange={e => setAddressForm({ ...addressForm, postalCode: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input aria-label="Country" placeholder="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <Input label="Address Line 1" value={addressForm.line1} onChange={e => setAddressForm({ ...addressForm, line1: e.target.value })} required />
+                <Input label="Address Line 2" value={addressForm.line2} onChange={e => setAddressForm({ ...addressForm, line2: e.target.value })} />
+                <Input label="City" value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} required />
+                <Input label="State" value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} />
+                <Input label="Postal Code" value={addressForm.postalCode} onChange={e => setAddressForm({ ...addressForm, postalCode: e.target.value })} required />
+                <Input label="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} />
               </div>
               <div className="flex gap-3 mt-4">
                 <button
@@ -205,23 +207,29 @@ export default function ProfilePage() {
           )}
 
           <div className="space-y-3">
-            {addresses?.map((addr: any) => (
-              <div key={addr.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 flex justify-between items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{addr.type}</span>
-                    {addr.isDefault && <span className="bg-primary-50 text-primary-500 text-xs px-2 py-0.5 rounded-full">Default</span>}
+            {addressesLoading ? (
+              [1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)
+            ) : (
+              <>
+                {addresses?.map((addr: any) => (
+                  <div key={addr.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{addr.type}</span>
+                        {addr.isDefault && <span className="bg-primary-50 text-primary-500 text-xs px-2 py-0.5 rounded-full">Default</span>}
+                      </div>
+                      <p className="text-gray-600">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}</p>
+                      <p className="text-gray-500 text-sm">{addr.city}{addr.state ? `, ${addr.state}` : ''} · {addr.postalCode} · {addr.country}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => startEditAddress(addr)} aria-label="Edit address" className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg"><FiEdit2 size={16} /></button>
+                      <button onClick={() => setPendingDeleteAddressId(addr.id)} aria-label="Delete address" className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 size={16} /></button>
+                    </div>
                   </div>
-                  <p className="text-gray-600">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}</p>
-                  <p className="text-gray-500 text-sm">{addr.city}{addr.state ? `, ${addr.state}` : ''} · {addr.postalCode} · {addr.country}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => startEditAddress(addr)} aria-label="Edit address" className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg"><FiEdit2 size={16} /></button>
-                  <button onClick={() => setPendingDeleteAddressId(addr.id)} aria-label="Delete address" className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 size={16} /></button>
-                </div>
-              </div>
-            ))}
-            {!addresses?.length && <p className="text-gray-400 text-center py-8 bg-white/80 backdrop-blur-sm rounded-xl">No addresses saved yet.</p>}
+                ))}
+                {!addresses?.length && <p className="text-gray-500 text-center py-8 bg-white/80 backdrop-blur-sm rounded-xl">No addresses saved yet.</p>}
+              </>
+            )}
           </div>
         </div>
       )}

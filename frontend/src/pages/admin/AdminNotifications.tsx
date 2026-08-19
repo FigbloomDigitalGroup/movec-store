@@ -232,7 +232,7 @@ export default function AdminNotifications() {
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
                   <label className="block text-xs font-bold text-gray-700">Select Target Customer</label>
                   <div className="relative">
-                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
                     <input
                       type="text"
                       placeholder="Search customer by name or email..."
@@ -263,7 +263,7 @@ export default function AdminNotifications() {
                 <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
                   Notification Category
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { key: 'PROMO', label: 'Promo 🏷️' },
                     { key: 'ORDER', label: 'Order 📦' },
@@ -332,7 +332,7 @@ export default function AdminNotifications() {
               <span className="text-xs font-bold uppercase tracking-wider text-primary-200 flex items-center gap-1.5">
                 <FiSmartphone size={14} /> Mobile App Preview
               </span>
-              <span className="text-[10px] text-gray-400">Live Render</span>
+              <span className="text-[10px] text-gray-500">Live Render</span>
             </div>
 
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl backdrop-blur-sm flex items-start gap-3">
@@ -344,7 +344,7 @@ export default function AdminNotifications() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-primary-200">
                     Movec Store • {type}
                   </span>
-                  <span className="text-[10px] text-gray-400">Just now</span>
+                  <span className="text-[10px] text-gray-500">Just now</span>
                 </div>
                 <h4 className="text-sm font-bold text-white mt-0.5 truncate">
                   {title.trim() || 'Notification Title Here'}
@@ -363,14 +363,14 @@ export default function AdminNotifications() {
             <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Sent Notification Logs</h3>
-                <p className="text-xs text-gray-400">History of recent alerts</p>
+                <p className="text-xs text-gray-500">History of recent alerts</p>
               </div>
 
               {/* Type Filter */}
               <select
                 value={filterType}
                 onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1 text-xs text-gray-700 font-semibold focus:outline-none"
+                className="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="all">All Types</option>
                 <option value="PROMO">PROMO</option>
@@ -390,7 +390,7 @@ export default function AdminNotifications() {
                   </div>
                 ))
               ) : logs.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
+                <div className="p-8 text-center text-gray-500">
                   <FiBell size={36} className="mx-auto text-gray-300 mb-2" />
                   <p className="text-xs font-semibold">No notification logs found</p>
                 </div>
@@ -402,7 +402,7 @@ export default function AdminNotifications() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       {getTypeBadge(log.type)}
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-gray-500">
                         {new Date(log.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -424,7 +424,7 @@ export default function AdminNotifications() {
                       </span>
                       <button
                         onClick={() => setPendingDeleteId(log.id)}
-                        className="text-gray-400 hover:text-red-500 transition p-1"
+                        className="text-gray-500 hover:text-red-500 transition p-1"
                         title="Delete log"
                       >
                         <FiTrash2 size={13} />

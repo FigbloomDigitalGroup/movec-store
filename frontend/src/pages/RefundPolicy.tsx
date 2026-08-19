@@ -10,7 +10,7 @@ export default function RefundPolicy() {
             <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center">
               <FiRefreshCw className="text-primary-500" size={24} />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Refund Policy</h1>
+            <h1 className="text-3xl md:text-4xl font-section-title text-gray-900">Refund Policy</h1>
           </div>
           <p className="text-gray-600">Last updated: July 21, 2026</p>
         </div>
@@ -104,15 +104,15 @@ export default function RefundPolicy() {
               <p className="text-gray-700 mb-4">To request a cancellation, return, or refund, reach out to us:</p>
               <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-3">
                 <div className="flex items-center gap-3">
-                  <FiMapPin className="text-gray-400 flex-shrink-0" size={18} />
+                  <FiMapPin className="text-gray-500 flex-shrink-0" size={18} />
                   <span className="text-gray-700">Nairobi, Kenya</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiPhone className="text-gray-400 flex-shrink-0" size={18} />
+                  <FiPhone className="text-gray-500 flex-shrink-0" size={18} />
                   <span className="text-gray-700">+254 796285718</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiMail className="text-gray-400 flex-shrink-0" size={18} />
+                  <FiMail className="text-gray-500 flex-shrink-0" size={18} />
                   <span className="text-gray-700">sales@movec.com</span>
                 </div>
               </div>

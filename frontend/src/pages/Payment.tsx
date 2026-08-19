@@ -97,7 +97,7 @@ export default function PaymentPage() {
                         <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
                             <FiClock className="text-amber-500" size={40} />
                         </div>
-                        <h1 className="text-3xl font-bold mb-2 text-gray-900">Still confirming your payment</h1>
+                        <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Still confirming your payment</h1>
                         <p className="text-gray-600 mb-8 max-w-lg mx-auto">
                             We couldn't confirm your payment automatically just now. If you completed the payment,
                             your order will update on its own within a few minutes — this page just couldn't verify
@@ -118,7 +118,7 @@ export default function PaymentPage() {
                                 <FiArrowRight size={16} />
                             </Link>
                         </div>
-                        <p className="text-sm text-gray-400 mt-8">
+                        <p className="text-sm text-gray-500 mt-8">
                             Still not updated after a few minutes? <Link to="/contact" className="text-primary-500 hover:underline">Contact support</Link> and we'll look into it.
                         </p>
                     </motion.div>
@@ -150,7 +150,7 @@ export default function PaymentPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="text-3xl font-bold text-center mb-2 text-gray-900"
+                            className="text-3xl md:text-4xl font-section-title text-center mb-2 text-gray-900"
                         >
                             Paystack Payment Initiated!
                         </motion.h1>
@@ -231,12 +231,12 @@ export default function PaymentPage() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-2 text-gray-900">Complete Payment</h1>
+            <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Complete Payment</h1>
             <p className="text-gray-600 mb-8">Order #{orderNumber}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-4">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Choose your payment method</h2>
+                    <h2 className="text-xl font-section-title text-gray-900 mb-4">Choose your payment method</h2>
 
                     <div className="w-full rounded-2xl border border-primary-500/40 bg-primary-50 p-6">
                         <div className="flex flex-col gap-4">
@@ -280,7 +280,7 @@ export default function PaymentPage() {
 
                 {/* Order Summary */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 h-fit sticky top-24">
-                    <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+                    <h2 className="text-xl font-section-title mb-4">Order Summary</h2>
                     {order?.items?.map((item: any, i: number) => (
                         <div key={i} className="flex justify-between py-2 border-b border-gray-200/30 text-sm">
                             <span>{item.productName} x {item.quantity}</span>

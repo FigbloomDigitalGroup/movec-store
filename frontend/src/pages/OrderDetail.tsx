@@ -57,18 +57,18 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
                       ? `${cfg.bg} ${cfg.text} ring-4 ring-offset-1 ${cfg.bg}`
                       : isDone
                       ? `${cfg.bg} ${cfg.text}`
-                      : 'bg-gray-100 text-gray-400'
+                      : 'bg-gray-100 text-gray-500'
                   }`}
                 >
                   {cfg.icon}
                 </div>
 
                 <div className="pt-1">
-                  <p className={`text-sm font-semibold ${isActive ? cfg.text : isDone ? 'text-gray-800' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-semibold ${isActive ? cfg.text : isDone ? 'text-gray-800' : 'text-gray-500'}`}>
                     {cfg.label}
                   </p>
                   {histEntry ? (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {new Date(histEntry.changedAt).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric',
                         hour: '2-digit', minute: '2-digit',
@@ -149,7 +149,7 @@ export default function OrderDetailPage() {
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl md:text-3xl font-section-title text-gray-900">
                 Order #{order.orderNumber}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
@@ -199,7 +199,7 @@ export default function OrderDetailPage() {
                       <p className="font-bold text-gray-900 text-sm">
                         KES {(item.price * item.quantity).toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-400">KES {item.price.toLocaleString()} each</p>
+                      <p className="text-xs text-gray-500">KES {item.price.toLocaleString()} each</p>
                     </div>
                   </div>
                 ))}
@@ -307,7 +307,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
                 {order.coupon && (
-                  <div className="text-xs text-gray-400 text-right">
+                  <div className="text-xs text-gray-500 text-right">
                     Coupon: <span className="font-mono font-semibold text-gray-600">{order.coupon.code}</span>
                   </div>
                 )}

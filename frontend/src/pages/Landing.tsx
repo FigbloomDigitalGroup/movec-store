@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fi';
 import Card, { CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import Alert from '../components/ui/Alert';
 import ProductCarousel from '../components/ProductCarousel';
 import type { Product } from '../types';
 
@@ -367,9 +368,9 @@ export default function Landing() {
           </div>
 
           {modulesError && (
-            <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-5 text-sm text-amber-800">
+            <Alert variant="warning" className="mb-6">
               Could not load the latest solution listings. Showing core product lines instead.
-            </div>
+            </Alert>
           )}
 
           {modulesLoading ? (

@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { FiFacebook, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin, FiClock, FiRefreshCw, FiTruck, FiHeadphones, FiAward } from 'react-icons/fi';
+import { FiFacebook, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin, FiClock, FiRefreshCw, FiTruck, FiHeadphones, FiAward, FiLock } from 'react-icons/fi';
 import { FaTiktok } from 'react-icons/fa6';
-import { FaLock } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 
 export default function Footer() {
@@ -12,7 +11,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
             {[
               { icon: FiAward, title: '100% Genuine Products', subtitle: 'Quality you can trust' },
-              { icon: FaLock, title: 'Secure Payments', subtitle: 'Safe & encrypted' },
+              { icon: FiLock, title: 'Secure Payments', subtitle: 'Safe & encrypted' },
               { icon: FiRefreshCw, title: 'Easy Returns', subtitle: 'Hassle-free returns' },
               { icon: FiTruck, title: 'Nationwide Delivery', subtitle: 'Fast delivery to your door' },
               { icon: FiHeadphones, title: '24/7 Customer Support', subtitle: 'We are always here' },

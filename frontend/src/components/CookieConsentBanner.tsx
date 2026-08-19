@@ -78,7 +78,7 @@ export default function CookieConsentBanner() {
                     <p className="text-sm font-medium text-gray-900">Necessary</p>
                     <p className="text-xs text-gray-500">Required for login, cart, and checkout to work. Always on.</p>
                   </div>
-                  <div className="text-xs font-medium text-gray-400">Always on</div>
+                  <div className="text-xs font-medium text-gray-500">Always on</div>
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <div>
