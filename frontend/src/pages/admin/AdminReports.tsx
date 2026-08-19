@@ -85,7 +85,7 @@ export default function AdminReports() {
       {/* Top Welcome & Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900">Reports</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reports</h1>
           <p className="text-gray-500 text-sm mt-1">
             An overview of sales, customers, products, and installation activity.
           </p>
@@ -169,7 +169,7 @@ export default function AdminReports() {
               <FiTrendingUp size={14} />
             </div>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
             {salesLoading ? '—' : (sales?.totalOrders ?? 0).toLocaleString()}
           </h2>
           {!salesLoading && (
@@ -184,7 +184,7 @@ export default function AdminReports() {
               <FiUsers size={14} />
             </div>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
             {custLoading ? '—' : (customers?.totalCustomers ?? 0).toLocaleString()}
           </h2>
           {!custLoading && (
@@ -199,7 +199,7 @@ export default function AdminReports() {
               <FiDollarSign size={14} />
             </div>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
             {salesLoading ? '—' : `KES ${(sales?.totalSales ?? 0).toLocaleString()}`}
           </h2>
           <p className="text-xs text-gray-500 mt-2">Excludes cancelled orders</p>
@@ -212,7 +212,7 @@ export default function AdminReports() {
               <FiTool size={14} />
             </div>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
             {instLoading ? '—' : (installations?.totalRequests ?? 0).toLocaleString()}
           </h2>
           <p className="text-xs text-gray-500 mt-2">
@@ -314,7 +314,7 @@ export default function AdminReports() {
                         <p className="text-[10px] text-gray-400 mt-0.5">{prod.totalSold} sold</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-gray-900 flex-shrink-0 ml-2">
+                    <span className="text-xs font-bold text-gray-900 flex-shrink-0 ml-2">
                       KES {(prod.price ?? 0).toLocaleString()}
                     </span>
                   </div>

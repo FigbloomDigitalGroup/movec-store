@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiPhone, FiMail, FiShield } from 'react-icons/fi';
-import AnimatedContent from '../components/AnimatedContent';
 import Button from '../components/ui/Button';
 import { useCookieConsentStore } from '../store/cookieConsentStore';
 
@@ -31,16 +30,13 @@ export default function CookiePolicy() {
           </p>
 
           <div className="space-y-8">
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">1. What Are Cookies</h2>
                 <p className="text-gray-700">
                   Cookies are small text files stored on your device when you visit a website. We also use similar technologies, such as browser local storage, for the same purposes described below.
                 </p>
               </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">2. Necessary Cookies</h2>
                 <p className="text-gray-700 mb-4">
@@ -52,27 +48,21 @@ export default function CookiePolicy() {
                   <li><strong>Cart cookies/local storage:</strong> remember items in your cart between visits.</li>
                 </ul>
               </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">3. Analytics Cookies</h2>
                 <p className="text-gray-700">
                   We do not currently use analytics or advertising cookies. If we introduce them in the future, they will only be activated if you opt in, and this policy will be updated accordingly.
                 </p>
               </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Third-Party Cookies</h2>
                 <p className="text-gray-700">
                   Our payment providers (M-Pesa, Paystack, PayPal) may set their own cookies while you complete a payment, governed by their own privacy and cookie policies. We do not control these cookies.
                 </p>
               </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">5. Managing Your Preferences</h2>
                 <p className="text-gray-700 mb-4">
@@ -80,9 +70,7 @@ export default function CookiePolicy() {
                 </p>
                 <Button variant="outline" onClick={openSettings}>Manage Cookie Preferences</Button>
               </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">6. Contact Us</h2>
                 <p className="text-gray-700 mb-4">If you have questions about this Cookie Policy, contact us:</p>
@@ -101,7 +89,6 @@ export default function CookiePolicy() {
                   </div>
                 </div>
               </section>
-            </AnimatedContent>
           </div>
         </div>
       </div>

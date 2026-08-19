@@ -31,6 +31,17 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Escape closes the calendar — already documented as intended behavior
+  // (see README-Calendar.md) but never actually implemented.
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   // Get days in month
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -227,14 +238,6 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
                     aria-label={`Select ${monthNames[displayDate.getMonth()]} ${day}`}
                   >
                     <span className="font-medium">{day}</span>
-                    {/* Availability dots - you can customize this based on your data */}
-                    {!isPast(day) && (
-                      <div className="flex gap-0.5 mt-0.5">
-                        {day % 3 === 0 && <span className="w-1 h-1 rounded-full bg-blue-400"></span>}
-                        {day % 5 === 0 && <span className="w-1 h-1 rounded-full bg-orange-400"></span>}
-                        {day % 7 === 0 && <span className="w-1 h-1 rounded-full bg-purple-400"></span>}
-                      </div>
-                    )}
                   </button>
                 ) : (
                   <div></div>

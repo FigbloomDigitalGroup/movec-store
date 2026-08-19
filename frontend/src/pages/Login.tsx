@@ -82,13 +82,14 @@ export default function Login() {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full border rounded-lg px-4 py-2" />
+            <label htmlFor="login-email" className="block text-sm font-medium mb-1">Email</label>
+            <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full border rounded-lg px-4 py-2" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label htmlFor="login-password" className="block text-sm font-medium mb-1">Password</label>
             <div className="relative">
               <input
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

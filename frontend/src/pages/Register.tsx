@@ -66,26 +66,27 @@ export default function Register() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">First Name</label>
-            <input type="text" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />
+            <label htmlFor="register-firstName" className="block text-sm font-medium mb-1">First Name</label>
+            <input id="register-firstName" type="text" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Last Name</label>
-            <input type="text" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />
+            <label htmlFor="register-lastName" className="block text-sm font-medium mb-1">Last Name</label>
+            <input id="register-lastName" type="text" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />
+          <label htmlFor="register-email" className="block text-sm font-medium mb-1">Email</label>
+          <input id="register-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Phone</label>
-          <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full border rounded-lg px-4 py-2" />
+          <label htmlFor="register-phone" className="block text-sm font-medium mb-1">Phone</label>
+          <input id="register-phone" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
+          <label htmlFor="register-password" className="block text-sm font-medium mb-1">Password</label>
           <div className="relative">
             <input
+              id="register-password"
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -102,9 +103,10 @@ export default function Register() {
             </button>
           </div>
 
-          <label className="block text-sm font-medium mb-1">Confirm Password</label>
-          <div className="relative mt-4">
+          <label htmlFor="register-confirmPassword" className="block text-sm font-medium mb-1 mt-4">Confirm Password</label>
+          <div className="relative">
             <input
+              id="register-confirmPassword"
               type={showPassword ? 'text' : 'password'}
               value={form.confirmPassword}
               onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}

@@ -3,7 +3,10 @@
 
 /* Registers `primary` as a real Tailwind color scale (mapped to the brand green)
    so utilities like bg-primary-100 / text-primary-700 / focus:ring-primary-500
-   actually generate instead of silently compiling to nothing. */
+   actually generate instead of silently compiling to nothing. Also registers our
+   own brand-tinted `neutral` scale here (not in :root) so bg-neutral-200 etc.
+   resolve to it instead of silently colliding with Tailwind's built-in gray scale
+   — confirmed nothing in this codebase already depends on Tailwind's default. */
 @theme {
   --color-primary-50: #ecfdf5;
   --color-primary-100: #d1f5e8;
@@ -11,17 +14,15 @@
   --color-primary-500: #10b982;
   --color-primary-600: #0d9b6f;
   --color-primary-700: #0b7d59;
-}
 
-:root {
-  /* Brand palette */
-  --color-brand-green: #10b982;
-  --color-brand-green-dark: #0d9b6f;
-  --color-brand-orange: #fc6501;
-  --color-brand-orange-deep: #e65500;
-  --color-brand-orange-soft: #fff4ee;
+  /* A single-value theme color (not a full scale) so bg-accent/text-accent/
+     border-accent — and, crucially, hover:/group-hover:-prefixed variants of
+     them like group-hover:text-accent — become real Tailwind utilities. The
+     hand-written .text-accent/.bg-accent classes further down stay in place
+     for the bare (non-variant) case; both resolve to the same color. */
+  --color-accent: #10b982;
+  --color-accent-dark: #0d9b6f;
 
-  /* 60% neutral foundation */
   --color-neutral-50: #f7f7f5;
   --color-neutral-100: #eef0ee;
   --color-neutral-200: #dfe3df;
@@ -32,6 +33,15 @@
   --color-neutral-700: #2d342f;
   --color-neutral-800: #1a1f1b;
   --color-neutral-900: #101412;
+}
+
+:root {
+  /* Brand palette */
+  --color-brand-green: #10b982;
+  --color-brand-green-dark: #0d9b6f;
+  --color-brand-orange: #fc6501;
+  --color-brand-orange-deep: #e65500;
+  --color-brand-orange-soft: #fff4ee;
 
   --color-accent: var(--color-brand-green);
   --color-accent-hover: var(--color-brand-green-dark);
@@ -224,4 +234,26 @@ a:hover {
 
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
+}
+
+/* These four classes were used across 57 call sites (product names, prices, section
+   titles, buttons) but never actually defined anywhere — they silently resolved to
+   no-ops, relying on whatever explicit Tailwind classes happened to sit next to them. */
+@utility font-section-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+@utility font-button {
+  font-weight: 600;
+}
+
+@utility font-product-name {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+@utility font-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }

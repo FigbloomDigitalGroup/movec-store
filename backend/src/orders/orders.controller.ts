@@ -36,6 +36,7 @@ export class OrdersController {
 
   @Get(':orderNumber/invoice')
   getInvoice(@Req() req: Request, @Param('orderNumber') orderNumber: string) {
-    return this.ordersService.generateInvoice(orderNumber);
+    const user = req.user as any;
+    return this.ordersService.generateInvoice(orderNumber, user.id);
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -49,6 +50,7 @@ export class CartService {
         productId: item.productId,
         name: item.product.name,
         slug: item.product.slug,
+        sku: item.product.sku,
         price: item.product.price.toNumber(),
         image: item.product.images[0]?.url || null,
         quantity: item.quantity,
@@ -145,10 +147,11 @@ export class CartService {
     return this.getCart(userId);
   }
 
-  async clearCart(userId: string) {
-    const cart = await this.prisma.cart.findUnique({ where: { userId } });
+  async clearCart(userId: string, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+    const cart = await client.cart.findUnique({ where: { userId } });
     if (cart) {
-      await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      await client.cartItem.deleteMany({ where: { cartId: cart.id } });
     }
   }
 }

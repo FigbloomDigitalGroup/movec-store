@@ -36,6 +36,17 @@ export default function CustomDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Escape closes the dropdown — this was already documented as the intended
+  // behavior (see README-Calendar.md) but never actually implemented.
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   const handleSelect = (optionId: string) => {
     onChange(optionId);
     setIsOpen(false);

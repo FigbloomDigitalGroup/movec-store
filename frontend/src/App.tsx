@@ -95,7 +95,27 @@ export default function App() {
         <BackToTop />
         <CookieConsentBanner />
 
-        <Toaster position="top-right" toastOptions={{ duration: 1800 }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 1800,
+            style: {
+              background: '#ffffff',
+              color: '#1a1f1b',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              fontSize: '14px',
+              boxShadow: '0 8px 24px -6px rgba(16, 24, 20, 0.18)',
+              border: '1px solid #eef0ee',
+            },
+            success: {
+              iconTheme: { primary: '#10B982', secondary: '#ffffff' },
+            },
+            error: {
+              iconTheme: { primary: '#ef4444', secondary: '#ffffff' },
+            },
+          }}
+        />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<Layout />}>

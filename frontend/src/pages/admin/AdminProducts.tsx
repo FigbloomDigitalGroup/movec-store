@@ -1,9 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import type { Product } from '../../types';
 import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter, FiPackage, FiChevronDown, FiChevronUp, FiTrendingUp } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
+const PAGE_SIZE = 20;
 
 export default function AdminProducts() {
   const queryClient = useQueryClient();
@@ -26,18 +29,30 @@ export default function AdminProducts() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [filterCategory, setFilterCategory] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [stockPanel, setStockPanel] = useState<{ productId: string; warehouseId: string; qty: number } | null>(null);
 
+  // Debounce the search box so every keystroke doesn't fire its own request.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-products', sortBy, sortOrder, filterCategory, searchTerm],
+    queryKey: ['admin-products', sortBy, sortOrder, filterCategory, debouncedSearch, page],
     queryFn: () => {
       const params = new URLSearchParams();
-      params.set('limit', '100');
+      params.set('limit', String(PAGE_SIZE));
+      params.set('page', String(page));
       params.set('sortBy', sortBy);
       params.set('order', sortOrder);
       if (filterCategory) params.set('category', filterCategory);
-      if (searchTerm) params.set('search', searchTerm);
+      if (debouncedSearch) params.set('search', debouncedSearch);
       return api.get(`/admin/products?${params.toString()}`).then(r => r.data);
     },
   });
@@ -227,17 +242,17 @@ export default function AdminProducts() {
             <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
             <input type="text" placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg" />
           </div>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="border rounded-lg px-4 py-2">
+          <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }} className="border rounded-lg px-4 py-2">
             <option value="">All Categories</option>
             {categories?.map((c: any) => <option key={c.id} value={c.slug}>{c.name}</option>)}
           </select>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border rounded-lg px-4 py-2">
+          <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }} className="border rounded-lg px-4 py-2">
             {sortOptions.map(opt => <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>)}
           </select>
-          <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="border rounded-lg px-3 py-2 text-sm hover:bg-gray-100 transition">
+          <button onClick={() => { setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc'); setPage(1); }} className="border rounded-lg px-3 py-2 text-sm hover:bg-gray-100 transition">
             {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
           </button>
-          <button onClick={() => { setFilterCategory(''); setSearchTerm(''); setSortBy('createdAt'); setSortOrder('desc'); }} className="text-sm text-blue-600 hover:underline">Reset</button>
+          <button onClick={() => { setFilterCategory(''); setSearchTerm(''); setSortBy('createdAt'); setSortOrder('desc'); setPage(1); }} className="text-sm text-blue-600 hover:underline">Reset</button>
         </div>
       </div>
 
@@ -523,6 +538,11 @@ export default function AdminProducts() {
               </div>
             );
           })}
+          {data?.data?.length > 0 && (
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow">
+              <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
+            </div>
+          )}
         </div>
       )}
     </div>

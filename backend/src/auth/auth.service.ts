@@ -15,6 +15,27 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RoleName } from '@prisma/client';
 
+// Standing credentials (refresh tokens, reset/verification tokens) are hashed before
+// being persisted — a database-only compromise (backup leak, misconfigured replica)
+// then can't be used directly to mint sessions or reset passwords. The token that's
+// actually emailed/cookied to the user is always the raw, unhashed value; only the
+// stored copy is a hash, looked up by hashing the incoming value the same way.
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+// Parses simple "7d" / "15m" / "1h" / "30s" durations (the format already used by
+// JWT_EXPIRATION/JWT_REFRESH_EXPIRATION) into milliseconds, so a session's DB-stored
+// expiresAt can be derived from the same config value that signs the JWT, instead of
+// a second hardcoded literal that silently drifts from it.
+function parseDurationMs(duration: string, fallbackMs: number): number {
+  const match = /^(\d+)\s*(s|m|h|d)$/.exec(duration?.trim() ?? '');
+  if (!match) return fallbackMs;
+  const value = Number(match[1]);
+  const unitMs = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 }[match[2] as 's' | 'm' | 'h' | 'd'];
+  return value * unitMs;
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -28,6 +49,13 @@ export class AuthService {
     private configService: ConfigService,
     private emailService: EmailService,
   ) {}
+
+  private get refreshSessionTtlMs(): number {
+    return parseDurationMs(
+      this.configService.get<string>('JWT_REFRESH_EXPIRATION') ?? '7d',
+      7 * 24 * 60 * 60 * 1000,
+    );
+  }
 
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
@@ -48,7 +76,7 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         phone: dto.phone,
-        verificationToken: autoVerify ? null : verificationToken,
+        verificationToken: autoVerify ? null : hashToken(verificationToken),
         verificationTokenExpires: autoVerify ? null : verificationTokenExpires,
         isEmailVerified: autoVerify,
         userRoles: {
@@ -99,7 +127,7 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        verificationToken,
+        verificationToken: hashToken(verificationToken),
         verificationTokenExpires,
       },
     });
@@ -142,8 +170,8 @@ export class AuthService {
     await this.prisma.session.create({
       data: {
         userId: user.id,
-        refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        refreshToken: hashToken(refreshToken),
+        expiresAt: new Date(Date.now() + this.refreshSessionTtlMs),
       },
     });
 
@@ -171,7 +199,7 @@ export class AuthService {
     }
 
     const session = await this.prisma.session.findFirst({
-      where: { refreshToken, userId: payload.sub },
+      where: { refreshToken: hashToken(refreshToken), userId: payload.sub },
     });
 
     if (!session || session.expiresAt < new Date()) {
@@ -199,8 +227,8 @@ export class AuthService {
     await this.prisma.session.create({
       data: {
         userId: user.id,
-        refreshToken: newRefreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        refreshToken: hashToken(newRefreshToken),
+        expiresAt: new Date(Date.now() + this.refreshSessionTtlMs),
       },
     });
 
@@ -217,7 +245,7 @@ export class AuthService {
 
   async verifyEmail(token: string) {
     const user = await this.prisma.user.findFirst({
-      where: { verificationToken: token, verificationTokenExpires: { gte: new Date() } },
+      where: { verificationToken: hashToken(token), verificationTokenExpires: { gte: new Date() } },
     });
 
     if (!user) {
@@ -247,7 +275,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { resetToken, resetTokenExpires },
+      data: { resetToken: hashToken(resetToken), resetTokenExpires },
     });
 
     await this.emailService.sendPasswordResetEmail(user.email, user.firstName, resetToken);
@@ -257,7 +285,7 @@ export class AuthService {
 
   async resetPassword(token: string, newPassword: string) {
     const user = await this.prisma.user.findFirst({
-      where: { resetToken: token, resetTokenExpires: { gte: new Date() } },
+      where: { resetToken: hashToken(token), resetTokenExpires: { gte: new Date() } },
     });
 
     if (!user) {
@@ -273,6 +301,11 @@ export class AuthService {
         resetTokenExpires: null,
       },
     });
+
+    // A password reset is often an incident-response action (e.g. the account was
+    // compromised) — any refresh token issued before the reset must stop working,
+    // otherwise a stolen token keeps minting new access tokens regardless.
+    await this.prisma.session.deleteMany({ where: { userId: user.id } });
 
     return { message: 'Password reset successful. Please log in.' };
   }
@@ -293,6 +326,11 @@ export class AuthService {
       where: { id: userId },
       data: { passwordHash },
     });
+
+    // Same reasoning as resetPassword(): revoke every existing session so a
+    // stolen refresh token can't outlive the password change that was meant to
+    // shut it out.
+    await this.prisma.session.deleteMany({ where: { userId } });
 
     return { message: 'Password changed successfully' };
   }

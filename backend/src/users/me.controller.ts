@@ -17,7 +17,10 @@ import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import type { Request } from 'express';
+
+const AVATAR_ALLOWED_MIMES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -37,8 +40,20 @@ export class MeController {
   }
 
   @Post('me/avatar')
-  @UseInterceptors(FileInterceptor('file'))
-uploadAvatar(@Req() req: Request, @UploadedFile() file: any) {
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+      fileFilter: (req, file, cb) => {
+        if (AVATAR_ALLOWED_MIMES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new Error(`Invalid file type: ${file.mimetype}. Only images are allowed.`), false);
+        }
+      },
+    }),
+  )
+  uploadAvatar(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
     const user = req.user as any;
     return this.usersService.uploadAvatar(user.id, file);
   }

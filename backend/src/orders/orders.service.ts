@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { InventoryService } from '../inventory/inventory.service';
 import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private inventoryService: InventoryService,
+  ) {}
 
   async findByCustomer(userId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
@@ -108,6 +112,7 @@ export class OrdersService {
   async cancelOrder(orderNumber: string, userId: string) {
     const order = await this.prisma.order.findFirst({
       where: { orderNumber, userId },
+      include: { items: true },
     });
 
     if (!order) throw new NotFoundException('Order not found');
@@ -117,19 +122,34 @@ export class OrdersService {
       throw new BadRequestException(`Order cannot be cancelled when status is ${order.status}`);
     }
 
-    await this.prisma.order.update({
-      where: { id: order.id },
-      data: {
-        status: 'CANCELLED',
-        statusHistory: {
-          create: { status: 'CANCELLED', changedBy: userId },
-        },
-      },
-    });
+    // PENDING means checkout only ever reserved stock (fulfillOrder never ran), so
+    // cancelling releases that reservation. CONFIRMED means the order was already
+    // paid and fulfilled — the stock is genuinely sold, so cancelling now needs to
+    // restock it, not just release a hold that no longer exists.
+    const wasFulfilled = order.status === 'CONFIRMED';
 
-    await this.prisma.payment.updateMany({
-      where: { orderId: order.id, status: 'COMPLETED' },
-      data: { status: 'REFUNDED' },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: order.id },
+        data: {
+          status: 'CANCELLED',
+          statusHistory: {
+            create: { status: 'CANCELLED', changedBy: userId },
+          },
+        },
+      });
+
+      await tx.payment.updateMany({
+        where: { orderId: order.id, status: 'COMPLETED' },
+        data: { status: 'REFUNDED' },
+      });
+
+      await this.inventoryService.returnOrderStock(
+        tx,
+        order.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        order.orderNumber,
+        wasFulfilled,
+      );
     });
 
     return { message: 'Order cancelled successfully' };
@@ -202,9 +222,15 @@ export class OrdersService {
     }
 
     if (status === 'DELIVERED') {
-      await this.prisma.shipping.update({
+      await this.prisma.shipping.upsert({
         where: { orderId },
-        data: { deliveredAt: new Date() },
+        create: {
+          orderId,
+          trackingNumber: trackingNumber || '',
+          carrier: carrier || '',
+          deliveredAt: new Date(),
+        },
+        update: { deliveredAt: new Date() },
       });
     }
 
@@ -221,8 +247,8 @@ export class OrdersService {
     });
   }
 
-  async generateInvoice(orderNumber: string) {
-    const order = await this.findByOrderNumber(orderNumber);
+  async generateInvoice(orderNumber: string, userId: string) {
+    const order = await this.findByOrderNumber(orderNumber, userId);
 
     return {
       invoiceNumber: `INV-${orderNumber}`,

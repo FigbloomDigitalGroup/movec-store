@@ -6,11 +6,11 @@ import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 export class CloudinaryService {
   constructor(@Inject('Cloudinary') private cloudinary: typeof cloudinaryLib) {}
 
-  async uploadImage(file: any): Promise<UploadApiResponse> {
+  async uploadImage(file: any, folder: string = 'products'): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = this.cloudinary.uploader.upload_stream(
-        { 
-          folder: 'products',
+        {
+          folder,
           resource_type: 'auto'
         },
         (error: UploadApiErrorResponse, result: UploadApiResponse) => {

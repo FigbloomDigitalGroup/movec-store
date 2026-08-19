@@ -25,13 +25,17 @@ async function bootstrap() {
   const allowedOrigins = frontendUrl.split(',').map((url) => url.trim());
 
   const isLocalhostOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+  // Vercel preview URLs are always <project-name>-<hash/branch>-<scope>.vercel.app —
+  // requiring the project-name prefix (rather than trusting *any* .vercel.app origin)
+  // means an attacker would have to name their own Vercel project "movec-store..."
+  // specifically, not just deploy anything, before this origin would be trusted.
+  const isProjectPreviewOrigin = (origin: string) => /^https:\/\/movec-store(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
 
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
-      // Allow any Vercel preview deployment for this project
-      if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+      if (isProjectPreviewOrigin(origin) || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
       // In dev, allow any localhost port — Vite auto-increments (5173, 5174, ...) when the

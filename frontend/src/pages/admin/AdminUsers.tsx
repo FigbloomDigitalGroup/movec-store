@@ -4,6 +4,9 @@ import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { FiShield, FiCheck, FiX } from 'react-icons/fi';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import Pagination from '../../components/ui/Pagination';
+
+const PAGE_SIZE = 20;
 
 const ALL_ROLES = ['ADMIN', 'CUSTOMER', 'STAFF', 'TECHNICIAN'] as const;
 type RoleName = (typeof ALL_ROLES)[number];
@@ -20,10 +23,11 @@ export default function AdminUsers() {
   const [editingRoles, setEditingRoles] = useState<string | null>(null);
   const [pendingRoles, setPendingRoles] = useState<RoleName[]>([]);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; isActive: boolean; name: string } | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: () => api.get('/admin/users?limit=100').then((r) => r.data),
+    queryKey: ['admin-users', page],
+    queryFn: () => api.get(`/admin/users?limit=${PAGE_SIZE}&page=${page}`).then((r) => r.data),
   });
 
   const toggleUser = useMutation({
@@ -204,6 +208,9 @@ export default function AdminUsers() {
             ))}
           </tbody>
         </table>
+        {!isLoading && (
+          <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
+        )}
       </div>
 
       <ConfirmDialog

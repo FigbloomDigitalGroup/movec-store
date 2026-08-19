@@ -1,5 +1,4 @@
 import { FiMapPin, FiPhone, FiMail, FiFileText } from 'react-icons/fi';
-import AnimatedContent from '../components/AnimatedContent';
 
 export default function TermsOfService() {
   return (
@@ -25,7 +24,6 @@ export default function TermsOfService() {
           </p>
 
           <div className="space-y-8">
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">1. Eligibility & Accounts</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -35,9 +33,7 @@ export default function TermsOfService() {
                 <li>We may suspend or terminate accounts that provide false information, violate these Terms, or engage in fraudulent or abusive activity.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">2. Products & Pricing</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -47,9 +43,7 @@ export default function TermsOfService() {
                 <li>Product availability is subject to stock. If an item becomes unavailable after you order it, we will notify you and offer a substitute, backorder, or refund.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">3. Orders & Payment</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -60,9 +54,7 @@ export default function TermsOfService() {
                 <li>An order is confirmed once payment is successfully verified and you receive a confirmation email with your order number.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Shipping & Delivery</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -71,9 +63,7 @@ export default function TermsOfService() {
                 <li>You are responsible for providing an accurate delivery address and being reasonably available to receive the shipment.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">5. Installation Services</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -83,27 +73,21 @@ export default function TermsOfService() {
                 <li>Rescheduling or cancelling a confirmed installation appointment should be done as early as possible; late cancellations may be subject to a call-out fee.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">6. Cancellations & Refunds</h2>
               <p className="text-gray-700">
                 Order cancellations, returns, and refunds are governed by our Refund Policy, which forms part of these Terms.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">7. Product Warranty</h2>
               <p className="text-gray-700">
                 Hardware sold through the Service may carry a manufacturer or supplier warranty against defects, as indicated on the product page or invoice. Warranty claims are handled in accordance with the applicable manufacturer's terms. Warranties do not cover damage caused by misuse, unauthorized modification, improper installation not performed by us, power surges, or normal wear and tear.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">8. Reviews & User Content</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -112,9 +96,7 @@ export default function TermsOfService() {
                 <li>By submitting a review, you grant us a non-exclusive, royalty-free license to display it on the Service.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">9. Acceptable Use</h2>
               <p className="text-gray-700 mb-4">You agree not to:</p>
@@ -126,63 +108,49 @@ export default function TermsOfService() {
                 <li>Resell products purchased through the Service without our authorization, where resale restrictions apply.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">10. Intellectual Property</h2>
               <p className="text-gray-700">
                 All content on the Service, including text, graphics, logos, and software, is owned by or licensed to Movec Store and is protected by applicable intellectual property laws. You may not copy, reproduce, or distribute our content without prior written consent, except as necessary to use the Service for its intended purpose.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">11. Limitation of Liability</h2>
               <p className="text-gray-700">
                 To the fullest extent permitted by Kenyan law, Movec Store shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service or products purchased through it. Our total liability for any claim relating to an order shall not exceed the amount you paid for the relevant order.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">12. Third-Party Services</h2>
               <p className="text-gray-700">
                 The Service integrates third-party providers, including Safaricom M-Pesa, Paystack, PayPal, and delivery partners. We are not responsible for the acts, omissions, or service interruptions of these third parties, which are governed by their own terms.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">13. Termination</h2>
               <p className="text-gray-700">
                 We may suspend or terminate your access to the Service at any time if you breach these Terms. You may close your account at any time by contacting us. Provisions that by their nature should survive termination (such as payment obligations and limitation of liability) will continue to apply.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">14. Governing Law</h2>
               <p className="text-gray-700">
                 These Terms are governed by the laws of the Republic of Kenya. Any disputes arising from these Terms or the Service shall be subject to the exclusive jurisdiction of the courts of Kenya.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">15. Changes to These Terms</h2>
               <p className="text-gray-700">
                 We may update these Terms from time to time. Material changes will be posted on this page with an updated "Last updated" date. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">16. Contact Us</h2>
               <p className="text-gray-700 mb-4">Questions about these Terms can be directed to:</p>
@@ -201,7 +169,6 @@ export default function TermsOfService() {
                 </div>
               </div>
             </section>
-            </AnimatedContent>
           </div>
         </div>
       </div>

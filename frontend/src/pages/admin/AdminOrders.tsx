@@ -13,6 +13,9 @@ import {
 } from 'react-icons/fi';
 import { ORDER_STATUSES, getOrderStatusConfig } from '../../lib/orderStatus';
 import OrderStatusBadge from '../../components/OrderStatusBadge';
+import Pagination from '../../components/ui/Pagination';
+
+const PAGE_SIZE = 20;
 
 const STATUSES = ORDER_STATUSES;
 
@@ -196,13 +199,14 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
 export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-orders', statusFilter],
+    queryKey: ['admin-orders', statusFilter, page],
     queryFn: () =>
       api
-        .get(`/admin/orders?limit=100${statusFilter ? `&status=${statusFilter}` : ''}`)
+        .get(`/admin/orders?limit=${PAGE_SIZE}&page=${page}${statusFilter ? `&status=${statusFilter}` : ''}`)
         .then((r) => r.data),
   });
 
@@ -219,11 +223,22 @@ export default function AdminOrders() {
     );
   });
 
-  // KPI counts
-  const kpis = STATUSES.map((s) => ({
-    status: s,
-    count: orders.filter((o) => o.status === s).length,
-  })).filter((k) => k.count > 0);
+  // Real per-status counts across the WHOLE table, not just the current page — a
+  // limit=1 request per status is enough since only meta.total is read from it.
+  const { data: statusCounts } = useQuery({
+    queryKey: ['admin-orders-status-counts'],
+    queryFn: async () => {
+      const results = await Promise.all(
+        STATUSES.map((s) =>
+          api.get(`/admin/orders?limit=1&status=${s}`).then((r) => ({ status: s, count: r.data?.meta?.total || 0 }))
+        )
+      );
+      return results;
+    },
+  });
+
+  const kpis = (statusCounts || []).filter((k) => k.count > 0);
+  const grandTotal = (statusCounts || []).reduce((sum, k) => sum + k.count, 0);
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -234,7 +249,7 @@ export default function AdminOrders() {
             <FiPackage className="text-blue-600" /> Orders Management
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            {total} total order{total !== 1 ? 's' : ''} — update status, track shipments, and manage fulfilment.
+            {grandTotal} total order{grandTotal !== 1 ? 's' : ''} — update status, track shipments, and manage fulfilment.
           </p>
         </div>
 
@@ -254,21 +269,21 @@ export default function AdminOrders() {
       {/* KPI Status Pills */}
       <div className="flex gap-2 flex-wrap">
         <button
-          onClick={() => setStatusFilter('')}
+          onClick={() => { setStatusFilter(''); setPage(1); }}
           className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${
             !statusFilter
               ? 'bg-[#10B982] text-white border-[#10B982]'
               : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
           }`}
         >
-          All Orders ({total})
+          All Orders ({grandTotal})
         </button>
         {kpis.map(({ status, count }) => {
           const cfg = getOrderStatusConfig(status);
           return (
             <button
               key={status}
-              onClick={() => setStatusFilter(status)}
+              onClick={() => { setStatusFilter(status); setPage(1); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition ${
                 statusFilter === status
                   ? 'bg-[#10B982] text-white border-[#10B982]'
@@ -390,6 +405,9 @@ export default function AdminOrders() {
               </tbody>
             </table>
           </div>
+        )}
+        {!isLoading && (
+          <Pagination page={page} limit={PAGE_SIZE} total={total} onPageChange={setPage} />
         )}
       </div>
 

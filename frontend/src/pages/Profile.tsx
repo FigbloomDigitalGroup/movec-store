@@ -4,6 +4,7 @@ import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { FiUser, FiMapPin, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiSave } from 'react-icons/fi';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
@@ -11,6 +12,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'password'>('profile');
   const [editingAddress, setEditingAddress] = useState<string | null>(null);
   const [showAddAddress, setShowAddAddress] = useState(false);
+  const [pendingDeleteAddressId, setPendingDeleteAddressId] = useState<string | null>(null);
 
   // Profile form
   const [profileForm, setProfileForm] = useState({ firstName: user?.firstName || '', lastName: user?.lastName || '', phone: '' });
@@ -82,6 +84,7 @@ export default function ProfilePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['addresses'] });
       toast.success('Address removed');
+      setPendingDeleteAddressId(null);
     },
     onError: (err: any) => toast.error(getErrorMessage(err)),
   });
@@ -98,7 +101,7 @@ export default function ProfilePage() {
       <p className="text-gray-600 mb-8">Manage your profile, addresses, and password</p>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-8">
+      <div className="flex gap-2 mb-8" role="tablist" aria-label="Account sections">
         {[
           { key: 'profile', label: 'Profile', icon: FiUser },
           { key: 'addresses', label: 'Addresses', icon: FiMapPin },
@@ -106,6 +109,10 @@ export default function ProfilePage() {
         ].map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            id={`account-tab-${tab.key}`}
+            aria-selected={activeTab === tab.key}
+            aria-controls={`account-panel-${tab.key}`}
             onClick={() => setActiveTab(tab.key as any)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === tab.key ? 'bg-[#10B982] text-white' : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white'}`}
           >
@@ -117,7 +124,7 @@ export default function ProfilePage() {
 
       {/* Profile Tab */}
       {activeTab === 'profile' && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
+        <div role="tabpanel" id="account-panel-profile" aria-labelledby="account-tab-profile" className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-[#10B982]/10 rounded-full flex items-center justify-center text-2xl font-bold text-[#10B982]">
               {profile?.firstName?.[0]}{profile?.lastName?.[0]}
@@ -129,20 +136,20 @@ export default function ProfilePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">First Name</label>
-              <input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <label htmlFor="profile-firstName" className="block text-sm font-medium mb-1">First Name</label>
+              <input id="profile-firstName" value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Last Name</label>
-              <input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <label htmlFor="profile-lastName" className="block text-sm font-medium mb-1">Last Name</label>
+              <input id="profile-lastName" value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
-              <input value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <label htmlFor="profile-phone" className="block text-sm font-medium mb-1">Phone</label>
+              <input id="profile-phone" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input value={profile?.email || ''} disabled className="border rounded-lg px-4 py-2 w-full bg-gray-100" />
+              <label htmlFor="profile-email" className="block text-sm font-medium mb-1">Email</label>
+              <input id="profile-email" value={profile?.email || ''} disabled className="border rounded-lg px-4 py-2 w-full bg-gray-100" />
             </div>
           </div>
           <button
@@ -157,7 +164,7 @@ export default function ProfilePage() {
 
       {/* Addresses Tab */}
       {activeTab === 'addresses' && (
-        <div>
+        <div role="tabpanel" id="account-panel-addresses" aria-labelledby="account-tab-addresses">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Saved Addresses</h2>
             <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2">
@@ -177,12 +184,12 @@ export default function ProfilePage() {
                   <input type="checkbox" checked={addressForm.isDefault} onChange={e => setAddressForm({ ...addressForm, isDefault: e.target.checked })} className="w-4 h-4" />
                   Set as default
                 </label>
-                <input placeholder="Address Line 1" value={addressForm.line1} onChange={e => setAddressForm({ ...addressForm, line1: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input placeholder="Address Line 2" value={addressForm.line2} onChange={e => setAddressForm({ ...addressForm, line2: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input placeholder="City" value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input placeholder="State" value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input placeholder="Postal Code" value={addressForm.postalCode} onChange={e => setAddressForm({ ...addressForm, postalCode: e.target.value })} className="border rounded-lg px-4 py-2" />
-                <input placeholder="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <input aria-label="Address Line 1" placeholder="Address Line 1" value={addressForm.line1} onChange={e => setAddressForm({ ...addressForm, line1: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <input aria-label="Address Line 2" placeholder="Address Line 2" value={addressForm.line2} onChange={e => setAddressForm({ ...addressForm, line2: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <input aria-label="City" placeholder="City" value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <input aria-label="State" placeholder="State" value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <input aria-label="Postal Code" placeholder="Postal Code" value={addressForm.postalCode} onChange={e => setAddressForm({ ...addressForm, postalCode: e.target.value })} className="border rounded-lg px-4 py-2" />
+                <input aria-label="Country" placeholder="Country" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} className="border rounded-lg px-4 py-2" />
               </div>
               <div className="flex gap-3 mt-4">
                 <button
@@ -209,8 +216,8 @@ export default function ProfilePage() {
                   <p className="text-gray-500 text-sm">{addr.city}{addr.state ? `, ${addr.state}` : ''} · {addr.postalCode} · {addr.country}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => startEditAddress(addr)} className="p-2 text-[#10B982] hover:bg-[#ecfdf5] rounded-lg"><FiEdit2 size={16} /></button>
-                  <button onClick={() => deleteAddress.mutate(addr.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 size={16} /></button>
+                  <button onClick={() => startEditAddress(addr)} aria-label="Edit address" className="p-2 text-[#10B982] hover:bg-[#ecfdf5] rounded-lg"><FiEdit2 size={16} /></button>
+                  <button onClick={() => setPendingDeleteAddressId(addr.id)} aria-label="Delete address" className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 size={16} /></button>
                 </div>
               </div>
             ))}
@@ -221,19 +228,19 @@ export default function ProfilePage() {
 
       {/* Password Tab */}
       {activeTab === 'password' && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 max-w-md">
+        <div role="tabpanel" id="account-panel-password" aria-labelledby="account-tab-password" className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 max-w-md">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Current Password</label>
-              <input type="password" value={passwordForm.oldPassword} onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <label htmlFor="profile-oldPassword" className="block text-sm font-medium mb-1">Current Password</label>
+              <input id="profile-oldPassword" type="password" value={passwordForm.oldPassword} onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">New Password</label>
-              <input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <label htmlFor="profile-newPassword" className="block text-sm font-medium mb-1">New Password</label>
+              <input id="profile-newPassword" type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Confirm New Password</label>
-              <input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <label htmlFor="profile-confirmPassword" className="block text-sm font-medium mb-1">Confirm New Password</label>
+              <input id="profile-confirmPassword" type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
             </div>
             <button
               onClick={() => {
@@ -249,6 +256,16 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingDeleteAddressId}
+        title="Delete this address?"
+        description="This can't be undone."
+        confirmLabel="Delete"
+        isPending={deleteAddress.isPending}
+        onConfirm={() => pendingDeleteAddressId && deleteAddress.mutate(pendingDeleteAddressId)}
+        onCancel={() => setPendingDeleteAddressId(null)}
+      />
     </div>
   );
 }

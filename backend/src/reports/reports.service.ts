@@ -17,18 +17,28 @@ export class ReportsService {
       if (to) where.createdAt.lte = new Date(to);
     }
 
-    const orders = await this.prisma.order.findMany({
-      where,
-      include: { items: true, payments: true },
-    });
+    // Aggregates computed in the database instead of pulling every matching order
+    // (plus all of its items and payments) into Node memory just to sum a few fields
+    // — this used to be the query the admin dashboard ran on every single load.
+    const [totals, paymentGroups] = await Promise.all([
+      this.prisma.order.aggregate({
+        where,
+        _sum: { total: true },
+        _count: { _all: true },
+      }),
+      this.prisma.payment.groupBy({
+        by: ['method'],
+        where: { status: 'COMPLETED', order: where },
+        _count: { _all: true },
+      }),
+    ]);
 
-    const totalSales = orders.reduce((sum, o) => sum + o.total.toNumber(), 0);
-    const totalOrders = orders.length;
+    const totalSales = totals._sum.total?.toNumber() ?? 0;
+    const totalOrders = totals._count._all;
     const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
-    const paymentMethods = orders.reduce((acc: any, o) => {
-      const method = o.payments[0]?.method || 'UNKNOWN';
-      acc[method] = (acc[method] || 0) + 1;
+    const paymentMethods = paymentGroups.reduce((acc: any, g) => {
+      acc[g.method] = g._count._all;
       return acc;
     }, {});
 
@@ -98,19 +108,20 @@ export class ReportsService {
       take: 10,
     });
 
-    const withNames = await Promise.all(
-      topCustomers.map(async (c) => {
-        const user = await this.prisma.user.findUnique({
-          where: { id: c.userId },
-          select: { firstName: true, lastName: true, email: true },
-        });
-        return {
-          ...user,
-          totalSpent: c._sum.total?.toNumber() || 0,
-          ordersCount: c._count.id,
-        };
-      }),
-    );
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: topCustomers.map((c) => c.userId) } },
+      select: { id: true, firstName: true, lastName: true, email: true },
+    });
+    const usersById = new Map(users.map((u) => [u.id, u]));
+
+    const withNames = topCustomers.map((c) => {
+      const user = usersById.get(c.userId);
+      return {
+        ...user,
+        totalSpent: c._sum.total?.toNumber() || 0,
+        ordersCount: c._count.id,
+      };
+    });
 
     return {
       totalCustomers,
@@ -138,20 +149,21 @@ export class ReportsService {
       take: 10,
     });
 
-    const withNames = await Promise.all(
-      topSelling.map(async (p) => {
-        const product = await this.prisma.product.findUnique({
-          where: { id: p.productId },
-          select: { name: true, slug: true, price: true },
-        });
-        return {
-          ...product,
-          price: product?.price.toNumber(),
-          totalSold: p._sum.quantity || 0,
-          revenue: (product?.price.toNumber() || 0) * (p._sum.quantity || 0),
-        };
-      }),
-    );
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: topSelling.map((p) => p.productId) } },
+      select: { id: true, name: true, slug: true, price: true },
+    });
+    const productsById = new Map(products.map((p) => [p.id, p]));
+
+    const withNames = topSelling.map((p) => {
+      const product = productsById.get(p.productId);
+      return {
+        ...product,
+        price: product?.price.toNumber(),
+        totalSold: p._sum.quantity || 0,
+        revenue: (product?.price.toNumber() || 0) * (p._sum.quantity || 0),
+      };
+    });
 
     return {
       totalProducts,
@@ -336,11 +348,19 @@ export class ReportsService {
   buildCsv(data: any[]): string {
     if (!data || !data.length) return '';
     const headers = Object.keys(data[0]);
-    const rows = data.map(row => 
+    const rows = data.map(row =>
       headers.map(h => {
         const val = row[h];
         if (val === null || val === undefined) return '""';
-        return `"${String(val).replace(/"/g, '""')}"`;
+        let str = String(val);
+        // Neutralize formula/DDE injection: a cell starting with =, +, -, or @ can
+        // execute as a formula when the CSV is opened in Excel/Sheets — this data
+        // includes user-supplied names (e.g. customer firstName/lastName), so a
+        // customer could otherwise plant a payload an admin later opens.
+        if (/^[=+\-@]/.test(str)) {
+          str = `'${str}`;
+        }
+        return `"${str.replace(/"/g, '""')}"`;
       }).join(',')
     );
     return [headers.join(','), ...rows].join('\n');

@@ -46,13 +46,11 @@ export class NotificationsService {
       select: { id: true },
     });
 
-    const notifications = await Promise.all(
-      users.map((user) =>
-        this.prisma.notification.create({
-          data: { userId: user.id, type, title, message },
-        }),
-      ),
-    );
+    // One INSERT for every recipient instead of one round trip per user —
+    // matters once the active-user count reaches the thousands.
+    await this.prisma.notification.createMany({
+      data: users.map((user) => ({ userId: user.id, type, title, message })),
+    });
 
     this.logger.log(`Notification sent to ${users.length} users: ${title}`);
 

@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -14,7 +15,10 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinaryService: CloudinaryService,
+  ) {}
 
   async findAll(page = 1, limit = 20) {
     const skip = (page - 1) * limit;
@@ -165,14 +169,16 @@ export class UsersService {
     return this.getProfile(userId);
   }
 
- async uploadAvatar(userId: string, file: any) {
-    // Placeholder for Cloudinary upload; for now store a local path
-    const url = `/uploads/avatars/${file.filename}`;
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    const result = await this.cloudinaryService.uploadImage(file, 'avatars');
     await this.prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: url },
+      data: { avatarUrl: result.secure_url },
     });
-    return { avatarUrl: url };
+    return { avatarUrl: result.secure_url };
   }
 
   async getAddresses(userId: string) {

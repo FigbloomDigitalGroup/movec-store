@@ -12,6 +12,9 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { Prisma } from '@prisma/client';
 
+const SORTABLE_FIELDS = ['createdAt', 'price', 'name'] as const;
+const MAX_PAGE_SIZE = 100;
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -28,12 +31,9 @@ export class ProductsService {
     return `${prefix}-${random}`;
   }
 
-  async findAll(query: QueryProductDto) {
-    const page = parseInt(query.page || '1', 10);
-    const limit = parseInt(query.limit || '20', 10);
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ProductWhereInput = { isActive: true };
+  /** Shared by findAll/findAllAdmin so the two filter sets can't silently drift apart. */
+  private buildBaseWhere(query: QueryProductDto): Prisma.ProductWhereInput {
+    const where: Prisma.ProductWhereInput = {};
 
     if (query.search) {
       where.OR = [
@@ -69,10 +69,28 @@ export class ProductsService {
       where.isBestSeller = true;
     }
 
-    const orderBy: any = {};
-    const sortBy = query.sortBy || 'createdAt';
+    return where;
+  }
+
+  private buildPagination(query: QueryProductDto) {
+    const page = Math.max(1, parseInt(query.page || '1', 10) || 1);
+    const requestedLimit = parseInt(query.limit || '20', 10) || 20;
+    const limit = Math.min(Math.max(1, requestedLimit), MAX_PAGE_SIZE);
+    return { page, limit, skip: (page - 1) * limit };
+  }
+
+  private buildOrderBy(query: QueryProductDto): Prisma.ProductOrderByWithRelationInput {
+    const sortBy = (SORTABLE_FIELDS as readonly string[]).includes(query.sortBy || '')
+      ? (query.sortBy as (typeof SORTABLE_FIELDS)[number])
+      : 'createdAt';
     const order = query.order === 'asc' ? 'asc' : 'desc';
-    orderBy[sortBy] = order;
+    return { [sortBy]: order };
+  }
+
+  async findAll(query: QueryProductDto) {
+    const { page, limit, skip } = this.buildPagination(query);
+    const where = { ...this.buildBaseWhere(query), isActive: true };
+    const orderBy = this.buildOrderBy(query);
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -128,45 +146,9 @@ export class ProductsService {
   }
 
   async findAllAdmin(query: QueryProductDto) {
-    const page = parseInt(query.page || '1', 10);
-    const limit = parseInt(query.limit || '20', 10);
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ProductWhereInput = {};
-
-    if (query.search) {
-      where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-        { sku: { contains: query.search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (query.category) {
-      where.categories = { some: { category: { slug: query.category } } };
-    }
-
-    if (query.module) {
-      where.module = { slug: query.module };
-    }
-
-    if (query.brand) {
-      where.brand = { slug: query.brand };
-    }
-
-    if (query.minPrice || query.maxPrice) {
-      where.price = {};
-      if (query.minPrice) where.price.gte = parseFloat(query.minPrice);
-      if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
-    }
-
-    if (query.featured === 'true') {
-      where.isFeatured = true;
-    }
-
-    if (query.bestSeller === 'true') {
-      where.isBestSeller = true;
-    }
+    const { page, limit, skip } = this.buildPagination(query);
+    const where = this.buildBaseWhere(query);
+    const orderBy = this.buildOrderBy(query);
 
     if (query.isActive === 'true') {
       where.isActive = true;
@@ -177,11 +159,6 @@ export class ProductsService {
     if (query.inStock === 'true') {
       where.inventory = { some: { quantity: { gt: 0 } } };
     }
-
-    const orderBy: any = {};
-    const sortBy = query.sortBy || 'createdAt';
-    const order = query.order === 'asc' ? 'asc' : 'desc';
-    orderBy[sortBy] = order;
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({

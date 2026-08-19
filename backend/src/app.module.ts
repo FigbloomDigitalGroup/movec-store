@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
+import { SecurityMiddleware } from './common/middleware/security.middleware';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -62,4 +63,8 @@ import { AppService } from './app.service';
     PromoBannersModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SecurityMiddleware).forRoutes('*');
+  }
+}
