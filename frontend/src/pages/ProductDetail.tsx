@@ -21,6 +21,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import SectionHero from '../components/ui/SectionHero';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
+import type { Review, Inventory, ProductImage, Category } from '../types';
 
 /* ─── Star Picker Component ─────────────────────────────────── */
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -228,10 +229,10 @@ function ReviewForm({ productId, productName }: { productId: string; productName
 }
 
 /* ─── Reviews Display Component ─────────────────────────────── */
-function ReviewsDisplay({ reviews }: { reviews: any[] }) {
+function ReviewsDisplay({ reviews }: { reviews: Review[] }) {
   if (!reviews || reviews.length === 0) return null;
 
-  const avg = (reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1);
+  const avg = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
   const counts = [5, 4, 3, 2, 1].map((star) => ({
     star,
     count: reviews.filter((r) => r.rating === star).length,
@@ -284,7 +285,7 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 
       {/* Review Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {reviews.map((review: any) => (
+        {reviews.map((review) => (
           <div
             key={review.id}
             className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
@@ -409,8 +410,8 @@ export default function ProductDetail() {
   const goPrev = () => {
     if (images.length > 1) setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
   };
-  const inStock = product.inventory?.reduce((sum: number, i: any) => sum + i.quantity, 0) > 0;
-  const approvedReviews = (product.reviews || []).filter((r: any) => r.isApproved);
+  const inStock = product.inventory?.reduce((sum: number, i: Inventory) => sum + i.quantity, 0) > 0;
+  const approvedReviews: Review[] = (product.reviews || []).filter((r: Review) => r.isApproved);
 
   const primaryCategory = product.categories?.[0];
 
@@ -461,7 +462,7 @@ export default function ProductDetail() {
                     <FiChevronRight size={24} />
                   </button>
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {images.map((_: any, i: number) => (
+                    {images.map((_: ProductImage, i: number) => (
                       <button
                         key={i}
                         onClick={() => setCurrentImage(i)}
@@ -476,7 +477,7 @@ export default function ProductDetail() {
             </div>
             {images.length > 1 && (
               <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
-                {images.map((img: any, i: number) => (
+                {images.map((img: ProductImage, i: number) => (
                   <button
                     key={img.id}
                     onClick={() => setCurrentImage(i)}
@@ -507,7 +508,7 @@ export default function ProductDetail() {
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => {
-                      const avg = approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / approvedReviews.length;
+                      const avg = approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length;
                       return (
                         <FiStar
                           key={s}
@@ -518,7 +519,7 @@ export default function ProductDetail() {
                     })}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {(approvedReviews.reduce((s: number, r: any) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} ({approvedReviews.length} review{approvedReviews.length !== 1 ? 's' : ''})
+                    {(approvedReviews.reduce((s, r) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} ({approvedReviews.length} review{approvedReviews.length !== 1 ? 's' : ''})
                   </span>
                 </div>
               )}
@@ -553,7 +554,7 @@ export default function ProductDetail() {
               <div className="mb-6">
                 <p className="text-sm font-medium text-gray-900 mb-2">Categories:</p>
                 <div className="flex gap-2 flex-wrap">
-                  {product.categories.map((cat: any) => (
+                  {product.categories.map((cat: Category) => (
                     <Link
                       key={cat.id}
                       to={`/products?category=${cat.slug}`}

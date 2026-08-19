@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getModule, getModuleProducts } from '../lib/api';
@@ -8,6 +8,7 @@ import ProductCard from '../components/ProductCard';
 import Skeleton from '../components/ui/Skeleton';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
+import type { Product } from '../types';
 
 interface StoreModule {
   id: string;
@@ -18,21 +19,13 @@ interface StoreModule {
   categories?: { id: string; name: string; slug: string }[];
 }
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  price: number;
-  images: { url: string }[];
-}
-
 interface ModuleProductsResponse {
   module: StoreModule;
   data: Product[];
   meta: { page: number; limit: number; total: number };
 }
 
-const MODULE_THEMES: Record<string, { icon: any; title: string; description: string }> = {
+const MODULE_THEMES: Record<string, { icon: ReactNode; title: string; description: string }> = {
   starlink: { icon: <FiGlobe />, title: 'Starlink', description: 'High-speed satellite internet' },
   cctv: { icon: <FiVideo />, title: 'CCTV', description: 'AI-powered security systems' },
 };
@@ -48,9 +41,16 @@ export default function ModuleLanding() {
     description: 'Browse our products',
   };
 
-  useEffect(() => {
+  // Keep the search box in sync whenever the URL's `search` param changes from
+  // outside this input (back/forward navigation, a category pill reset, etc.),
+  // without wiping out what the user is actively typing on every render.
+  // Adjusting state during render — rather than in an effect — avoids the
+  // extra render pass a useEffect-based sync would cause.
+  const [prevSearchParams, setPrevSearchParams] = useState(searchParams);
+  if (searchParams !== prevSearchParams) {
+    setPrevSearchParams(searchParams);
     setSearch(searchParams.get('search') || '');
-  }, [searchParams]);
+  }
 
   const selectedCategory = searchParams.get('category') || '';
 
@@ -223,7 +223,7 @@ export default function ModuleLanding() {
         {!isProductsLoading && products.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product as any} />
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}

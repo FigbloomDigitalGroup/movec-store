@@ -20,6 +20,21 @@ const ROLE_COLORS: Record<RoleName, string> = {
   TECHNICIAN: 'bg-green-100 text-green-700 border-green-200',
 };
 
+// Matches the shape returned by GET /admin/users (see backend UsersService.findAll)
+interface AdminUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roles: RoleName[];
+  isActive: boolean;
+}
+
+interface AdminUsersResponse {
+  data: AdminUser[];
+  meta: { page: number; limit: number; total: number };
+}
+
 export default function AdminUsers() {
   const queryClient = useQueryClient();
   const [editingRoles, setEditingRoles] = useState<string | null>(null);
@@ -27,7 +42,7 @@ export default function AdminUsers() {
   const [pendingToggle, setPendingToggle] = useState<{ id: string; isActive: boolean; name: string } | null>(null);
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<AdminUsersResponse>({
     queryKey: ['admin-users', page],
     queryFn: () => api.get(`/admin/users?limit=${PAGE_SIZE}&page=${page}`).then((r) => r.data),
   });
@@ -54,9 +69,9 @@ export default function AdminUsers() {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  const openRoleEditor = (user: any) => {
+  const openRoleEditor = (user: AdminUser) => {
     setEditingRoles(user.id);
-    setPendingRoles(user.roles as RoleName[]);
+    setPendingRoles(user.roles);
   };
 
   const toggleRole = (role: RoleName) => {
@@ -89,7 +104,7 @@ export default function AdminUsers() {
             ) : !data?.data?.length ? (
               <TableEmptyState columns={5} icon={FiShield} title="No users found" />
             ) : (
-              data.data.map((user: any) => (
+              data.data.map((user: AdminUser) => (
               <tr key={user.id} className="border-t hover:bg-gray-50 transition">
                 {/* Name */}
                 <td className="p-4 font-medium">
@@ -140,7 +155,7 @@ export default function AdminUsers() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 flex-wrap">
-                      {user.roles?.map((role: RoleName) => (
+                      {user.roles?.map((role) => (
                         <span
                           key={role}
                           className={`px-2 py-0.5 rounded-full border text-xs font-medium ${ROLE_COLORS[role] ?? 'bg-gray-100 text-gray-600'}`}

@@ -7,6 +7,13 @@ import CustomCalendar from '../components/CustomCalendar';
 import CustomDropdown from '../components/CustomDropdown';
 import Alert from '../components/ui/Alert';
 
+// Shape returned by GET /installation/services (InstallationService.getServices).
+interface InstallationServiceOption {
+  id: string;
+  name: string;
+  basePrice: number;
+}
+
 export default function InstallationPage() {
   const [serviceId, setServiceId] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
@@ -16,7 +23,7 @@ export default function InstallationPage() {
   const dateInputRef = useRef<HTMLDivElement>(null);
   const notesInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: services } = useQuery({ queryKey: ['installation-services'], queryFn: () => api.get('/installation/services').then(r => r.data) });
+  const { data: services } = useQuery<InstallationServiceOption[]>({ queryKey: ['installation-services'], queryFn: () => api.get('/installation/services').then(r => r.data) });
   const { data: addresses } = useQuery({ queryKey: ['addresses'], queryFn: () => api.get('/users/me/addresses').then(r => r.data) });
 
   const submit = useMutation({
@@ -68,7 +75,7 @@ export default function InstallationPage() {
               Select Service
             </label>
             <CustomDropdown
-              options={services?.map((s: any) => ({
+              options={services?.map((s) => ({
                 id: s.id,
                 name: s.name,
                 price: s.basePrice

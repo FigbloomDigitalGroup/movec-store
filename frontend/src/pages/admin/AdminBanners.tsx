@@ -330,7 +330,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
   };
 
   const saveMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Omit<PromoBanner, 'id' | 'product'>) => {
       // Upload image first if there's a new one
       let imageUrl = data.imageUrl;
       if (imageFile) {

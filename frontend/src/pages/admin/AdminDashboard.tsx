@@ -5,22 +5,43 @@ import { FiPackage, FiCheckCircle, FiAlertCircle, FiGrid, FiPlus, FiHome, FiUser
 import PageHeader from '../../components/ui/PageHeader';
 import { TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 import Skeleton from '../../components/ui/Skeleton';
+import type { Product, Category } from '../../types';
+
+// Mirrors the shape returned by ReportsService.getDashboardSummary() (backend/src/reports/reports.service.ts).
+interface DashboardSummary {
+  sales: { total: number; orders: number; averageOrder: number };
+  inventory: { totalStock: number; lowStock: number };
+  customers: { total: number; newToday: number };
+  products: { total: number; inStock: number; outOfStock: number };
+  categories: { total: number };
+  pending: { orders: number; installations: number };
+  installations: { total: number; revenue: number };
+}
+
+// Category as returned by GET /admin/categories, which includes the product count.
+interface CategoryWithCount extends Category {
+  _count?: { products: number };
+}
+
+interface ProductListResponse {
+  data: Product[];
+}
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  const { data: dashboardData, isLoading } = useQuery({
+  const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
     queryKey: ['admin-dashboard'],
     queryFn: () => api.get('/admin/reports/dashboard').then(r => r.data),
     refetchInterval: 30000,
   });
 
-  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery<CategoryWithCount[]>({
     queryKey: ['admin-categories-stats'],
     queryFn: () => api.get('/admin/categories?limit=6').then(r => r.data),
   });
 
-  const { data: recentProducts, isLoading: recentLoading } = useQuery({
+  const { data: recentProducts, isLoading: recentLoading } = useQuery<ProductListResponse>({
     queryKey: ['admin-recent-products', 'active', 'inStock'],
     queryFn: () => api.get('/admin/products?limit=5&sortBy=createdAt&order=desc&isActive=true&inStock=true').then(r => r.data),
   });
@@ -152,8 +173,8 @@ export default function AdminDashboard() {
             <div className="space-y-3">
               {categoriesLoading ? (
                 [1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-full rounded-lg" />)
-              ) : categoriesData?.length > 0 ? (
-                categoriesData.slice(0, 6).map((category: any) => (
+              ) : categoriesData && categoriesData.length > 0 ? (
+                categoriesData.slice(0, 6).map((category) => (
                   <div
                     key={category.id}
                     className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-lg px-2 transition cursor-pointer"
@@ -222,7 +243,7 @@ export default function AdminDashboard() {
                 ) : !recentProducts?.data?.length ? (
                   <TableEmptyState columns={4} icon={FiPackage} title="No products added yet" />
                 ) : (
-                  recentProducts.data.map((product: any) => (
+                  recentProducts.data.map((product) => (
                   <tr
                     key={product.id}
                     className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition"

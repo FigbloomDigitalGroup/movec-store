@@ -6,6 +6,25 @@ import { FiPackage } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
 import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 import Tooltip from '../../components/ui/Tooltip';
+import type { Product } from '../../types';
+
+// Shape returned by GET /admin/inventory and /admin/inventory/low-stock
+// (InventoryService.findAll/lowStock, which both `include: { product: true, warehouse: true }`).
+interface AdminInventoryItem {
+  id: string;
+  quantity: number;
+  reservedQuantity: number;
+  lowStockThreshold: number;
+  product?: { name: string } | null;
+  warehouse?: { name: string } | null;
+}
+
+// Shape returned by GET /admin/inventory/warehouses (InventoryService.findWarehouses).
+interface InventoryWarehouse {
+  id: string;
+  name: string;
+  location?: string | null;
+}
 
 export default function AdminInventory() {
   const queryClient = useQueryClient();
@@ -13,22 +32,22 @@ export default function AdminInventory() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-inventory'],
-    queryFn: () => api.get('/admin/inventory').then(r => r.data),
+    queryFn: () => api.get<AdminInventoryItem[]>('/admin/inventory').then(r => r.data),
   });
 
   const { data: lowStock } = useQuery({
     queryKey: ['low-stock'],
-    queryFn: () => api.get('/admin/inventory/low-stock').then(r => r.data),
+    queryFn: () => api.get<AdminInventoryItem[]>('/admin/inventory/low-stock').then(r => r.data),
   });
 
   const { data: productsData } = useQuery({
     queryKey: ['admin-products-picker'],
-    queryFn: () => api.get('/admin/products?limit=200&sortBy=name&order=asc').then(r => r.data),
+    queryFn: () => api.get<{ data: Product[] }>('/admin/products?limit=200&sortBy=name&order=asc').then(r => r.data),
   });
 
   const { data: warehouses } = useQuery({
     queryKey: ['warehouses'],
-    queryFn: () => api.get('/admin/inventory/warehouses').then(r => r.data),
+    queryFn: () => api.get<InventoryWarehouse[]>('/admin/inventory/warehouses').then(r => r.data),
   });
 
   const products = productsData?.data || [];
@@ -52,10 +71,10 @@ export default function AdminInventory() {
         <PageHeader icon={FiPackage} title="Inventory" subtitle="Track stock levels and add new stock across warehouses." />
       </div>
 
-      {lowStock?.length > 0 && (
+      {lowStock && lowStock.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
           <h2 className="font-semibold text-red-700 mb-2">Low Stock Alert</h2>
-          {lowStock.map((item: any) => (
+          {lowStock.map((item) => (
             <p key={item.id} className="text-sm text-red-600">{item.product?.name} - {item.quantity} remaining</p>
           ))}
         </div>
@@ -70,7 +89,7 @@ export default function AdminInventory() {
             className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Select product...</option>
-            {products.map((p: any) => (
+            {products.map((p) => (
               <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
             ))}
           </select>
@@ -80,7 +99,7 @@ export default function AdminInventory() {
             className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Select warehouse...</option>
-            {warehouses?.map((w: any) => (
+            {warehouses?.map((w) => (
               <option key={w.id} value={w.id}>{w.name}{w.location ? ` (${w.location})` : ''}</option>
             ))}
           </select>
@@ -128,7 +147,7 @@ export default function AdminInventory() {
             ) : !data?.length ? (
               <TableEmptyState columns={5} icon={FiPackage} title="No inventory records yet" />
             ) : (
-              data?.map((item: any) => (
+              data?.map((item) => (
                 <tr key={item.id} className="border-t border-gray-100">
                   <td className="p-4 text-sm text-gray-900">{item.product?.name}</td>
                   <td className="p-4 text-sm text-gray-600">{item.warehouse?.name}</td>

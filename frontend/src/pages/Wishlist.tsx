@@ -5,13 +5,26 @@ import { useAuthStore } from '../store/authStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { FiTrash2 } from 'react-icons/fi';
 import Skeleton from '../components/ui/Skeleton';
+import type { WishlistItem } from '../types';
+
+// Shape actually used when rendering a row, satisfied by both the authenticated
+// API response (WishlistItem) and the guest GuestWishlistItem from wishlistStore
+// — the latter has no `id`, since it isn't persisted server-side.
+interface WishlistDisplayItem {
+  id?: string;
+  productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string | null;
+}
 
 export default function WishlistPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
   const guestWishlist = useWishlistStore();
 
-  const { data: apiWishlist, isLoading: wishlistLoading } = useQuery({
+  const { data: apiWishlist, isLoading: wishlistLoading } = useQuery<WishlistItem[]>({
     queryKey: ['wishlist'],
     queryFn: () => api.get('/wishlist').then(r => r.data),
     enabled: isAuthenticated,
@@ -22,7 +35,7 @@ export default function WishlistPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wishlist'] }),
   });
 
-  const items = isAuthenticated ? (apiWishlist || []) : guestWishlist.items;
+  const items: WishlistDisplayItem[] = isAuthenticated ? (apiWishlist || []) : guestWishlist.items;
   const isLoading = isAuthenticated && wishlistLoading;
 
   return (
@@ -51,7 +64,7 @@ export default function WishlistPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((item: any) => (
+          {items.map((item: WishlistDisplayItem) => (
             <div key={item.productId || item.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-4 flex items-center gap-4">
               <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                 {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <span className="text-gray-500 text-xs">No img</span>}
@@ -61,7 +74,13 @@ export default function WishlistPage() {
                 <p className="text-primary-500 font-bold">KES {item.price?.toLocaleString()}</p>
               </div>
               <button
-                onClick={() => isAuthenticated ? removeApi.mutate(item.id) : guestWishlist.removeItem(item.productId)}
+                onClick={() => {
+                  if (isAuthenticated && item.id) {
+                    removeApi.mutate(item.id);
+                  } else {
+                    guestWishlist.removeItem(item.productId);
+                  }
+                }}
                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
               >
                 <FiTrash2 size={18} />

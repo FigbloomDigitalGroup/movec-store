@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import api, { getErrorMessage } from '../lib/api';
@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useCart } from '../hooks/useCart';
-import type { Address } from '../types';
+import type { Address, CartDisplayItem } from '../types';
 import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
@@ -19,7 +19,7 @@ export default function CheckoutPage() {
   const { isAuthenticated, isHydrated } = useAuthStore();
   const guestCart = useCartStore();
   const isSyncing = useCartStore((s) => s.isSyncing);
-  const [shippingId, setShippingId] = useState('');
+  const [selectedShippingId, setSelectedShippingId] = useState('');
   const [billingId] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [notes, setNotes] = useState('');
@@ -38,11 +38,11 @@ export default function CheckoutPage() {
     enabled: isAuthenticated,
   });
 
-  useEffect(() => {
-    if (addresses && addresses.length > 0 && !shippingId) {
-      setShippingId(addresses[0].id);
-    }
-  }, [addresses, shippingId]);
+  // No address has been explicitly picked yet — fall back to the first one on
+  // file as soon as the list loads. Deriving this during render (rather than
+  // syncing it via an effect) means there's no extra render pass and no
+  // window where `shippingId` is stale.
+  const shippingId = selectedShippingId || addresses?.[0]?.id || '';
 
   const addAddress = useMutation({
     mutationFn: () => api.post('/users/me/addresses', {
@@ -55,7 +55,7 @@ export default function CheckoutPage() {
     }),
     onSuccess: (res) => {
       refetchAddresses().then(() => {
-        setShippingId(res.data.id);
+        setSelectedShippingId(res.data.id);
         setShowAddAddress(false);
         setLine1('');
         setCity('');
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
     },
   });
 
-  const items = isAuthenticated ? (cart?.items || []) : guestCart.items;
+  const items: CartDisplayItem[] = isAuthenticated ? (cart?.items || []) : guestCart.items;
   const total = isAuthenticated ? (cart?.total || 0) : guestCart.getTotal();
   const cartEmpty = isAuthenticated ? items.length === 0 && cart !== undefined : items.length === 0;
 
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
                         name="shipping"
                         value={addr.id}
                         checked={shippingId === addr.id}
-                        onChange={(e) => setShippingId(e.target.value)}
+                        onChange={(e) => setSelectedShippingId(e.target.value)}
                         className="mt-1"
                       />
                       <div>
@@ -315,13 +315,13 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <div className="space-y-3 mb-6">
-                      {items.map((item: any) => (
+                      {items.map((item) => (
                         <div key={item.productId || item.id} className="flex justify-between text-sm">
                           <span className="text-gray-600">
-                            {item.productNameSnapshot || item.name} x {item.quantity}
+                            {item.name} x {item.quantity}
                           </span>
                           <span className="font-medium text-gray-900">
-                            KES {(Number(item.priceSnapshot ?? item.price) * item.quantity).toLocaleString()}
+                            KES {(item.price * item.quantity).toLocaleString()}
                           </span>
                         </div>
                       ))}

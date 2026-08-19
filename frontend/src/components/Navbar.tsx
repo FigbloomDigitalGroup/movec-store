@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import { useEffect, useRef, useState } from 'react';
 import logo from '../assets/logo.png';
+import type { WishlistItem } from '../types';
 
 const NAV_LINKS = [
   { to: '/shop', label: 'Shop' },
@@ -32,14 +33,14 @@ export default function Navbar() {
 
   const { data: apiCart } = useCart();
 
-  const { data: apiWishlist } = useQuery({
+  const { data: apiWishlist } = useQuery<WishlistItem[]>({
     queryKey: ['wishlist'],
     queryFn: () => api.get('/wishlist').then((r) => r.data),
     enabled: isAuthenticated,
   });
 
   const cartCount = isAuthenticated
-    ? apiCart?.items?.reduce((sum: number, i: any) => sum + i.quantity, 0) || 0
+    ? apiCart?.items?.reduce((sum, i) => sum + i.quantity, 0) || 0
     : guestCartCount;
   const wishlistCount = isAuthenticated ? apiWishlist?.length || 0 : guestWishlistCount;
 

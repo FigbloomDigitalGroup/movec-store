@@ -86,4 +86,4 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   logger.log(`Application running on 0.0.0.0:${port}`);
 }
-bootstrap();
+void bootstrap();

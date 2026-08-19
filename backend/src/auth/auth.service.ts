@@ -14,6 +14,7 @@ import { EmailService } from '../email/email.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RoleName } from '@prisma/client';
+import type { StringValue } from 'ms';
 
 // Standing credentials (refresh tokens, reset/verification tokens) are hashed before
 // being persisted — a database-only compromise (backup leak, misconfigured replica)
@@ -189,7 +190,8 @@ export class AuthService {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET') as string,
       expiresIn: this.configService.get<string>(
         'JWT_REFRESH_EXPIRATION',
-      ) as any,
+        '7d',
+      ) as StringValue,
     });
 
     await this.prisma.session.create({
@@ -248,7 +250,8 @@ export class AuthService {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET') as string,
       expiresIn: this.configService.get<string>(
         'JWT_REFRESH_EXPIRATION',
-      ) as any,
+        '7d',
+      ) as StringValue,
     });
 
     await this.prisma.session.create({

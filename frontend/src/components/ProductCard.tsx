@@ -43,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
       : 0;
 
-  const totalStock = (product as any).inventory?.reduce((sum: number, inv: any) => sum + inv.quantity, 0) ?? 1;
+  const totalStock = product.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) ?? 1;
   const inStock = totalStock > 0;
 
   return (

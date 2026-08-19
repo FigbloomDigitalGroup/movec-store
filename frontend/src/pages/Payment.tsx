@@ -6,6 +6,7 @@ import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock } from 'react-icons/fi';
 import CheckoutSteps from '../components/CheckoutSteps';
+import type { OrderItem } from '../types';
 
 const VERIFY_MAX_ATTEMPTS = 3;
 const VERIFY_RETRY_DELAY_MS = 2000;
@@ -52,13 +53,13 @@ export default function PaymentPage() {
     const initiatePaystack = useMutation({
         mutationFn: () => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com' }).then(r => r.data),
         onSuccess: (data) => {
-            const paystack = new (window as any).PaystackPop();
+            const paystack = new window.PaystackPop();
             paystack.newTransaction({
                 key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
                 email: order?.user?.email || 'customer@example.com',
                 amount: Math.round(Number(order?.total) * 100),
                 ref: data.reference,
-                onSuccess: (transaction: any) => {
+                onSuccess: (transaction) => {
                     setPaystackReference(transaction.reference);
                     verifyPayment(transaction.reference);
                 },
@@ -284,7 +285,7 @@ export default function PaymentPage() {
                 {/* Order Summary */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 h-fit sticky top-24">
                     <h2 className="text-xl font-section-title mb-4">Order Summary</h2>
-                    {order?.items?.map((item: any, i: number) => (
+                    {order?.items?.map((item: OrderItem, i: number) => (
                         <div key={i} className="flex justify-between py-2 border-b border-gray-200/30 text-sm">
                             <span>{item.productName} x {item.quantity}</span>
                             <span>KES {(item.price * item.quantity).toLocaleString()}</span>

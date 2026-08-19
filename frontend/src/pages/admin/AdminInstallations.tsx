@@ -9,6 +9,15 @@ import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '.
 
 const PAGE_SIZE = 20;
 
+// Shape returned by GET /admin/installation/requests — only the fields this page renders.
+interface InstallationRequestRow {
+  id: string;
+  status: string;
+  preferredDate: string;
+  user: { firstName: string; lastName: string };
+  service: { name: string };
+}
+
 const STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-amber-100 text-amber-700',
   APPROVED: 'bg-sky-100 text-sky-700',
@@ -27,7 +36,7 @@ export default function AdminInstallations() {
     queryFn: () => api.get(`/admin/installation/requests?page=${page}&limit=${PAGE_SIZE}`).then(r => r.data),
   });
 
-  const requests: any[] = data?.data || [];
+  const requests: InstallationRequestRow[] = data?.data || [];
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => api.patch(`/admin/installation/requests/${id}`, { status }),
@@ -54,7 +63,7 @@ export default function AdminInstallations() {
             ) : !requests.length ? (
               <TableEmptyState columns={5} icon={FiTool} title="No installation requests yet" />
             ) : (
-              requests.map((req: any) => (
+              requests.map((req) => (
                 <tr key={req.id} className="border-t border-gray-100">
                   <td className="p-4 text-sm text-gray-900">{req.user?.firstName} {req.user?.lastName}</td>
                   <td className="p-4 text-sm text-gray-600">{req.service?.name}</td>

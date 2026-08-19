@@ -11,6 +11,32 @@ import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '.
 const STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const;
 const PAGE_SIZE = 20;
 
+// Shape returned by GET /admin/support/tickets/:id — only the fields this modal renders.
+interface TicketMessage {
+  id: string;
+  message: string;
+  isStaffReply: boolean;
+  createdAt: string;
+}
+
+interface TicketDetail {
+  id: string;
+  subject: string;
+  status: string;
+  user: { firstName: string; lastName: string; email: string };
+  messages: TicketMessage[];
+}
+
+// Shape returned by GET /admin/support/tickets — only the fields the list table renders.
+interface TicketListItem {
+  id: string;
+  subject: string;
+  status: string;
+  createdAt: string;
+  user: { firstName: string; lastName: string; email: string };
+  _count: { messages: number };
+}
+
 const STATUS_STYLES: Record<string, string> = {
   OPEN: 'bg-amber-50 text-amber-700 border-amber-200',
   IN_PROGRESS: 'bg-sky-50 text-sky-700 border-sky-200',
@@ -31,7 +57,7 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
   const [reply, setReply] = useState('');
   const [status, setStatus] = useState<string | null>(null);
 
-  const { data: ticket, isLoading } = useQuery({
+  const { data: ticket, isLoading } = useQuery<TicketDetail>({
     queryKey: ['admin-ticket', ticketId],
     queryFn: () => api.get(`/admin/support/tickets/${ticketId}`).then((r) => r.data),
   });
@@ -118,7 +144,7 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
 
             <div className="flex-1 overflow-y-auto p-5 space-y-3">
               {ticket.messages?.length ? (
-                ticket.messages.map((m: any) => (
+                ticket.messages.map((m) => (
                   <div key={m.id} className={`flex gap-2 ${m.isStaffReply ? 'flex-row-reverse' : ''}`}>
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${m.isStaffReply ? 'bg-primary-50 text-primary-500' : 'bg-gray-100 text-gray-500'}`}>
                       {m.isStaffReply ? <FiHeadphones size={13} /> : <FiUser size={13} />}
@@ -187,7 +213,7 @@ export default function AdminSupport() {
     },
   });
 
-  const tickets: any[] = data?.data || [];
+  const tickets: TicketListItem[] = data?.data || [];
   const total: number = data?.meta?.total || 0;
 
   return (

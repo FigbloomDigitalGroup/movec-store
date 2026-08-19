@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
-import type { Product } from '../types';
+import type { Product, Category, Brand } from '../types';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Skeleton from '../components/ui/Skeleton';
@@ -29,12 +29,12 @@ export default function Products() {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const { data: categories } = useQuery({
+  const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/categories').then((r) => r.data),
     staleTime: 15 * 60 * 1000,
   });
-  const { data: brands } = useQuery({
+  const { data: brands } = useQuery<Brand[]>({
     queryKey: ['brands'],
     queryFn: () => api.get('/brands').then((r) => r.data),
     staleTime: 15 * 60 * 1000,
@@ -186,7 +186,7 @@ export default function Products() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">All Categories</option>
-                    {(categories || []).map((c: any) => (
+                    {(categories || []).map((c) => (
                       <option key={c.id} value={c.slug}>{c.name}</option>
                     ))}
                   </select>
@@ -211,7 +211,7 @@ export default function Products() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">All Brands</option>
-                    {(brands || []).map((b: any) => (
+                    {(brands || []).map((b) => (
                       <option key={b.id} value={b.slug}>{b.name}</option>
                     ))}
                   </select>

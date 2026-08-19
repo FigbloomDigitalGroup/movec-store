@@ -3,7 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, TicketStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -118,7 +118,7 @@ export class SupportService {
   async getAllTickets(query: QueryTicketDto) {
     const { page, limit, skip } = buildPagination(query);
     const where: Prisma.SupportTicketWhereInput = {};
-    if (query.status) where.status = query.status as any;
+    if (query.status) where.status = query.status;
     if (query.search) {
       where.OR = [
         { subject: { contains: query.search, mode: 'insensitive' } },
@@ -147,10 +147,10 @@ export class SupportService {
     return paginated(data, total, page, limit);
   }
 
-  async updateTicketStatus(ticketId: string, status: string) {
+  async updateTicketStatus(ticketId: string, status: TicketStatus) {
     return this.prisma.supportTicket.update({
       where: { id: ticketId },
-      data: { status: status as any },
+      data: { status },
     });
   }
 

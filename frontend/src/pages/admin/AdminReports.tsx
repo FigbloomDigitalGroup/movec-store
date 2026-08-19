@@ -26,6 +26,57 @@ const INSTALLATION_STATUS_COLORS: Record<string, string> = {
   CANCELLED: 'bg-red-500',
 };
 
+// Shape returned by GET /admin/reports/sales (ReportsService.getSalesReport).
+interface SalesReport {
+  totalSales: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  paymentMethods: Record<string, number>;
+}
+
+// Shape returned by GET /admin/reports/customers (ReportsService.getCustomersReport).
+interface TopCustomer {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  totalSpent: number;
+  ordersCount: number;
+}
+
+interface CustomersReport {
+  totalCustomers: number;
+  newToday: number;
+  topCustomers: TopCustomer[];
+}
+
+// Shape returned by GET /admin/reports/products (ReportsService.getProductsReport).
+interface TopSellingProduct {
+  id?: string;
+  name?: string;
+  slug?: string;
+  price?: number;
+  totalSold: number;
+  revenue: number;
+}
+
+interface ProductsReport {
+  totalProducts: number;
+  topSelling: TopSellingProduct[];
+}
+
+// Shape returned by GET /admin/reports/installations (ReportsService.getInstallationsReport).
+interface InstallationStatusCount {
+  status: string;
+  count: number;
+}
+
+interface InstallationsReport {
+  totalRequests: number;
+  totalRevenue: number;
+  byStatus: InstallationStatusCount[];
+}
+
 export default function AdminReports() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -35,22 +86,22 @@ export default function AdminReports() {
 
   const { data: sales, isLoading: salesLoading } = useQuery({
     queryKey: ['report-sales', from, to],
-    queryFn: () => api.get('/admin/reports/sales', { params: dateParams }).then((r) => r.data),
+    queryFn: () => api.get<SalesReport>('/admin/reports/sales', { params: dateParams }).then((r) => r.data),
   });
 
   const { data: customers, isLoading: custLoading } = useQuery({
     queryKey: ['report-customers', from, to],
-    queryFn: () => api.get('/admin/reports/customers', { params: dateParams }).then((r) => r.data),
+    queryFn: () => api.get<CustomersReport>('/admin/reports/customers', { params: dateParams }).then((r) => r.data),
   });
 
   const { data: products, isLoading: prodLoading } = useQuery({
     queryKey: ['report-products', from, to],
-    queryFn: () => api.get('/admin/reports/products', { params: dateParams }).then((r) => r.data),
+    queryFn: () => api.get<ProductsReport>('/admin/reports/products', { params: dateParams }).then((r) => r.data),
   });
 
   const { data: installations, isLoading: instLoading } = useQuery({
     queryKey: ['report-installations', from, to],
-    queryFn: () => api.get('/admin/reports/installations', { params: dateParams }).then((r) => r.data),
+    queryFn: () => api.get<InstallationsReport>('/admin/reports/installations', { params: dateParams }).then((r) => r.data),
   });
 
   const downloadReport = async (type: string, format: string) => {
@@ -296,8 +347,8 @@ export default function AdminReports() {
                     </div>
                   </div>
                 ))
-              ) : products?.topSelling?.length > 0 ? (
-                products.topSelling.slice(0, 5).map((prod: any, idx: number) => (
+              ) : (products?.topSelling?.length ?? 0) > 0 ? (
+                products?.topSelling?.slice(0, 5).map((prod, idx) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between p-2.5 hover:bg-gray-50 rounded-2xl transition border border-transparent hover:border-gray-100"
@@ -395,9 +446,9 @@ export default function AdminReports() {
 
             {custLoading ? (
               <div className="space-y-2.5">{[1, 2, 3].map((i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}</div>
-            ) : customers?.topCustomers?.length > 0 ? (
+            ) : (customers?.topCustomers?.length ?? 0) > 0 ? (
               <div className="space-y-2.5">
-                {customers.topCustomers.slice(0, 6).map((c: any, i: number) => (
+                {customers?.topCustomers?.slice(0, 6).map((c, i) => (
                   <div key={i} className="flex items-center justify-between p-2.5 bg-gray-50/80 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-500 flex items-center justify-center text-xs font-bold flex-shrink-0">

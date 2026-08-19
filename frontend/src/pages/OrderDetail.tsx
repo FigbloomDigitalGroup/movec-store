@@ -18,11 +18,12 @@ import { getOrderStatusConfig } from '../lib/orderStatus';
 import OrderStatusBadge from '../components/OrderStatusBadge';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useState } from 'react';
+import type { OrderStatusHistoryEntry, OrderItem } from '../types';
 
 /* ─── Order Timeline ─────────────────────────────────────────── */
 const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
 
-function OrderTimeline({ status, history }: { status: string; history: any[] }) {
+function OrderTimeline({ status, history }: { status: string; history: OrderStatusHistoryEntry[] }) {
   const isCancelled = status === 'CANCELLED';
   const steps = isCancelled
     ? ['PENDING', 'CANCELLED']
@@ -177,7 +178,7 @@ export default function OrderDetailPage() {
                 </h2>
               </div>
               <div className="divide-y divide-gray-100">
-                {order.items.map((item: any, i: number) => (
+                {order.items.map((item: OrderItem, i: number) => (
                   <div key={i} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition">
                     <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {item.image ? (

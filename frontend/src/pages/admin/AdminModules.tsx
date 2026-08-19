@@ -7,6 +7,17 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Input from '../../components/ui/Input';
 import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 
+// Shape returned by GET /admin/modules (ModulesService.findAll, backed by the
+// Prisma StoreModule model) — only the fields this page reads/edits.
+interface StoreModule {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  isActive: boolean;
+  sortOrder: number;
+}
+
 export default function AdminModules() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -16,11 +27,11 @@ export default function AdminModules() {
 
   const { data: modules, isLoading } = useQuery({
     queryKey: ['admin-modules'],
-    queryFn: () => api.get('/admin/modules').then(r => r.data),
+    queryFn: () => api.get<StoreModule[]>('/admin/modules').then(r => r.data),
   });
 
   const createApi = useMutation({
-    mutationFn: (data: any) => api.post('/admin/modules', data),
+    mutationFn: (data: typeof formData) => api.post('/admin/modules', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
       setIsCreating(false);
@@ -29,7 +40,7 @@ export default function AdminModules() {
   });
 
   const updateApi = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => api.patch(`/admin/modules/${id}`, data),
+    mutationFn: ({ id, data }: { id: string; data: typeof formData }) => api.patch(`/admin/modules/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
       setIsEditing(null);
@@ -52,7 +63,7 @@ export default function AdminModules() {
     }
   };
 
-  const handleEdit = (mod: any) => {
+  const handleEdit = (mod: StoreModule) => {
     setIsEditing(mod.id);
     setIsCreating(false);
     setFormData({
@@ -142,7 +153,7 @@ export default function AdminModules() {
             ) : !modules?.length ? (
               <TableEmptyState columns={5} icon={FiLayers} title="No modules yet" description="Add one to get started." />
             ) : (
-              modules.map((mod: any) => (
+              modules.map((mod) => (
               <tr key={mod.id} className="border-t">
                 <td className="p-4 font-medium">{mod.name}</td>
                 <td className="p-4 text-gray-500">{mod.slug}</td>

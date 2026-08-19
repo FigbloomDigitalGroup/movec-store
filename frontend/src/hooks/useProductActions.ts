@@ -4,7 +4,7 @@ import api, { getErrorMessage } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
-import type { Product } from '../types';
+import type { Product, WishlistItem } from '../types';
 
 interface ProductLike {
   id: string;
@@ -28,7 +28,7 @@ export function useProductActions(productId: string) {
   const toggleGuestWishlistItem = useWishlistStore((s) => s.toggleItem);
   const isGuestWishlisted = useWishlistStore((s) => s.items.some((i) => i.productId === productId));
 
-  const { data: apiWishlist } = useQuery({
+  const { data: apiWishlist } = useQuery<WishlistItem[]>({
     queryKey: ['wishlist'],
     queryFn: () => api.get('/wishlist').then((r) => r.data),
     enabled: isAuthenticated,
@@ -74,7 +74,7 @@ export function useProductActions(productId: string) {
   });
 
   const apiWishlistEntry = isAuthenticated && Array.isArray(apiWishlist)
-    ? apiWishlist.find((i: any) => i.productId === productId)
+    ? apiWishlist.find((i) => i.productId === productId)
     : undefined;
 
   const isWishlisted = isAuthenticated ? Boolean(apiWishlistEntry) : isGuestWishlisted;

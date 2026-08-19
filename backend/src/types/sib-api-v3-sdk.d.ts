@@ -11,6 +11,7 @@ declare module 'sib-api-v3-sdk' {
   export class SendSmtpEmail {
     to: { email: string; name?: string }[];
     sender: { email: string; name?: string };
+    replyTo?: { email: string; name?: string };
     subject: string;
     htmlContent: string;
     textContent?: string;

@@ -3,12 +3,22 @@ import api, { setHasSession } from '../lib/api';
 import { queryClient } from '../lib/queryClient';
 import type { User } from '../types';
 
+// Mirrors backend/src/auth/dto/register.dto.ts — only the fields the
+// registration form actually collects and sends.
+interface RegisterPayload {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  phone?: string;
+}
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isHydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  register: (data: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
 }

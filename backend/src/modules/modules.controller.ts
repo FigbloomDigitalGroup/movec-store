@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ModulesService } from './modules.service';
+import type { ModuleProductsQuery } from './modules.service';
 import { CacheControl } from '../common/decorators/cache-control.decorator';
 
 @Controller('modules')
@@ -22,7 +23,10 @@ export class ModulesController {
 
   /** GET /modules/:slug/products — products scoped to a module */
   @Get(':slug/products')
-  findProducts(@Param('slug') slug: string, @Query() query: any) {
+  findProducts(
+    @Param('slug') slug: string,
+    @Query() query: ModuleProductsQuery,
+  ) {
     return this.modulesService.findProducts(slug, query);
   }
 }

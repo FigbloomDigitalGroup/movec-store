@@ -28,7 +28,13 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { confirmPassword: _, ...payload } = form;
+      const payload = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      };
       await register(payload);
       setSuccess('Registration successful!');
     } catch (err) {

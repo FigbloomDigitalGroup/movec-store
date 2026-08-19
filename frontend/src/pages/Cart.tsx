@@ -9,6 +9,7 @@ import { FiShoppingBag, FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-ic
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import Skeleton from '../components/ui/Skeleton';
+import type { CartDisplayItem } from '../types';
 
 export default function CartPage() {
   const queryClient = useQueryClient();
@@ -84,7 +85,7 @@ export default function CartPage() {
     );
   }
 
-  const items = isAuthenticated ? (apiCart?.items || []) : guestCart.items;
+  const items: CartDisplayItem[] = isAuthenticated ? (apiCart?.items || []) : guestCart.items;
   const total = isAuthenticated
     ? (apiCart?.total || 0)
     : guestCart.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -122,7 +123,7 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
-              {items.map((item: any) => (
+              {items.map((item) => (
                 <Card key={item.productId || item.id}>
                   <CardBody>
                     <div className="flex items-center gap-4">
@@ -145,7 +146,7 @@ export default function CartPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
+                              onClick={() => item.id && updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
                               disabled={item.quantity <= 1 || updateQuantity.isPending}
                             >
                               <FiMinus size={16} />
@@ -154,7 +155,7 @@ export default function CartPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
+                              onClick={() => item.id && updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
                               disabled={updateQuantity.isPending}
                             >
                               <FiPlus size={16} />
@@ -187,7 +188,7 @@ export default function CartPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => isAuthenticated ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
+                        onClick={() => isAuthenticated && item.id ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
                         disabled={isAuthenticated && removeItem.isPending}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       >

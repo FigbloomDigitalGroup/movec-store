@@ -1,9 +1,10 @@
-import { IsOptional, IsString, IsNumberString } from 'class-validator';
+import { IsOptional, IsString, IsNumberString, IsEnum } from 'class-validator';
+import { TicketStatus } from '@prisma/client';
 
 export class QueryTicketDto {
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(TicketStatus)
+  status?: TicketStatus;
 
   @IsOptional()
   @IsString()

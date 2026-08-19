@@ -13,6 +13,18 @@ import { buildPagination } from '../common/pagination';
 
 const SORTABLE_FIELDS = ['createdAt', 'price', 'name'] as const;
 
+export interface ModuleProductsQuery {
+  page?: string;
+  limit?: string;
+  search?: string;
+  category?: string;
+  brand?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  sortBy?: string;
+  order?: string;
+}
+
 @Injectable()
 export class ModulesService {
   constructor(
@@ -88,20 +100,7 @@ export class ModulesService {
   }
 
   /** Get all products belonging to a module (with full filtering) */
-  async findProducts(
-    slug: string,
-    query: {
-      page?: string;
-      limit?: string;
-      search?: string;
-      category?: string;
-      brand?: string;
-      minPrice?: string;
-      maxPrice?: string;
-      sortBy?: string;
-      order?: string;
-    },
-  ) {
+  async findProducts(slug: string, query: ModuleProductsQuery) {
     const mod = await this.prisma.storeModule.findUnique({ where: { slug } });
     if (!mod) throw new NotFoundException(`Module "${slug}" not found`);
 

@@ -13,6 +13,7 @@ import { SupportService } from './support.service';
 import { CreateFaqDto } from './dto/create-faq.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { QueryTicketDto } from './dto/query-ticket.dto';
+import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -41,9 +42,9 @@ export class AdminSupportController {
   @Patch('tickets/:id')
   updateTicketStatus(
     @Param('id') id: string,
-    @Body() body: { status: string },
+    @Body() dto: UpdateTicketStatusDto,
   ) {
-    return this.supportService.updateTicketStatus(id, body.status);
+    return this.supportService.updateTicketStatus(id, dto.status);
   }
 
   @Post('tickets/:id/messages')

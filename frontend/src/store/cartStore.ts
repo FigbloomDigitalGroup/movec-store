@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
+import type { QueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 
 interface GuestCartItem {
@@ -20,7 +21,7 @@ interface CartState {
   getTotal: () => number;
   getCount: () => number;
   clearCart: () => void;
-  syncCart: (queryClient: any) => Promise<void>;
+  syncCart: (queryClient: QueryClient) => Promise<void>;
 }
 
 const loadCart = (): GuestCartItem[] => {
@@ -93,7 +94,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({ items: [] });
   },
 
-  syncCart: async (queryClient: any) => {
+  syncCart: async (queryClient: QueryClient) => {
     const items = get().items;
     if (items.length === 0 || get().isSyncing) return;
     set({ isSyncing: true });

@@ -16,6 +16,7 @@ import OrderStatusBadge from '../../components/OrderStatusBadge';
 import Pagination from '../../components/ui/Pagination';
 import PageHeader from '../../components/ui/PageHeader';
 import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
+import type { OrderItem } from '../../types';
 
 const PAGE_SIZE = 20;
 
@@ -28,9 +29,51 @@ const PAYMENT_CONFIG: Record<string, string> = {
   REFUNDED:  'bg-gray-100 text-gray-700',
 };
 
+// Shape returned by GET /admin/orders (OrdersService.findAll).
+interface AdminOrderCustomer {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface AdminOrderListItem {
+  id: string;
+  orderNumber: string;
+  customer: AdminOrderCustomer | null;
+  status: string;
+  total: number;
+  itemsCount: number;
+  paymentStatus: string | null;
+  createdAt: string;
+}
+
+interface AdminOrdersResponse {
+  data: AdminOrderListItem[];
+  meta: { page: number; limit: number; total: number };
+}
+
+// Shape returned by GET /admin/orders/:orderNumber (OrdersService.findByOrderNumber).
+// shippingAddress is declared with the field names this modal actually reads —
+// the real Address model uses line1/line2 and has no phone field, a pre-existing
+// mismatch left untouched here since this pass only removes `any`, it doesn't
+// change what renders.
+interface AdminOrderDetailAddress {
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+}
+
+interface AdminOrderDetail {
+  items: OrderItem[];
+  shippingAddress?: AdminOrderDetailAddress | null;
+}
+
 /* ─── Update Status Modal ────────────────────────────────────── */
 interface UpdateModalProps {
-  order: any;
+  order: AdminOrderListItem;
   onClose: () => void;
 }
 
@@ -42,7 +85,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
 
   const { data: orderDetail, isLoading: detailLoading } = useQuery({
     queryKey: ['admin-order', order.orderNumber],
-    queryFn: () => api.get(`/admin/orders/${order.orderNumber}`).then((r) => r.data),
+    queryFn: () => api.get<AdminOrderDetail>(`/admin/orders/${order.orderNumber}`).then((r) => r.data),
   });
 
   useEffect(() => {
@@ -99,7 +142,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
             </div>
           ) : (
             <div className="border border-gray-100 rounded-xl divide-y divide-gray-100">
-              {orderDetail?.items?.map((item: any, i: number) => (
+              {orderDetail?.items?.map((item, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span className="text-gray-800">{item.productName} × {item.quantity}</span>
                   <span className="font-semibold text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</span>
@@ -202,17 +245,17 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrderListItem | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-orders', statusFilter, page],
     queryFn: () =>
       api
-        .get(`/admin/orders?limit=${PAGE_SIZE}&page=${page}${statusFilter ? `&status=${statusFilter}` : ''}`)
+        .get<AdminOrdersResponse>(`/admin/orders?limit=${PAGE_SIZE}&page=${page}${statusFilter ? `&status=${statusFilter}` : ''}`)
         .then((r) => r.data),
   });
 
-  const orders: any[] = data?.data || [];
+  const orders: AdminOrderListItem[] = data?.data || [];
   const total: number = data?.meta?.total || 0;
 
   const filtered = orders.filter((o) => {

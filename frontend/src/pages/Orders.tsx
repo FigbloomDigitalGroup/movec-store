@@ -11,24 +11,30 @@ import {
 } from 'react-icons/fi';
 import { ORDER_STATUSES, getOrderStatusConfig } from '../lib/orderStatus';
 import OrderStatusBadge from '../components/OrderStatusBadge';
+import type { Order } from '../types';
+
+interface OrdersResponse {
+  data: Order[];
+  meta: { page: number; limit: number; total: number };
+}
 
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<OrdersResponse>({
     queryKey: ['orders'],
     queryFn: () => api.get('/orders').then((r) => r.data),
   });
 
-  const orders: any[] = data?.data || [];
+  const orders: Order[] = data?.data || [];
 
   const filtered = orders.filter((o) => {
     const matchStatus = statusFilter === 'all' || o.status === statusFilter;
     const matchSearch =
       search === '' ||
       o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-      o.items?.some((i: any) => i.productName.toLowerCase().includes(search.toLowerCase()));
+      o.items?.some((i) => i.productName.toLowerCase().includes(search.toLowerCase()));
     return matchStatus && matchSearch;
   });
 
@@ -160,7 +166,7 @@ export default function OrdersPage() {
 
                       {/* Item names preview */}
                       <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                        {order.items?.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
+                        {order.items?.map((i) => `${i.productName} ×${i.quantity}`).join(', ')}
                       </p>
 
                       <p className="text-xs text-gray-500 mt-1">

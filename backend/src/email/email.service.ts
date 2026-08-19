@@ -290,7 +290,7 @@ export class EmailService {
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.to = [{ email: businessEmail }];
     sendSmtpEmail.sender = { email: this.fromEmail, name: contactData.name };
-    (sendSmtpEmail as any).replyTo = { email: contactData.email };
+    sendSmtpEmail.replyTo = { email: contactData.email };
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = htmlContent;
 

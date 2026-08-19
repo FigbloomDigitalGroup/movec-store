@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
+import type { QueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 
 interface GuestWishlistItem {
@@ -17,7 +18,7 @@ interface WishlistState {
   removeItem: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   toggleItem: (item: GuestWishlistItem) => void;
-  syncWishlist: (queryClient: any) => Promise<void>;
+  syncWishlist: (queryClient: QueryClient) => Promise<void>;
 }
 
 const loadWishlist = (): GuestWishlistItem[] => {
@@ -72,7 +73,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     }
   },
 
-  syncWishlist: async (queryClient: any) => {
+  syncWishlist: async (queryClient: QueryClient) => {
     const items = get().items;
     if (items.length === 0 || get().isSyncing) return;
     set({ isSyncing: true });

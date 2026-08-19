@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
@@ -7,6 +7,7 @@ import { FiUser, FiMapPin, FiPlus, FiEdit2, FiTrash2, FiCheck, FiX, FiSave } fro
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import Input from '../components/ui/Input';
 import Skeleton from '../components/ui/Skeleton';
+import type { Address } from '../types';
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
@@ -32,16 +33,18 @@ export default function ProfilePage() {
 
   // Keep the edit form in sync with whatever the server actually has on file —
   // otherwise saving just the name (without touching phone) would PATCH phone
-  // back to an empty string.
-  useEffect(() => {
-    if (profile) {
-      setProfileForm({
-        firstName: profile.firstName || '',
-        lastName: profile.lastName || '',
-        phone: profile.phone || '',
-      });
-    }
-  }, [profile]);
+  // back to an empty string. Adjusting state during render (rather than in an
+  // effect) re-syncs the instant a fresh `profile` reference shows up, without
+  // an extra render pass.
+  const [syncedProfile, setSyncedProfile] = useState(profile);
+  if (profile && profile !== syncedProfile) {
+    setSyncedProfile(profile);
+    setProfileForm({
+      firstName: profile.firstName || '',
+      lastName: profile.lastName || '',
+      phone: profile.phone || '',
+    });
+  }
 
   const { data: addresses, isLoading: addressesLoading } = useQuery({
     queryKey: ['addresses'],
@@ -49,7 +52,7 @@ export default function ProfilePage() {
   });
 
   const updateProfile = useMutation({
-    mutationFn: (data: any) => api.patch('/users/me', data),
+    mutationFn: (data: typeof profileForm) => api.patch('/users/me', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       toast.success('Profile updated!');
@@ -67,7 +70,7 @@ export default function ProfilePage() {
   });
 
   const saveAddress = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: (data: typeof addressForm) => {
       if (editingAddress) return api.patch(`/users/me/addresses/${editingAddress}`, data);
       return api.post('/users/me/addresses', data);
     },
@@ -91,7 +94,7 @@ export default function ProfilePage() {
     onError: (err) => toast.error(getErrorMessage(err)),
   });
 
-  const startEditAddress = (addr: any) => {
+  const startEditAddress = (addr: Address) => {
     setEditingAddress(addr.id);
     setAddressForm({ type: addr.type, line1: addr.line1, line2: addr.line2 || '', city: addr.city, state: addr.state || '', postalCode: addr.postalCode, country: addr.country, isDefault: addr.isDefault });
     setShowAddAddress(true);
@@ -104,18 +107,20 @@ export default function ProfilePage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-8" role="tablist" aria-label="Account sections">
-        {[
-          { key: 'profile', label: 'Profile', icon: FiUser },
-          { key: 'addresses', label: 'Addresses', icon: FiMapPin },
-          { key: 'password', label: 'Password', icon: FiEdit2 },
-        ].map((tab) => (
+        {(
+          [
+            { key: 'profile', label: 'Profile', icon: FiUser },
+            { key: 'addresses', label: 'Addresses', icon: FiMapPin },
+            { key: 'password', label: 'Password', icon: FiEdit2 },
+          ] as const
+        ).map((tab) => (
           <button
             key={tab.key}
             role="tab"
             id={`account-tab-${tab.key}`}
             aria-selected={activeTab === tab.key}
             aria-controls={`account-panel-${tab.key}`}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === tab.key ? 'bg-primary-500 text-white' : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white'}`}
           >
             <tab.icon size={16} />
@@ -211,7 +216,7 @@ export default function ProfilePage() {
               [1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)
             ) : (
               <>
-                {addresses?.map((addr: any) => (
+                {addresses?.map((addr: Address) => (
                   <div key={addr.id} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 flex justify-between items-center">
                     <div>
                       <div className="flex items-center gap-2">

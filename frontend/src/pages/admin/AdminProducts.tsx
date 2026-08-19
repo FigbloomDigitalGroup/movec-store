@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../../lib/api';
-import type { Product } from '../../types';
+import type { Product, Category, Warehouse } from '../../types';
 import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter, FiPackage, FiChevronDown, FiChevronUp, FiTrendingUp, FiBox } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
@@ -11,13 +11,33 @@ import Input from '../../components/ui/Input';
 
 const PAGE_SIZE = 20;
 
+// Shape of the create/edit product form — mirrors the fields the admin form
+// actually collects (a subset of the backend's CreateProductDto/UpdateProductDto).
+interface ProductFormState {
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  sku: string;
+  brandId: string;
+  categoryIds: string[];
+  isFeatured: boolean;
+  isBestSeller: boolean;
+}
+
+// Shape returned by GET /admin/products (paginated list).
+interface ProductsResponse {
+  data: Product[];
+  meta: { page: number; limit: number; total: number };
+}
+
 export default function AdminProducts() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ProductFormState>({
     name: '', slug: '', description: '', price: 0, sku: '',
-    brandId: '', categoryIds: [] as string[], isFeatured: false, isBestSeller: false,
+    brandId: '', categoryIds: [], isFeatured: false, isBestSeller: false,
   });
   const [invForm, setInvForm] = useState({ warehouseId: '', quantity: 0, lowStockThreshold: 5 });
 
@@ -48,7 +68,7 @@ export default function AdminProducts() {
     return () => clearTimeout(handle);
   }, [searchTerm]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<ProductsResponse>({
     queryKey: ['admin-products', sortBy, sortOrder, filterCategory, debouncedSearch, page],
     queryFn: () => {
       const params = new URLSearchParams();
@@ -62,12 +82,12 @@ export default function AdminProducts() {
     },
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/categories').then(r => r.data),
   });
 
-  const { data: warehouses } = useQuery({
+  const { data: warehouses } = useQuery<Warehouse[]>({
     queryKey: ['warehouses'],
     queryFn: () => api.get('/admin/inventory/warehouses').then(r => r.data),
   });
@@ -89,7 +109,7 @@ export default function AdminProducts() {
   });
 
   const saveProduct = useMutation({
-    mutationFn: async (body: any) => {
+    mutationFn: async (body: ProductFormState) => {
       let productId = editing?.id;
       if (editing) {
         await api.patch(`/admin/products/${editing.id}`, body);
@@ -183,7 +203,7 @@ export default function AdminProducts() {
 
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, slug: p.slug, description: p.description, price: p.price, sku: p.sku, brandId: p.brand?.id || '', categoryIds: p.categories?.map(c => c.id) || [], isFeatured: p.isFeatured || false, isBestSeller: (p as any).isBestSeller || false });
+    setForm({ name: p.name, slug: p.slug, description: p.description, price: p.price, sku: p.sku, brandId: p.brand?.id || '', categoryIds: p.categories?.map(c => c.id) || [], isFeatured: p.isFeatured || false, isBestSeller: p.isBestSeller || false });
     setInvForm({ warehouseId: '', quantity: 0, lowStockThreshold: 5 });
     setSelectedFiles([]); setPreviews([]); setShowForm(true);
   };
@@ -216,7 +236,7 @@ export default function AdminProducts() {
     }
   };
 
-  const getProductStock = (p: Product) => (p as any).inventory?.reduce((sum: number, inv: any) => sum + inv.quantity, 0) ?? 0;
+  const getProductStock = (p: Product) => p.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) ?? 0;
   const defaultWarehouseId = warehouses?.[0]?.id ?? '';
 
   const sortOptions = [
@@ -257,7 +277,7 @@ export default function AdminProducts() {
           </div>
           <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }} className="border rounded-lg px-4 py-2">
             <option value="">All Categories</option>
-            {categories?.map((c: any) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+            {categories?.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
           </select>
           <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }} className="border rounded-lg px-4 py-2">
             {sortOptions.map(opt => <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>)}
@@ -280,7 +300,7 @@ export default function AdminProducts() {
             <Input type="number" label="Price (KES)" value={form.price || ''} onChange={e => setForm({ ...form, price: +e.target.value })} />
             <textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="border rounded-lg px-4 py-2 md:col-span-2" rows={3} />
             <select multiple value={form.categoryIds} onChange={e => setForm({ ...form, categoryIds: Array.from(e.target.selectedOptions, o => o.value) })} className="border rounded-lg px-4 py-2 h-32 md:col-span-2">
-              {categories?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.isFeatured} onChange={e => setForm({ ...form, isFeatured: e.target.checked })} className="w-5 h-5 rounded" />
@@ -304,7 +324,7 @@ export default function AdminProducts() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">Warehouse</label>
                 <select value={invForm.warehouseId} onChange={e => setInvForm({ ...invForm, warehouseId: e.target.value })} className="w-full border rounded-lg px-4 py-2">
                   <option value="">-- Select warehouse --</option>
-                  {warehouses?.map((w: any) => <option key={w.id} value={w.id}>{w.name}{w.location ? ` (${w.location})` : ''}</option>)}
+                  {warehouses?.map((w) => <option key={w.id} value={w.id}>{w.name}{w.location ? ` (${w.location})` : ''}</option>)}
                 </select>
               </div>
               <Input
@@ -440,7 +460,7 @@ export default function AdminProducts() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold truncate">{p.name}</h3>
                       {p.isFeatured && <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Featured</span>}
-                      {(p as any).isBestSeller && <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Best Seller</span>}
+                      {p.isBestSeller && <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Best Seller</span>}
                       {!p.isActive && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full flex-shrink-0">Inactive</span>}
                     </div>
                     <p className="text-sm text-gray-500">{p.sku} · KES {p.price.toLocaleString()}</p>
@@ -456,7 +476,7 @@ export default function AdminProducts() {
                     <button onClick={(e) => { e.stopPropagation(); toggleFeatured.mutate({ id: p.id, isFeatured: p.isFeatured || false }); }} title={p.isFeatured ? 'Remove from featured' : 'Mark as featured'} className={`p-2 rounded-lg transition ${p.isFeatured ? 'text-yellow-600 bg-yellow-100' : 'text-gray-500 hover:text-yellow-600 hover:bg-yellow-50'}`}>
                       <FiStar size={18} fill={p.isFeatured ? 'currentColor' : 'none'} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); toggleBestSeller.mutate({ id: p.id, isBestSeller: (p as any).isBestSeller || false }); }} title={(p as any).isBestSeller ? 'Remove from best sellers' : 'Mark as best seller'} className={`p-2 rounded-lg transition ${(p as any).isBestSeller ? 'text-orange-600 bg-orange-100' : 'text-gray-500 hover:text-orange-600 hover:bg-orange-50'}`}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleBestSeller.mutate({ id: p.id, isBestSeller: p.isBestSeller || false }); }} title={p.isBestSeller ? 'Remove from best sellers' : 'Mark as best seller'} className={`p-2 rounded-lg transition ${p.isBestSeller ? 'text-orange-600 bg-orange-100' : 'text-gray-500 hover:text-orange-600 hover:bg-orange-50'}`}>
                       <FiTrendingUp size={18} />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); openEdit(p); }} className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition"><FiEdit size={18} /></button>
@@ -486,9 +506,9 @@ export default function AdminProducts() {
                         </button>
                       </div>
 
-                      {(p as any).inventory && (p as any).inventory.length > 0 ? (
+                      {p.inventory && p.inventory.length > 0 ? (
                         <div className="space-y-2">
-                          {(p as any).inventory.map((inv: any) => (
+                          {p.inventory.map((inv) => (
                             <div key={inv.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-gray-200">
                               <div>
                                 <p className="text-sm font-medium text-gray-800">{inv.warehouse?.name || 'Warehouse'}</p>
@@ -511,7 +531,7 @@ export default function AdminProducts() {
                           <div className="flex gap-2 flex-wrap">
                             <select value={stockPanel.warehouseId} onChange={e => setStockPanel({ ...stockPanel, warehouseId: e.target.value })} onClick={e => e.stopPropagation()} className="border rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[140px]">
                               <option value="">-- Warehouse --</option>
-                              {warehouses?.map((w: any) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                              {warehouses?.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
                             </select>
                             <input type="number" min={1} placeholder="Quantity" value={stockPanel.qty || ''} onChange={e => setStockPanel({ ...stockPanel, qty: Math.max(1, +e.target.value) })} onClick={e => e.stopPropagation()} className="border rounded-lg px-3 py-1.5 text-sm w-28" />
                             <button
@@ -559,7 +579,7 @@ export default function AdminProducts() {
               </div>
             );
           })}
-          {data?.data?.length > 0 && (
+          {data?.data && data.data.length > 0 && (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm">
               <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
             </div>

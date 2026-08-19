@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import PDFDocument = require('pdfkit');
+import PDFDocument from 'pdfkit';
 import { Response } from 'express';
 
 type ReportRow = Record<string, string | number | null | undefined>;
@@ -211,14 +211,12 @@ export class ReportsService {
   }
 
   async getDashboardSummary() {
-    const [sales, inventory, customers, products, installations] =
-      await Promise.all([
-        this.getSalesReport(),
-        this.getInventoryReport(),
-        this.getCustomersReport(),
-        this.getProductsReport(),
-        this.getInstallationsReport(),
-      ]);
+    const [sales, inventory, customers, installations] = await Promise.all([
+      this.getSalesReport(),
+      this.getInventoryReport(),
+      this.getCustomersReport(),
+      this.getInstallationsReport(),
+    ]);
 
     const pendingOrders = await this.prisma.order.count({
       where: { status: { in: ['PENDING', 'CONFIRMED'] } },

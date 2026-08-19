@@ -5,16 +5,12 @@ import { FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
+  const token = searchParams.get('token');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
+  const [message, setMessage] = useState(token ? '' : 'No verification token provided.');
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    if (!token) {
-      setStatus('error');
-      setMessage('No verification token provided.');
-      return;
-    }
+    if (!token) return;
 
     api.post('/auth/verify-email', { token })
       .then((res) => {
@@ -25,7 +21,7 @@ export default function VerifyEmailPage() {
         setStatus('error');
         setMessage(getErrorMessage(err));
       });
-  }, [searchParams]);
+  }, [token]);
 
   return (
     <div className="max-w-md mx-auto px-4 py-16 text-center">
