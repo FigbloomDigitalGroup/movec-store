@@ -15,6 +15,7 @@ import { ORDER_STATUSES, getOrderStatusConfig } from '../../lib/orderStatus';
 import OrderStatusBadge from '../../components/OrderStatusBadge';
 import Pagination from '../../components/ui/Pagination';
 import PageHeader from '../../components/ui/PageHeader';
+import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 
 const PAGE_SIZE = 20;
 
@@ -64,7 +65,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
       toast.success(`Order #${order.orderNumber} updated to ${status}`);
       onClose();
     },
-    onError: (error: any) => toast.error(getErrorMessage(error)),
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 
   return (
@@ -253,6 +254,7 @@ export default function AdminOrders() {
             <input
               type="text"
               placeholder="Search order # or customer..."
+              aria-label="Search orders"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
@@ -293,42 +295,16 @@ export default function AdminOrders() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="animate-pulse flex gap-4 items-center">
-                <div className="h-10 w-10 bg-gray-200 rounded-xl flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-1/3" />
-                  <div className="h-3 bg-gray-100 rounded w-1/2" />
-                </div>
-                <div className="h-6 w-20 bg-gray-100 rounded-full" />
-              </div>
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-16 text-center">
-            <FiPackage size={48} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-base font-bold text-gray-800">No orders found</h3>
-            <p className="text-gray-500 text-xs mt-1">Try adjusting your search or filter.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px]">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  {['Order #', 'Customer', 'Items', 'Total', 'Payment', 'Status', 'Date', ''].map(
-                    (h) => (
-                      <th key={h} className="text-left px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                        {h}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((order) => (
+      <TableContainer>
+        <table className="w-full min-w-[700px]">
+          <TableHead columns={['Order #', 'Customer', 'Items', 'Total', 'Payment', 'Status', 'Date', '']} />
+          <tbody className="divide-y divide-gray-50">
+            {isLoading ? (
+              <TableSkeletonRows rows={5} columns={8} />
+            ) : filtered.length === 0 ? (
+              <TableEmptyState columns={8} icon={FiPackage} title="No orders found" description="Try adjusting your search or filter." />
+            ) : (
+              filtered.map((order) => (
                   <motion.tr
                     key={order.id}
                     initial={{ opacity: 0 }}
@@ -396,15 +372,14 @@ export default function AdminOrders() {
                       </button>
                     </td>
                   </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {!isLoading && (
-          <Pagination page={page} limit={PAGE_SIZE} total={total} onPageChange={setPage} />
-        )}
-      </div>
+                ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
+      {!isLoading && (
+        <Pagination page={page} limit={PAGE_SIZE} total={total} onPageChange={setPage} />
+      )}
 
       {/* Update Status Modal */}
       <AnimatePresence>

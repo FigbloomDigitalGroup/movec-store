@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { InstallationService } from './installation.service';
 import { CreateInstallationRequestDto } from './dto/create-installation-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import type { Request } from 'express';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 @Controller('installation')
 export class InstallationController {
@@ -15,15 +18,16 @@ export class InstallationController {
 
   @Get('requests')
   @UseGuards(JwtAuthGuard)
-  getMyRequests(@Req() req: Request) {
-    const user = req.user as any;
+  getMyRequests(@CurrentUser() user: AuthenticatedUser) {
     return this.installationService.getMyRequests(user.id);
   }
 
   @Post('requests')
   @UseGuards(JwtAuthGuard)
-  createRequest(@Req() req: Request, @Body() dto: CreateInstallationRequestDto) {
-    const user = req.user as any;
+  createRequest(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateInstallationRequestDto,
+  ) {
     return this.installationService.createRequest(user.id, dto);
   }
 }

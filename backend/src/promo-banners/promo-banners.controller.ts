@@ -47,7 +47,10 @@ export class PromoBannersController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleName.ADMIN)
-  async update(@Param('id') id: string, @Body() updateDto: UpdatePromoBannerDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdatePromoBannerDto,
+  ) {
     return this.promoBannersService.update(id, updateDto);
   }
 

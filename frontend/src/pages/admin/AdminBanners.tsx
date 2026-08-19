@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import type { Product } from '../../types';
 import PageHeader from '../../components/ui/PageHeader';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import Input from '../../components/ui/Input';
 
 interface PromoBanner {
   id: string;
@@ -59,7 +60,7 @@ export default function AdminBanners() {
       toast.success('Banner deleted successfully');
       setPendingDelete(null);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
@@ -74,7 +75,7 @@ export default function AdminBanners() {
       queryClient.invalidateQueries({ queryKey: ['promo-banners'] });
       toast.success('Banner status updated');
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
@@ -353,7 +354,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
       toast.success(banner ? 'Banner updated successfully' : 'Banner created successfully');
       onSuccess();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
@@ -396,49 +397,29 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
 
           {/* Form */}
           <div className="p-6 space-y-4">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                placeholder="e.g., Starlink Gen 3 Now Available!"
-              />
-            </div>
+            <Input
+              label="Title"
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="e.g., Starlink Gen 3 Now Available!"
+            />
 
-            {/* Subtitle */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Subtitle
-              </label>
-              <input
-                type="text"
-                value={formData.subtitle}
-                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                placeholder="e.g., Get high-speed internet anywhere"
-              />
-            </div>
+            <Input
+              label="Subtitle"
+              value={formData.subtitle}
+              onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+              placeholder="e.g., Get high-speed internet anywhere"
+            />
 
             {/* Badge */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Badge Text
-                </label>
-                <input
-                  type="text"
-                  value={formData.badge}
-                  onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="e.g., NEW ARRIVAL"
-                />
-              </div>
+              <Input
+                label="Badge Text"
+                value={formData.badge}
+                onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                placeholder="e.g., NEW ARRIVAL"
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Badge Color
@@ -454,32 +435,20 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
 
             {/* CTA */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Button Text *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.ctaText}
-                  onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="e.g., Shop Now"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Button Link *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.ctaLink}
-                  onChange={(e) => setFormData({ ...formData, ctaLink: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="e.g., /products/starlink"
-                />
-              </div>
+              <Input
+                label="Button Text"
+                required
+                value={formData.ctaText}
+                onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
+                placeholder="e.g., Shop Now"
+              />
+              <Input
+                label="Button Link"
+                required
+                value={formData.ctaLink}
+                onChange={(e) => setFormData({ ...formData, ctaLink: e.target.value })}
+                placeholder="e.g., /products/starlink"
+              />
             </div>
 
             {/* Image Upload */}
@@ -579,19 +548,14 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
 
             {/* Sort Order & Active Status */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sort Order *
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={formData.sortOrder}
-                  onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
+              <Input
+                type="number"
+                label="Sort Order"
+                required
+                min="0"
+                value={formData.sortOrder}
+                onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Status

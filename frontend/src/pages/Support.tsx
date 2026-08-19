@@ -159,6 +159,7 @@ export default function SupportPage() {
             <input
               type="text"
               placeholder="Search questions (e.g. Starlink, CCTV night vision, delivery...)"
+              aria-label="Search FAQs"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-white text-gray-900 placeholder-gray-500 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-accent text-sm"

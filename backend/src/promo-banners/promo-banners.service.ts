@@ -45,9 +45,13 @@ export class PromoBannersService {
     });
   }
 
+  // Only reachable via the public, unguarded GET /promo-banners/:id route — must
+  // respect isActive the same way findAll() does, or a banner an admin has
+  // deliberately hidden (a draft, or a retired promotion) stays fetchable by
+  // anyone who has or guesses its id.
   async findOne(id: string) {
-    return this.prisma.promoBanner.findUnique({
-      where: { id },
+    return this.prisma.promoBanner.findFirst({
+      where: { id, isActive: true },
       include: {
         product: true,
       },

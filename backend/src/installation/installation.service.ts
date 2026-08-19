@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { Prisma, InstallationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInstallationRequestDto } from './dto/create-installation-request.dto';
 import { UpdateInstallationRequestDto } from './dto/update-installation-request.dto';
@@ -23,7 +27,15 @@ export class InstallationService {
         service: true,
         address: true,
         technicianAssignment: {
-          include: { technician: { include: { user: { select: { firstName: true, lastName: true, phone: true } } } } },
+          include: {
+            technician: {
+              include: {
+                user: {
+                  select: { firstName: true, lastName: true, phone: true },
+                },
+              },
+            },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -34,7 +46,8 @@ export class InstallationService {
     const service = await this.prisma.installationService.findUnique({
       where: { id: dto.serviceId },
     });
-    if (!service || !service.isActive) throw new NotFoundException('Service not found');
+    if (!service || !service.isActive)
+      throw new NotFoundException('Service not found');
 
     const address = await this.prisma.address.findFirst({
       where: { id: dto.addressId, userId },
@@ -57,17 +70,31 @@ export class InstallationService {
   async getAllRequests(query: QueryInstallationRequestDto) {
     const { page, limit, skip } = buildPagination(query);
     const where: Prisma.InstallationRequestWhereInput = {};
-    if (query.status) where.status = query.status as any;
+    if (query.status) where.status = query.status as InstallationStatus;
 
     const [data, total] = await Promise.all([
       this.prisma.installationRequest.findMany({
         where,
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
           service: true,
           address: true,
           technicianAssignment: {
-            include: { technician: { include: { user: { select: { firstName: true, lastName: true } } } } },
+            include: {
+              technician: {
+                include: {
+                  user: { select: { firstName: true, lastName: true } },
+                },
+              },
+            },
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -86,7 +113,7 @@ export class InstallationService {
     });
     if (!request) throw new NotFoundException('Installation request not found');
 
-    const data: any = {};
+    const data: Prisma.InstallationRequestUpdateInput = {};
 
     if (dto.status) data.status = dto.status;
     if (dto.finalPrice !== undefined) data.finalPrice = dto.finalPrice;
@@ -126,11 +153,19 @@ export class InstallationService {
     return this.prisma.installationRequest.findUnique({
       where: { id: requestId },
       include: {
-        user: { select: { firstName: true, lastName: true, email: true, phone: true } },
+        user: {
+          select: { firstName: true, lastName: true, email: true, phone: true },
+        },
         service: true,
         address: true,
         technicianAssignment: {
-          include: { technician: { include: { user: { select: { firstName: true, lastName: true } } } } },
+          include: {
+            technician: {
+              include: {
+                user: { select: { firstName: true, lastName: true } },
+              },
+            },
+          },
         },
       },
     });
@@ -138,17 +173,31 @@ export class InstallationService {
 
   async getTechnicians() {
     return this.prisma.technician.findMany({
-      include: { user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
     });
   }
 
   async createTechnician(userId: string, specialization?: string) {
-    const existing = await this.prisma.technician.findUnique({ where: { userId } });
+    const existing = await this.prisma.technician.findUnique({
+      where: { userId },
+    });
     if (existing) throw new BadRequestException('User is already a technician');
 
     return this.prisma.technician.create({
       data: { userId, specialization },
-      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
     });
   }
 }

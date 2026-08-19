@@ -16,7 +16,6 @@ import {
   FiEdit3,
   FiLock,
   FiCheckCircle,
-  FiClock,
 } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -85,7 +84,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
       queryClient.invalidateQueries({ queryKey: ['product'] });
       setSubmitted(true);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       const msg = getErrorMessage(error);
       if (msg.toLowerCase().includes('already reviewed')) {
         toast.error('You have already submitted a review for this product.');
@@ -155,9 +154,8 @@ function ReviewForm({ productId, productName }: { productId: string; productName
             <FiCheckCircle className="text-accent" size={26} />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">Review submitted! Thank you.</h3>
-          <p className="text-gray-600 text-sm max-w-sm mx-auto flex items-center justify-center gap-2">
-            <FiClock className="text-amber-500 flex-shrink-0" size={16} />
-            Your review is pending approval. It will appear publicly once our team reviews it.
+          <p className="text-gray-600 text-sm max-w-sm mx-auto">
+            Your review is now live on this product's page.
           </p>
         </div>
       </div>
@@ -212,12 +210,8 @@ function ReviewForm({ productId, productName }: { productId: string; productName
             <p className="text-xs text-gray-500 mt-1 text-right">{body.length}/2000</p>
           </div>
 
-          {/* Moderation notice + submit */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-gray-100 pt-4">
-            <p className="text-xs text-gray-500 flex items-start gap-1.5">
-              <FiClock size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
-              Reviews are moderated before appearing publicly. Usually approved within 24 hours.
-            </p>
+          {/* Submit */}
+          <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-4">
             <button
               type="submit"
               disabled={submitMutation.isPending}

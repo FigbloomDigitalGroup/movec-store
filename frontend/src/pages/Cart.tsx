@@ -23,7 +23,7 @@ export default function CartPage() {
       await api.patch(`/cart/items/${itemId}`, { quantity });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const removeItem = useMutation({
@@ -31,7 +31,7 @@ export default function CartPage() {
       await api.delete(`/cart/items/${itemId}`);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   if ((isAuthenticated && isLoading) || guestCart.isSyncing) {

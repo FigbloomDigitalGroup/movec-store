@@ -1,4 +1,10 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+} from 'class-validator';
 import { IsStrongPassword } from '../../common/decorators/is-strong-password.decorator';
 
 export class RegisterDto {

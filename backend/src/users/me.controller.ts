@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   UseGuards,
-  Req,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -16,11 +15,20 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import type { Request } from 'express';
 
-const AVATAR_ALLOWED_MIMES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+const AVATAR_ALLOWED_MIMES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -28,14 +36,15 @@ export class MeController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  getProfile(@Req() req: Request) {
-    const user = req.user as any;
+  getProfile(@CurrentUser() user: AuthenticatedUser) {
     return this.usersService.getProfile(user.id);
   }
 
   @Patch('me')
-  updateProfile(@Req() req: Request, @Body() dto: UpdateProfileDto) {
-    const user = req.user as any;
+  updateProfile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateProfileDto,
+  ) {
     return this.usersService.updateProfile(user.id, dto);
   }
 
@@ -48,37 +57,50 @@ export class MeController {
         if (AVATAR_ALLOWED_MIMES.includes(file.mimetype)) {
           cb(null, true);
         } else {
-          cb(new Error(`Invalid file type: ${file.mimetype}. Only images are allowed.`), false);
+          cb(
+            new Error(
+              `Invalid file type: ${file.mimetype}. Only images are allowed.`,
+            ),
+            false,
+          );
         }
       },
     }),
   )
-  uploadAvatar(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
-    const user = req.user as any;
+  uploadAvatar(
+    @CurrentUser() user: AuthenticatedUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     return this.usersService.uploadAvatar(user.id, file);
   }
 
   @Get('me/addresses')
-  getAddresses(@Req() req: Request) {
-    const user = req.user as any;
+  getAddresses(@CurrentUser() user: AuthenticatedUser) {
     return this.usersService.getAddresses(user.id);
   }
 
   @Post('me/addresses')
-  createAddress(@Req() req: Request, @Body() dto: CreateAddressDto) {
-    const user = req.user as any;
+  createAddress(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateAddressDto,
+  ) {
     return this.usersService.createAddress(user.id, dto);
   }
 
   @Patch('me/addresses/:id')
-  updateAddress(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateAddressDto) {
-    const user = req.user as any;
+  updateAddress(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateAddressDto,
+  ) {
     return this.usersService.updateAddress(user.id, id, dto);
   }
 
   @Delete('me/addresses/:id')
-  deleteAddress(@Req() req: Request, @Param('id') id: string) {
-    const user = req.user as any;
+  deleteAddress(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
     return this.usersService.deleteAddress(user.id, id);
   }
 }

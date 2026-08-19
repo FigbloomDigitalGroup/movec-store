@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { StockInDto } from './dto/stock-in.dto';
@@ -21,7 +25,11 @@ export class InventoryService {
    * one of them can win the row at UPDATE time, the other sees count===0 and the
    * shortfall surfaces as a clean "insufficient stock" error instead of overselling.
    */
-  async reserveStock(tx: Tx, productId: string, quantity: number): Promise<void> {
+  async reserveStock(
+    tx: Tx,
+    productId: string,
+    quantity: number,
+  ): Promise<void> {
     const inventories = await tx.inventory.findMany({
       where: { productId },
       orderBy: { quantity: 'desc' },
@@ -35,7 +43,10 @@ export class InventoryService {
 
       const result = await tx.inventory.updateMany({
         where: { id: inv.id, quantity: { gte: deduct } },
-        data: { quantity: { decrement: deduct }, reservedQuantity: { increment: deduct } },
+        data: {
+          quantity: { decrement: deduct },
+          reservedQuantity: { increment: deduct },
+        },
       });
       if (result.count > 0) {
         remaining -= deduct;
@@ -79,7 +90,12 @@ export class InventoryService {
       if (result.count > 0) {
         remaining -= deduct;
         await tx.inventoryHistory.create({
-          data: { inventoryId: inv.id, change: -deduct, reason: 'SALE', reference },
+          data: {
+            inventoryId: inv.id,
+            change: -deduct,
+            reason: 'SALE',
+            reference,
+          },
         });
       }
     }
@@ -104,7 +120,12 @@ export class InventoryService {
         if (result.count > 0) {
           remaining -= deduct;
           await tx.inventoryHistory.create({
-            data: { inventoryId: inv.id, change: -deduct, reason: 'SALE', reference },
+            data: {
+              inventoryId: inv.id,
+              change: -deduct,
+              reason: 'SALE',
+              reference,
+            },
           });
         }
       }
@@ -130,25 +151,46 @@ export class InventoryService {
       if (give <= 0) continue;
       await tx.inventory.update({
         where: { id: inv.id },
-        data: { quantity: { increment: give }, reservedQuantity: { decrement: give } },
+        data: {
+          quantity: { increment: give },
+          reservedQuantity: { decrement: give },
+        },
       });
       await tx.inventoryHistory.create({
-        data: { inventoryId: inv.id, change: give, reason: 'CANCELLED', reference },
+        data: {
+          inventoryId: inv.id,
+          change: give,
+          reason: 'CANCELLED',
+          reference,
+        },
       });
       remaining -= give;
     }
   }
 
   /** Restocks a previously-fulfilled (already sold) line — used when a CONFIRMED order is cancelled. */
-  private async restock(tx: Tx, productId: string, quantity: number, reference: string): Promise<void> {
-    const inv = await tx.inventory.findFirst({ where: { productId }, orderBy: { quantity: 'desc' } });
+  private async restock(
+    tx: Tx,
+    productId: string,
+    quantity: number,
+    reference: string,
+  ): Promise<void> {
+    const inv = await tx.inventory.findFirst({
+      where: { productId },
+      orderBy: { quantity: 'desc' },
+    });
     if (!inv) return;
     await tx.inventory.update({
       where: { id: inv.id },
       data: { quantity: { increment: quantity } },
     });
     await tx.inventoryHistory.create({
-      data: { inventoryId: inv.id, change: quantity, reason: 'RETURN', reference },
+      data: {
+        inventoryId: inv.id,
+        change: quantity,
+        reason: 'RETURN',
+        reference,
+      },
     });
   }
 
@@ -163,14 +205,22 @@ export class InventoryService {
       if (wasFulfilled) {
         await this.restock(tx, item.productId, item.quantity, orderNumber);
       } else {
-        await this.releaseReservation(tx, item.productId, item.quantity, orderNumber);
+        await this.releaseReservation(
+          tx,
+          item.productId,
+          item.quantity,
+          orderNumber,
+        );
       }
     }
   }
 
   async findAll() {
     return this.prisma.inventory.findMany({
-      include: { product: { select: { id: true, name: true, sku: true } }, warehouse: true },
+      include: {
+        product: { select: { id: true, name: true, sku: true } },
+        warehouse: true,
+      },
     });
   }
 
@@ -250,7 +300,9 @@ export class InventoryService {
       },
     });
 
-    return this.prisma.inventory.findUniqueOrThrow({ where: { id: inventory.id } });
+    return this.prisma.inventory.findUniqueOrThrow({
+      where: { id: inventory.id },
+    });
   }
 
   async getHistory(inventoryId?: string) {
@@ -283,7 +335,12 @@ export class InventoryService {
     // through can't leave some lines fulfilled and others not.
     await this.prisma.$transaction(async (tx) => {
       for (const item of order.items) {
-        await this.consumeReservation(tx, item.productId, item.quantity, order.orderNumber);
+        await this.consumeReservation(
+          tx,
+          item.productId,
+          item.quantity,
+          order.orderNumber,
+        );
       }
     });
   }

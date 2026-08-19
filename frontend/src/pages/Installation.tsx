@@ -28,7 +28,7 @@ export default function InstallationPage() {
       setPreferredDate('');
       setNotes('');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const hasNoAddress = Array.isArray(addresses) && addresses.length === 0;

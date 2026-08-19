@@ -106,7 +106,7 @@ export default function OrderDetailPage() {
       toast.success('Order cancelled successfully.');
       setPendingCancel(false);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });

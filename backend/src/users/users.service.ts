@@ -6,19 +6,26 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { AuditService } from '../audit/audit.service';
+import { Prisma } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import * as bcrypt from 'bcrypt';
-import { buildPagination, paginated, type PaginationQuery } from '../common/pagination';
+import {
+  buildPagination,
+  paginated,
+  type PaginationQuery,
+} from '../common/pagination';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private cloudinaryService: CloudinaryService,
+    private auditService: AuditService,
   ) {}
 
   async findAll(query: PaginationQuery) {
@@ -71,7 +78,9 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (existing) throw new ConflictException('Email already taken');
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -101,14 +110,17 @@ export class UsersService {
     };
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, actorId?: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
-    const data: any = {};
+    const data: Prisma.UserUpdateInput = {};
     if (dto.email) {
-      const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-      if (existing && existing.id !== id) throw new ConflictException('Email already taken');
+      const existing = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (existing && existing.id !== id)
+        throw new ConflictException('Email already taken');
       data.email = dto.email;
     }
     if (dto.firstName) data.firstName = dto.firstName;
@@ -129,16 +141,48 @@ export class UsersService {
       });
     }
 
+    // Role and active/suspended changes are exactly the kind of admin action that
+    // needs a "who did this and when" trail — everything else on this DTO is
+    // routine profile editing, not worth logging.
+    if (
+      dto.roles ||
+      dto.isActive !== undefined ||
+      dto.isSuspended !== undefined
+    ) {
+      await this.auditService.log({
+        userId: actorId,
+        action: 'UPDATE',
+        entityType: 'User',
+        entityId: id,
+        oldValues: {
+          isActive: user.isActive,
+          isSuspended: user.isSuspended,
+        },
+        newValues: {
+          roles: dto.roles,
+          isActive: dto.isActive,
+          isSuspended: dto.isSuspended,
+        },
+      });
+    }
 
     return this.findById(id);
   }
 
-  async softDelete(id: string) {
+  async softDelete(id: string, actorId?: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     await this.prisma.user.update({
       where: { id },
       data: { isActive: false, isSuspended: false },
+    });
+    await this.auditService.log({
+      userId: actorId,
+      action: 'DEACTIVATE',
+      entityType: 'User',
+      entityId: id,
+      oldValues: { isActive: user.isActive },
+      newValues: { isActive: false },
     });
     return { message: 'User deactivated' };
   }
@@ -207,7 +251,11 @@ export class UsersService {
     });
   }
 
-  async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    dto: UpdateAddressDto,
+  ) {
     const address = await this.prisma.address.findFirst({
       where: { id: addressId, userId },
     });

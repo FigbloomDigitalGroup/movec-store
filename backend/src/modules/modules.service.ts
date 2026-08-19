@@ -4,18 +4,20 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { Prisma } from '@prisma/client';
 import { buildPagination } from '../common/pagination';
 
+const SORTABLE_FIELDS = ['createdAt', 'price', 'name'] as const;
+
 @Injectable()
 export class ModulesService {
   constructor(
     private prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheManager: any,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private readonly CACHE_KEY_ALL = 'modules:all';
@@ -31,12 +33,8 @@ export class ModulesService {
     }
   }
 
-  /** List all active store modules ordered by sortOrder */
-  async findAll() {
-    const cached = await this.cacheManager.get(this.CACHE_KEY_ALL);
-    if (cached) return cached;
-
-    const data = await this.prisma.storeModule.findMany({
+  private async fetchAllModules() {
+    return this.prisma.storeModule.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
       include: {
@@ -46,24 +44,43 @@ export class ModulesService {
         _count: { select: { products: true } },
       },
     });
+  }
 
+  /** List all active store modules ordered by sortOrder */
+  async findAll() {
+    const cached = await this.cacheManager.get<
+      Awaited<ReturnType<typeof this.fetchAllModules>>
+    >(this.CACHE_KEY_ALL);
+    if (cached) return cached;
+
+    const data = await this.fetchAllModules();
     await this.cacheManager.set(this.CACHE_KEY_ALL, data, 15 * 60 * 1000);
     return data;
   }
 
-  /** Get a single module by slug, including its categories */
-  async findOne(slug: string) {
-    const cacheKey = this.getCacheKeySlug(slug);
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) return cached;
-
-    const mod = await this.prisma.storeModule.findUnique({
-      where: { slug },
+  private async fetchModuleBySlug(slug: string) {
+    // Only reachable via the public GET /modules/:slug route — must respect
+    // isActive the same way the list query does, or a hidden/retired module
+    // stays fully viewable by anyone with the link.
+    return this.prisma.storeModule.findFirst({
+      where: { slug, isActive: true },
       include: {
         categories: { orderBy: { name: 'asc' } },
         _count: { select: { products: true } },
       },
     });
+  }
+
+  /** Get a single module by slug, including its categories */
+  async findOne(slug: string) {
+    const cacheKey = this.getCacheKeySlug(slug);
+    const cached =
+      await this.cacheManager.get<
+        Awaited<ReturnType<typeof this.fetchModuleBySlug>>
+      >(cacheKey);
+    if (cached) return cached;
+
+    const mod = await this.fetchModuleBySlug(slug);
     if (!mod) throw new NotFoundException(`Module "${slug}" not found`);
 
     await this.cacheManager.set(cacheKey, mod, 15 * 60 * 1000);
@@ -120,9 +137,15 @@ export class ModulesService {
       if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
     }
 
-    const sortBy = query.sortBy || 'createdAt';
+    const sortBy = (SORTABLE_FIELDS as readonly string[]).includes(
+      query.sortBy || '',
+    )
+      ? (query.sortBy as (typeof SORTABLE_FIELDS)[number])
+      : 'createdAt';
     const orderDir = query.order === 'asc' ? 'asc' : 'desc';
-    const orderBy: any = { [sortBy]: orderDir };
+    const orderBy: Prisma.ProductOrderByWithRelationInput = {
+      [sortBy]: orderDir,
+    };
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -186,7 +209,10 @@ export class ModulesService {
   async update(id: string, dto: UpdateModuleDto) {
     const mod = await this.prisma.storeModule.findUnique({ where: { id } });
     if (!mod) throw new NotFoundException('Module not found');
-    const updated = await this.prisma.storeModule.update({ where: { id }, data: dto });
+    const updated = await this.prisma.storeModule.update({
+      where: { id },
+      data: dto,
+    });
     await this.clearModuleCache(mod.slug);
     if (dto.slug && dto.slug !== mod.slug) {
       await this.clearModuleCache(dto.slug);

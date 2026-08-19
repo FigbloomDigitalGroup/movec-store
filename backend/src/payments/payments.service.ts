@@ -1,9 +1,40 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import axios from 'axios';
+import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
+
+interface OAuthTokenResponse {
+  access_token: string;
+}
+
+interface MpesaStkResponse {
+  CheckoutRequestID: string;
+}
+
+interface PaystackInitializeResponse {
+  data: { authorization_url: string; access_code: string; reference: string };
+}
+
+interface PaystackVerifyResponse {
+  data: unknown;
+}
+
+interface PaypalOrderResponse {
+  id: string;
+  links: { rel: string; href: string }[];
+}
+
+interface PaypalCaptureResponse {
+  status: string;
+}
 
 @Injectable()
 export class PaymentsService {
@@ -16,30 +47,45 @@ export class PaymentsService {
     private inventoryService: InventoryService,
   ) {}
 
-  private async findOrder(orderNumber: string) {
+  // Scoping every lookup to the requesting user prevents one authenticated
+  // customer from initiating or capturing payment against another customer's
+  // order just by knowing or guessing its order number. A mismatched owner is
+  // reported as "not found", not "forbidden", so a caller can't use this to
+  // probe which order numbers exist.
+  private async findOrder(orderNumber: string, userId: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber },
       include: { payments: true },
     });
-    if (!order) throw new NotFoundException('Order not found');
+    if (!order || order.userId !== userId) {
+      throw new NotFoundException('Order not found');
+    }
     return order;
   }
 
   // ─── M-Pesa ─────────────────────────────────────────────────────────────────
 
-  async initiateMpesa(orderNumber: string, phoneNumber: string) {
-    const order = await this.findOrder(orderNumber);
+  async initiateMpesa(
+    orderNumber: string,
+    phoneNumber: string,
+    userId: string,
+  ) {
+    const order = await this.findOrder(orderNumber, userId);
 
     if (order.status !== 'PENDING') {
       throw new BadRequestException('Order is not pending payment');
     }
 
     const consumerKey = this.configService.get<string>('MPESA_CONSUMER_KEY');
-    const consumerSecret = this.configService.get<string>('MPESA_CONSUMER_SECRET');
+    const consumerSecret = this.configService.get<string>(
+      'MPESA_CONSUMER_SECRET',
+    );
     const passkey = this.configService.get<string>('MPESA_PASSKEY');
     const shortcode = this.configService.get<string>('MPESA_SHORTCODE');
     const callbackUrl = this.configService.get<string>('MPESA_CALLBACK_URL');
-    const callbackSecret = this.configService.get<string>('MPESA_CALLBACK_SECRET');
+    const callbackSecret = this.configService.get<string>(
+      'MPESA_CALLBACK_SECRET',
+    );
 
     if (!consumerKey || !consumerSecret) {
       throw new BadRequestException('M-Pesa is not configured');
@@ -50,20 +96,28 @@ export class PaymentsService {
     // it here and the webhook checks it, rather than trusting the caller on identity
     // alone. If MPESA_CALLBACK_SECRET isn't set yet, this is a no-op (see the webhook
     // handler's matching fallback) so existing deployments keep working uninterrupted.
-    const finalCallbackUrl = callbackUrl && callbackSecret
-      ? `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}secret=${encodeURIComponent(callbackSecret)}`
-      : callbackUrl;
+    const finalCallbackUrl =
+      callbackUrl && callbackSecret
+        ? `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}secret=${encodeURIComponent(callbackSecret)}`
+        : callbackUrl;
 
-    const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+    const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
+      'base64',
+    );
 
     try {
-      const { data: authData } = await axios.get(
+      const { data: authData } = await axios.get<OAuthTokenResponse>(
         'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
         { headers: { Authorization: `Basic ${auth}` } },
       );
 
-      const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
-      const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64');
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[-:T.]/g, '')
+        .slice(0, 14);
+      const password = Buffer.from(
+        `${shortcode}${passkey}${timestamp}`,
+      ).toString('base64');
 
       const stkPayload = {
         BusinessShortCode: shortcode,
@@ -79,7 +133,7 @@ export class PaymentsService {
         TransactionDesc: `Payment for ${orderNumber}`,
       };
 
-      const { data: stkData } = await axios.post(
+      const { data: stkData } = await axios.post<MpesaStkResponse>(
         'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
         stkPayload,
         { headers: { Authorization: `Bearer ${authData.access_token}` } },
@@ -96,8 +150,8 @@ export class PaymentsService {
           transactions: {
             create: {
               provider: 'MPESA',
-              requestPayload: stkPayload as any,
-              responsePayload: stkData as any,
+              requestPayload: stkPayload,
+              responsePayload: stkData as unknown as Prisma.InputJsonValue,
               status: 'PENDING',
             },
           },
@@ -109,15 +163,20 @@ export class PaymentsService {
         checkoutRequestId: stkData.CheckoutRequestID,
       };
     } catch (error) {
-      this.logger.error('M-Pesa error:', error.response?.data || error.message);
+      this.logger.error(
+        'M-Pesa error:',
+        axios.isAxiosError(error)
+          ? error.response?.data
+          : (error as Error).message,
+      );
       throw new BadRequestException('Failed to initiate M-Pesa payment');
     }
   }
 
   // ─── Paystack ────────────────────────────────────────────────────────────────
 
-  async initiatePaystack(orderNumber: string, email: string) {
-    const order = await this.findOrder(orderNumber);
+  async initiatePaystack(orderNumber: string, email: string, userId: string) {
+    const order = await this.findOrder(orderNumber, userId);
 
     if (order.status !== 'PENDING') {
       throw new BadRequestException('Order is not pending payment');
@@ -129,7 +188,7 @@ export class PaymentsService {
     }
 
     try {
-      const { data } = await axios.post(
+      const { data } = await axios.post<PaystackInitializeResponse>(
         `${this.paystackBaseUrl}/transaction/initialize`,
         {
           email,
@@ -159,18 +218,30 @@ export class PaymentsService {
           transactions: {
             create: {
               provider: 'PAYSTACK',
-              requestPayload: { orderNumber, email } as any,
-              responsePayload: data.data as any,
+              requestPayload: { orderNumber, email },
+              responsePayload: data.data,
               status: 'PENDING',
             },
           },
         },
       });
 
-      return { authorizationUrl: authorization_url, accessCode: access_code, reference };
-    } catch (error: any) {
-      const paystackMsg = error.response?.data?.message || error.message || 'Unknown error';
-      this.logger.error('Paystack error:', error.response?.data || error.message);
+      return {
+        authorizationUrl: authorization_url,
+        accessCode: access_code,
+        reference,
+      };
+    } catch (error) {
+      const paystackMsg = axios.isAxiosError(error)
+        ? ((error.response?.data as { message?: string })?.message ??
+          error.message)
+        : (error as Error).message || 'Unknown error';
+      this.logger.error(
+        'Paystack error:',
+        axios.isAxiosError(error)
+          ? error.response?.data
+          : (error as Error).message,
+      );
       throw new BadRequestException(`Paystack error: ${paystackMsg}`);
     }
   }
@@ -178,7 +249,7 @@ export class PaymentsService {
   async verifyPaystack(reference: string) {
     const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
 
-    const { data } = await axios.get(
+    const { data } = await axios.get<PaystackVerifyResponse>(
       `${this.paystackBaseUrl}/transaction/verify/${reference}`,
       { headers: { Authorization: `Bearer ${secretKey}` } },
     );
@@ -188,8 +259,8 @@ export class PaymentsService {
 
   // ─── PayPal ──────────────────────────────────────────────────────────────────
 
-  async initiatePaypal(orderNumber: string) {
-    const order = await this.findOrder(orderNumber);
+  async initiatePaypal(orderNumber: string, userId: string) {
+    const order = await this.findOrder(orderNumber, userId);
 
     if (order.status !== 'PENDING') {
       throw new BadRequestException('Order is not pending payment');
@@ -203,18 +274,29 @@ export class PaymentsService {
       throw new BadRequestException('PayPal is not configured');
     }
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
-    const baseUrl = mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:5173',
+    );
+    const baseUrl =
+      mode === 'live'
+        ? 'https://api-m.paypal.com'
+        : 'https://api-m.sandbox.paypal.com';
 
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
-    const { data: authData } = await axios.post(
+    const { data: authData } = await axios.post<OAuthTokenResponse>(
       `${baseUrl}/v1/oauth2/token`,
       'grant_type=client_credentials',
-      { headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' } },
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
     );
 
-    const { data: paypalOrder } = await axios.post(
+    const { data: paypalOrder } = await axios.post<PaypalOrderResponse>(
       `${baseUrl}/v2/checkout/orders`,
       {
         intent: 'CAPTURE',
@@ -233,7 +315,12 @@ export class PaymentsService {
           user_action: 'PAY_NOW',
         },
       },
-      { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } },
+      {
+        headers: {
+          Authorization: `Bearer ${authData.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      },
     );
 
     await this.prisma.payment.create({
@@ -247,8 +334,8 @@ export class PaymentsService {
         transactions: {
           create: {
             provider: 'PAYPAL',
-            requestPayload: { orderNumber } as any,
-            responsePayload: paypalOrder as any,
+            requestPayload: { orderNumber },
+            responsePayload: paypalOrder as unknown as Prisma.InputJsonValue,
             status: 'PENDING',
           },
         },
@@ -257,39 +344,57 @@ export class PaymentsService {
 
     return {
       paypalOrderId: paypalOrder.id,
-      approvalUrl: paypalOrder.links.find((l: any) => l.rel === 'approve')?.href,
+      approvalUrl: paypalOrder.links.find((l) => l.rel === 'approve')?.href,
     };
   }
 
-  async capturePaypal(orderNumber: string, token: string) {
-    const order = await this.findOrder(orderNumber);
+  async capturePaypal(orderNumber: string, token: string, userId: string) {
+    const order = await this.findOrder(orderNumber, userId);
 
     const payment = order.payments.find(
-      (p) => p.method === 'PAYPAL' && p.transactionReference === token && p.status === 'PENDING',
+      (p) =>
+        p.method === 'PAYPAL' &&
+        p.transactionReference === token &&
+        p.status === 'PENDING',
     );
 
     if (!payment) {
-      throw new BadRequestException('No pending PayPal payment found for this order');
+      throw new BadRequestException(
+        'No pending PayPal payment found for this order',
+      );
     }
 
     const clientId = this.configService.get<string>('PAYPAL_CLIENT_ID');
     const clientSecret = this.configService.get<string>('PAYPAL_CLIENT_SECRET');
     const mode = this.configService.get<string>('PAYPAL_MODE', 'sandbox');
 
-    const baseUrl = mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+    const baseUrl =
+      mode === 'live'
+        ? 'https://api-m.paypal.com'
+        : 'https://api-m.sandbox.paypal.com';
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
     try {
-      const { data: authData } = await axios.post(
+      const { data: authData } = await axios.post<OAuthTokenResponse>(
         `${baseUrl}/v1/oauth2/token`,
         'grant_type=client_credentials',
-        { headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' } },
+        {
+          headers: {
+            Authorization: `Basic ${auth}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
       );
 
-      const { data: captureData } = await axios.post(
+      const { data: captureData } = await axios.post<PaypalCaptureResponse>(
         `${baseUrl}/v2/checkout/orders/${token}/capture`,
         {},
-        { headers: { Authorization: `Bearer ${authData.access_token}`, 'Content-Type': 'application/json' } },
+        {
+          headers: {
+            Authorization: `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        },
       );
 
       if (captureData.status === 'COMPLETED') {
@@ -302,7 +407,9 @@ export class PaymentsService {
           where: { id: order.id },
           data: {
             status: 'CONFIRMED',
-            statusHistory: { create: { status: 'CONFIRMED', changedBy: 'system' } },
+            statusHistory: {
+              create: { status: 'CONFIRMED', changedBy: 'system' },
+            },
           },
         });
 
@@ -315,24 +422,37 @@ export class PaymentsService {
         if (transaction) {
           await this.prisma.transaction.update({
             where: { id: transaction.id },
-            data: { status: 'COMPLETED', responsePayload: captureData as any },
+            data: {
+              status: 'COMPLETED',
+              responsePayload: captureData as unknown as Prisma.InputJsonValue,
+            },
           });
         }
 
-        return { success: true, message: 'PayPal payment captured successfully' };
+        return {
+          success: true,
+          message: 'PayPal payment captured successfully',
+        };
       } else {
-        throw new BadRequestException(`Payment capture failed: ${captureData.status}`);
+        throw new BadRequestException(
+          `Payment capture failed: ${captureData.status}`,
+        );
       }
     } catch (error) {
-      this.logger.error('PayPal capture error:', error.response?.data || error.message);
+      this.logger.error(
+        'PayPal capture error:',
+        axios.isAxiosError(error)
+          ? error.response?.data
+          : (error as Error).message,
+      );
       throw new BadRequestException('Failed to capture PayPal payment');
     }
   }
 
   // ─── Bank Transfer ───────────────────────────────────────────────────────────
 
-  async initiateBankTransfer(orderNumber: string) {
-    const order = await this.findOrder(orderNumber);
+  async initiateBankTransfer(orderNumber: string, userId: string) {
+    const order = await this.findOrder(orderNumber, userId);
 
     if (order.status !== 'PENDING') {
       throw new BadRequestException('Order is not pending payment');
@@ -348,7 +468,7 @@ export class PaymentsService {
         transactions: {
           create: {
             provider: 'BANK_TRANSFER',
-            requestPayload: { orderNumber } as any,
+            requestPayload: { orderNumber },
             status: 'PENDING',
           },
         },
@@ -367,8 +487,17 @@ export class PaymentsService {
     };
   }
 
+  // Admin-only (enforced at the route via @Roles(ADMIN), see AdminPaymentsController):
+  // confirming a bank transfer means staff have checked the actual bank statement and
+  // seen the money land, so it deliberately does not go through findOrder()'s
+  // customer-ownership check — an admin confirms any customer's transfer, not just
+  // orders that happen to be "theirs".
   async confirmBankTransfer(orderNumber: string) {
-    const order = await this.findOrder(orderNumber);
+    const order = await this.prisma.order.findUnique({
+      where: { orderNumber },
+      include: { payments: true },
+    });
+    if (!order) throw new NotFoundException('Order not found');
     const payment = order.payments.find(
       (p) => p.method === 'BANK_TRANSFER' && p.status === 'PENDING',
     );
@@ -409,7 +538,10 @@ export class PaymentsService {
   verifyPaystackSignature(rawBody: string, signature: string): boolean {
     const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
     if (!secretKey) return false;
-    const hash = crypto.createHmac('sha512', secretKey).update(rawBody).digest('hex');
+    const hash = crypto
+      .createHmac('sha512', secretKey)
+      .update(rawBody)
+      .digest('hex');
     return hash === signature;
   }
 }

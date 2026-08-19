@@ -13,6 +13,7 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
   const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dayRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   const daysOfWeek = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   const monthNames = [
@@ -115,6 +116,25 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
     setDisplayDate(new Date(displayDate.getFullYear(), displayDate.getMonth() + 1));
   };
 
+  // Standard date-picker grid keyboard pattern: Left/Right move a day, Up/Down
+  // move a week, within the currently displayed month. Crossing into the next
+  // or previous month via arrow keys isn't handled — a reasonable scope
+  // boundary for a single-month grid rather than a full calendar widget.
+  const handleGridKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, day: number) => {
+    const daysInMonth = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0).getDate();
+    const deltas: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowLeft: -1,
+      ArrowDown: 7,
+      ArrowUp: -7,
+    };
+    const delta = deltas[e.key];
+    if (delta === undefined) return;
+    e.preventDefault();
+    const target = Math.max(1, Math.min(day + delta, daysInMonth));
+    dayRefs.current[target]?.focus();
+  };
+
   const isToday = (day: number) => {
     const today = new Date();
     return (
@@ -166,6 +186,14 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
           value={formatDisplayDate()}
           onChange={handleManualInput}
           onClick={() => setIsOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setIsOpen(true);
+              const day = selectedDate && selectedDate.getMonth() === displayDate.getMonth() ? selectedDate.getDate() : 1;
+              requestAnimationFrame(() => dayRefs.current[day]?.focus());
+            }
+          }}
           placeholder="YYYY-MM-DD"
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
           aria-label="Select installation date"
@@ -223,7 +251,9 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
               <div key={idx} className="aspect-square">
                 {day ? (
                   <button
+                    ref={(el) => { dayRefs.current[day] = el; }}
                     onClick={() => !isPast(day) && handleDateSelect(day)}
+                    onKeyDown={(e) => handleGridKeyDown(e, day)}
                     disabled={isPast(day)}
                     className={`
                       w-full h-full rounded-full flex flex-col items-center justify-center text-sm

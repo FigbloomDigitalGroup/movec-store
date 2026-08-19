@@ -30,7 +30,7 @@ export default function ResetPasswordPage() {
       setIsError(false);
       setMessage(data.message);
       setTimeout(() => navigate('/login'), 2000);
-    } catch (err: any) {
+    } catch (err) {
       setIsError(true);
       setMessage(getErrorMessage(err));
     } finally {

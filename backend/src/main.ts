@@ -13,23 +13,29 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { CacheControlInterceptor } from './common/interceptors/cache-control.interceptor';
 
-
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
   const configService = app.get(ConfigService);
   const reflector = app.get(Reflector);
   const logger = new Logger('Bootstrap');
 
-  const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+  const frontendUrl = configService.get<string>(
+    'FRONTEND_URL',
+    'http://localhost:5173',
+  );
   // Support comma-separated list of allowed origins (e.g. production + preview URLs)
   const allowedOrigins = frontendUrl.split(',').map((url) => url.trim());
 
-  const isLocalhostOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+  const isLocalhostOrigin = (origin: string) =>
+    /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
   // Vercel preview URLs are always <project-name>-<hash/branch>-<scope>.vercel.app —
   // requiring the project-name prefix (rather than trusting *any* .vercel.app origin)
   // means an attacker would have to name their own Vercel project "movec-store..."
   // specifically, not just deploy anything, before this origin would be trusted.
-  const isProjectPreviewOrigin = (origin: string) => /^https:\/\/movec-store(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
+  const isProjectPreviewOrigin = (origin: string) =>
+    /^https:\/\/movec-store(-[a-z0-9-]+)?\.vercel\.app$/i.test(origin);
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -40,7 +46,10 @@ async function bootstrap() {
       }
       // In dev, allow any localhost port — Vite auto-increments (5173, 5174, ...) when the
       // preferred port is busy, so pinning to one exact port breaks on every collision.
-      if (configService.get<string>('NODE_ENV') !== 'production' && isLocalhostOrigin(origin)) {
+      if (
+        configService.get<string>('NODE_ENV') !== 'production' &&
+        isLocalhostOrigin(origin)
+      ) {
         return callback(null, true);
       }
       callback(new Error(`CORS: origin ${origin} not allowed`));

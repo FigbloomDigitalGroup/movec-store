@@ -480,7 +480,10 @@ model Review {
   rating     Int
   title      String?
   body       String?
-  isApproved Boolean  @default(false)
+  // Reviews go live immediately on submission; isApproved stays only so the
+  // handful of "hidden without deleting" needs (rare, e.g. a legal hold) still
+  // have a lever, without every review sitting in a moderation queue by default.
+  isApproved Boolean  @default(true)
   createdAt  DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -488,6 +491,7 @@ model Review {
 
   @@unique([userId, productId])
   @@index([productId])
+  @@index([isApproved])
 }
 
 model InstallationService {
@@ -668,6 +672,7 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([type])
 }
 
 model PromoBanner {

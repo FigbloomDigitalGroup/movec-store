@@ -22,6 +22,7 @@ import { ReportsModule } from './reports/reports.module';
 import { EmailModule } from './email/email.module';
 import { StoreModulesModule } from './modules/modules.module';
 import { PromoBannersModule } from './promo-banners/promo-banners.module';
+import { AuditModule } from './audit/audit.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -61,6 +62,7 @@ import { AppService } from './app.service';
     EmailModule,
     StoreModulesModule,
     PromoBannersModule,
+    AuditModule,
   ],
 })
 export class AppModule implements NestModule {

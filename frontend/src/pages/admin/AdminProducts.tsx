@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
+import api, { getErrorMessage } from '../../lib/api';
 import type { Product } from '../../types';
 import { FiEdit, FiTrash2, FiPlus, FiImage, FiUpload, FiX, FiStar, FiSearch, FiFilter, FiPackage, FiChevronDown, FiChevronUp, FiTrendingUp, FiBox } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
 import PageHeader from '../../components/ui/PageHeader';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import Input from '../../components/ui/Input';
 
 const PAGE_SIZE = 20;
 
@@ -118,10 +119,9 @@ export default function AdminProducts() {
       resetForm();
       toast.success(editing ? 'Product updated!' : 'Product created!');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setUploading(false);
-      const msg = error.response?.data?.error?.message || error.response?.data?.message || error.message || 'Failed to save product';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+      toast.error(getErrorMessage(error) || 'Failed to save product');
     },
   });
 
@@ -134,9 +134,8 @@ export default function AdminProducts() {
       setStockPanel(null);
       toast.success('Stock updated!');
     },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || error.message;
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -254,7 +253,7 @@ export default function AdminProducts() {
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[200px]">
             <FiSearch className="absolute left-3 top-2.5 text-gray-500" />
-            <input type="text" placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg" />
+            <input type="text" placeholder="Search products..." aria-label="Search products" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg" />
           </div>
           <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }} className="border rounded-lg px-4 py-2">
             <option value="">All Categories</option>
@@ -275,10 +274,10 @@ export default function AdminProducts() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">{editing ? 'Edit' : 'New'} Product</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border rounded-lg px-4 py-2" />
-            <input placeholder="Slug" value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} className="border rounded-lg px-4 py-2" />
-            <input placeholder="SKU (leave blank for auto)" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} className="border rounded-lg px-4 py-2" />
-            <input type="number" placeholder="Price (KES)" value={form.price || ''} onChange={e => setForm({ ...form, price: +e.target.value })} className="border rounded-lg px-4 py-2" />
+            <Input label="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            <Input label="Slug" value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} />
+            <Input label="SKU" helperText="Leave blank to auto-generate" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+            <Input type="number" label="Price (KES)" value={form.price || ''} onChange={e => setForm({ ...form, price: +e.target.value })} />
             <textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="border rounded-lg px-4 py-2 md:col-span-2" rows={3} />
             <select multiple value={form.categoryIds} onChange={e => setForm({ ...form, categoryIds: Array.from(e.target.selectedOptions, o => o.value) })} className="border rounded-lg px-4 py-2 h-32 md:col-span-2">
               {categories?.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -308,14 +307,22 @@ export default function AdminProducts() {
                   {warehouses?.map((w: any) => <option key={w.id} value={w.id}>{w.name}{w.location ? ` (${w.location})` : ''}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{editing ? 'Qty to Add' : 'Initial Quantity'}</label>
-                <input type="number" min={0} value={invForm.quantity || ''} onChange={e => setInvForm({ ...invForm, quantity: Math.max(0, +e.target.value) })} placeholder="0" className="w-full border rounded-lg px-4 py-2" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Low Stock Threshold</label>
-                <input type="number" min={0} value={invForm.lowStockThreshold || ''} onChange={e => setInvForm({ ...invForm, lowStockThreshold: Math.max(0, +e.target.value) })} placeholder="5" className="w-full border rounded-lg px-4 py-2" />
-              </div>
+              <Input
+                type="number"
+                min={0}
+                label={editing ? 'Qty to Add' : 'Initial Quantity'}
+                value={invForm.quantity || ''}
+                onChange={e => setInvForm({ ...invForm, quantity: Math.max(0, +e.target.value) })}
+                placeholder="0"
+              />
+              <Input
+                type="number"
+                min={0}
+                label="Low Stock Threshold"
+                value={invForm.lowStockThreshold || ''}
+                onChange={e => setInvForm({ ...invForm, lowStockThreshold: Math.max(0, +e.target.value) })}
+                placeholder="5"
+              />
             </div>
             {invForm.quantity > 0 && !invForm.warehouseId && (
               <p className="text-xs text-amber-600 mt-2">⚠ Please select a warehouse to save stock.</p>

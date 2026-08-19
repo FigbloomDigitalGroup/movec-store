@@ -25,6 +25,7 @@ export default function CustomDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -51,6 +52,41 @@ export default function CustomDropdown({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
+  const focusOptionAt = (index: number) => {
+    if (options.length === 0) return;
+    const clamped = Math.max(0, Math.min(index, options.length - 1));
+    optionRefs.current[clamped]?.focus();
+  };
+
+  // Standard ARIA listbox keyboard pattern: arrow keys move a real, focused
+  // option (roving focus) rather than just relying on Tab, which would jump
+  // out of the list after one item.
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isOpen) setIsOpen(true);
+      const selectedIndex = options.findIndex((o) => o.id === value);
+      requestAnimationFrame(() => focusOptionAt(selectedIndex >= 0 ? selectedIndex : 0));
+    }
+  };
+
+  const handleListKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = optionRefs.current.findIndex((el) => el === document.activeElement);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusOptionAt(currentIndex + 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusOptionAt(currentIndex - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      focusOptionAt(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      focusOptionAt(options.length - 1);
+    }
+  };
+
   const handleSelect = (optionId: string) => {
     onChange(optionId);
     setIsOpen(false);
@@ -73,6 +109,7 @@ export default function CustomDropdown({
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleTriggerKeyDown}
         className={`
           w-full border border-gray-300 rounded-lg px-4 py-2.5 
           flex items-center justify-between
@@ -101,16 +138,18 @@ export default function CustomDropdown({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div 
+        <div
           className="absolute top-full mt-2 left-0 w-full bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50 max-h-60 overflow-y-auto"
           role="listbox"
+          onKeyDown={handleListKeyDown}
         >
-          {options.map((option) => {
+          {options.map((option, index) => {
             const isSelected = option.id === value;
-            
+
             return (
               <button
                 key={option.id}
+                ref={(el) => { optionRefs.current[index] = el; }}
                 type="button"
                 onClick={() => handleSelect(option.id)}
                 className={`

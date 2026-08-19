@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Param, Query, Body, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { SupportService } from './support.service';
 import { CreateFaqDto } from './dto/create-faq.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -7,7 +17,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
-import type { Request } from 'express';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 @Controller('admin/support')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -26,13 +39,19 @@ export class AdminSupportController {
   }
 
   @Patch('tickets/:id')
-  updateTicketStatus(@Param('id') id: string, @Body() body: { status: string }) {
+  updateTicketStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
     return this.supportService.updateTicketStatus(id, body.status);
   }
 
   @Post('tickets/:id/messages')
-  replyToTicket(@Req() req: Request, @Param('id') id: string, @Body() dto: CreateMessageDto) {
-    const user = req.user as any;
+  replyToTicket(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: CreateMessageDto,
+  ) {
     return this.supportService.addMessage(id, user.id, true, dto);
   }
 

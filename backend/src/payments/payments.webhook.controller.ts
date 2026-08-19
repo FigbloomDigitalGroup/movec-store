@@ -1,10 +1,42 @@
-import { Controller, Post, Body, Headers, Logger, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  Logger,
+  Req,
+  Query,
+} from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { PaymentsService } from './payments.service';
 import type { Request } from 'express';
+import { Prisma } from '@prisma/client';
+
+interface MpesaStkCallbackItem {
+  Name: string;
+  Value?: string | number;
+}
+
+interface MpesaCallbackBody {
+  Body?: {
+    stkCallback?: {
+      CheckoutRequestID: string;
+      ResultCode: number;
+      CallbackMetadata?: { Item?: MpesaStkCallbackItem[] };
+    };
+  };
+}
+
+interface PaystackWebhookBody {
+  event: string;
+  data: {
+    reference: string;
+    metadata?: { orderNumber?: string };
+  };
+}
 
 @Controller('payments')
 export class PaymentsWebhookController {
@@ -20,14 +52,19 @@ export class PaymentsWebhookController {
   // ─── M-Pesa Callback ─────────────────────────────────────────────────────────
 
   @Post('mpesa/callback')
-  async mpesaCallback(@Body() body: any, @Query('secret') secret: string) {
+  async mpesaCallback(
+    @Body() body: MpesaCallbackBody,
+    @Query('secret') secret: string,
+  ) {
     this.logger.log('M-Pesa callback received');
 
     // Safaricom's STK callback has no signature of its own, so the shared secret
     // stamped onto the callback URL at initiation time (see PaymentsService.initiateMpesa)
     // is what stands in for authentication here. Without it, anyone who finds this
     // URL could forge a "payment succeeded" callback for any order.
-    const expectedSecret = this.configService.get<string>('MPESA_CALLBACK_SECRET');
+    const expectedSecret = this.configService.get<string>(
+      'MPESA_CALLBACK_SECRET',
+    );
     if (expectedSecret) {
       if (secret !== expectedSecret) {
         this.logger.warn('Rejected M-Pesa callback: missing or invalid secret');
@@ -47,7 +84,10 @@ export class PaymentsWebhookController {
       const transaction = await this.prisma.transaction.findFirst({
         where: {
           provider: 'MPESA',
-          responsePayload: { path: ['CheckoutRequestID'], equals: checkoutRequestId },
+          responsePayload: {
+            path: ['CheckoutRequestID'],
+            equals: checkoutRequestId,
+          },
         },
         include: { payment: true },
       });
@@ -58,10 +98,12 @@ export class PaymentsWebhookController {
       if (transaction && transaction.status === 'PENDING') {
         let amountMismatch = false;
         if (resultCode === 0) {
-          const items: any[] = callback.CallbackMetadata?.Item ?? [];
+          const items = callback.CallbackMetadata?.Item ?? [];
           const callbackAmount = items.find((i) => i.Name === 'Amount')?.Value;
           const expectedAmount = Number(transaction.payment.amount);
-          amountMismatch = callbackAmount == null || Math.abs(Number(callbackAmount) - expectedAmount) >= 1;
+          amountMismatch =
+            callbackAmount == null ||
+            Math.abs(Number(callbackAmount) - expectedAmount) >= 1;
           if (amountMismatch) {
             this.logger.warn(
               `M-Pesa callback amount mismatch for ${checkoutRequestId}: expected ${expectedAmount}, got ${callbackAmount}`,
@@ -72,8 +114,9 @@ export class PaymentsWebhookController {
         await this.prisma.transaction.update({
           where: { id: transaction.id },
           data: {
-            status: resultCode === 0 && !amountMismatch ? 'COMPLETED' : 'FAILED',
-            responsePayload: callback,
+            status:
+              resultCode === 0 && !amountMismatch ? 'COMPLETED' : 'FAILED',
+            responsePayload: callback as unknown as Prisma.InputJsonValue,
           },
         });
 
@@ -106,14 +149,17 @@ export class PaymentsWebhookController {
   @Post('paystack/webhook')
   async paystackWebhook(
     @Req() req: RawBodyRequest<Request>,
-    @Body() body: any,
+    @Body() body: PaystackWebhookBody,
     @Headers('x-paystack-signature') signature: string,
   ) {
     this.logger.log(`Paystack webhook: ${body.event}`);
 
     // Verify signature using raw body
     const rawBody = req.rawBody?.toString() ?? JSON.stringify(body);
-    const isValid = this.paymentsService.verifyPaystackSignature(rawBody, signature);
+    const isValid = this.paymentsService.verifyPaystackSignature(
+      rawBody,
+      signature,
+    );
 
     if (!isValid) {
       this.logger.warn('Invalid Paystack webhook signature');
@@ -154,7 +200,10 @@ export class PaymentsWebhookController {
         if (transaction) {
           await this.prisma.transaction.update({
             where: { id: transaction.id },
-            data: { status: 'COMPLETED', responsePayload: data },
+            data: {
+              status: 'COMPLETED',
+              responsePayload: data,
+            },
           });
         }
 

@@ -6,10 +6,6 @@ export class QueryReviewDto {
   search?: string;
 
   @IsOptional()
-  @IsString()
-  status?: 'all' | 'pending' | 'approved';
-
-  @IsOptional()
   @IsNumberString()
   rating?: string;
 

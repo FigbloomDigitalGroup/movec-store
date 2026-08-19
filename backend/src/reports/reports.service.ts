@@ -1,21 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import PDFDocument = require('pdfkit');
 import { Response } from 'express';
+
+type ReportRow = Record<string, string | number | null | undefined>;
+
+/** Shared by every report filter below so a missing from/to consistently means "no bound". */
+function dateRangeFilter(
+  from?: string,
+  to?: string,
+): Prisma.DateTimeFilter | undefined {
+  if (!from && !to) return undefined;
+  const filter: Prisma.DateTimeFilter = {};
+  if (from) filter.gte = new Date(from);
+  if (to) filter.lte = new Date(to);
+  return filter;
+}
 
 @Injectable()
 export class ReportsService {
   constructor(private prisma: PrismaService) {}
 
   async getSalesReport(from?: string, to?: string) {
-    const where: any = {
+    const dateFilter = dateRangeFilter(from, to);
+    const where: Prisma.OrderWhereInput = {
       status: { not: 'CANCELLED' },
+      ...(dateFilter && { createdAt: dateFilter }),
     };
-    if (from || to) {
-      where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from);
-      if (to) where.createdAt.lte = new Date(to);
-    }
 
     // Aggregates computed in the database instead of pulling every matching order
     // (plus all of its items and payments) into Node memory just to sum a few fields
@@ -37,10 +49,13 @@ export class ReportsService {
     const totalOrders = totals._count._all;
     const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
-    const paymentMethods = paymentGroups.reduce((acc: any, g) => {
-      acc[g.method] = g._count._all;
-      return acc;
-    }, {});
+    const paymentMethods = paymentGroups.reduce<Record<string, number>>(
+      (acc, g) => {
+        acc[g.method] = g._count._all;
+        return acc;
+      },
+      {},
+    );
 
     return {
       totalSales,
@@ -53,7 +68,10 @@ export class ReportsService {
 
   async getInventoryReport() {
     const inventory = await this.prisma.inventory.findMany({
-      include: { product: { select: { name: true, sku: true } }, warehouse: true },
+      include: {
+        product: { select: { name: true, sku: true } },
+        warehouse: true,
+      },
       orderBy: { quantity: 'asc' },
     });
 
@@ -76,12 +94,11 @@ export class ReportsService {
   }
 
   async getCustomersReport(from?: string, to?: string) {
-    const where: any = { userRoles: { some: { role: { name: 'CUSTOMER' } } } };
-    if (from || to) {
-      where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from);
-      if (to) where.createdAt.lte = new Date(to);
-    }
+    const dateFilter = dateRangeFilter(from, to);
+    const where: Prisma.UserWhereInput = {
+      userRoles: { some: { role: { name: 'CUSTOMER' } } },
+      ...(dateFilter && { createdAt: dateFilter }),
+    };
 
     const totalCustomers = await this.prisma.user.count({ where });
 
@@ -92,12 +109,9 @@ export class ReportsService {
       },
     });
 
-    const orderWhere: any = {};
-    if (from || to) {
-      orderWhere.createdAt = {};
-      if (from) orderWhere.createdAt.gte = new Date(from);
-      if (to) orderWhere.createdAt.lte = new Date(to);
-    }
+    const orderWhere: Prisma.OrderWhereInput = {
+      ...(dateFilter && { createdAt: dateFilter }),
+    };
 
     const topCustomers = await this.prisma.order.groupBy({
       by: ['userId'],
@@ -131,14 +145,14 @@ export class ReportsService {
   }
 
   async getProductsReport(from?: string, to?: string) {
-    const totalProducts = await this.prisma.product.count({ where: { isActive: true } });
+    const totalProducts = await this.prisma.product.count({
+      where: { isActive: true },
+    });
 
-    const orderItemWhere: any = {};
-    if (from || to) {
-      orderItemWhere.order = { createdAt: {} };
-      if (from) orderItemWhere.order.createdAt.gte = new Date(from);
-      if (to) orderItemWhere.order.createdAt.lte = new Date(to);
-    }
+    const dateFilter = dateRangeFilter(from, to);
+    const orderItemWhere: Prisma.OrderItemWhereInput = {
+      ...(dateFilter && { order: { createdAt: dateFilter } }),
+    };
 
     const topSelling = await this.prisma.orderItem.groupBy({
       by: ['productId'],
@@ -172,12 +186,10 @@ export class ReportsService {
   }
 
   async getInstallationsReport(from?: string, to?: string) {
-    const where: any = {};
-    if (from || to) {
-      where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from);
-      if (to) where.createdAt.lte = new Date(to);
-    }
+    const dateFilter = dateRangeFilter(from, to);
+    const where: Prisma.InstallationRequestWhereInput = {
+      ...(dateFilter && { createdAt: dateFilter }),
+    };
 
     const total = await this.prisma.installationRequest.count({ where });
     const byStatus = await this.prisma.installationRequest.groupBy({
@@ -199,13 +211,14 @@ export class ReportsService {
   }
 
   async getDashboardSummary() {
-    const [sales, inventory, customers, products, installations] = await Promise.all([
-      this.getSalesReport(),
-      this.getInventoryReport(),
-      this.getCustomersReport(),
-      this.getProductsReport(),
-      this.getInstallationsReport(),
-    ]);
+    const [sales, inventory, customers, products, installations] =
+      await Promise.all([
+        this.getSalesReport(),
+        this.getInventoryReport(),
+        this.getCustomersReport(),
+        this.getProductsReport(),
+        this.getInstallationsReport(),
+      ]);
 
     const pendingOrders = await this.prisma.order.count({
       where: { status: { in: ['PENDING', 'CONFIRMED'] } },
@@ -221,10 +234,10 @@ export class ReportsService {
       where: {
         inventory: {
           some: {
-            quantity: { gt: 0 }
-          }
-        }
-      }
+            quantity: { gt: 0 },
+          },
+        },
+      },
     });
     const outOfStockProducts = totalProducts - inStockProducts;
 
@@ -265,27 +278,28 @@ export class ReportsService {
   }
 
   async getExportData(type: string, from?: string, to?: string) {
-    let rawData: any;
-    let exportRows: any[] = [];
+    let exportRows: ReportRow[] = [];
     let title = '';
 
     switch (type) {
-      case 'sales':
-        rawData = await this.getSalesReport(from, to);
+      case 'sales': {
+        const data = await this.getSalesReport(from, to);
         title = 'Sales Report';
         exportRows = [
-          { Metric: 'Total Sales', Value: rawData.totalSales },
-          { Metric: 'Total Orders', Value: rawData.totalOrders },
-          { Metric: 'Average Order Value', Value: rawData.averageOrderValue },
-          ...Object.entries(rawData.paymentMethods).map(([method, count]) => ({
-            Metric: `Orders via ${method}`, Value: count
-          }))
+          { Metric: 'Total Sales', Value: data.totalSales },
+          { Metric: 'Total Orders', Value: data.totalOrders },
+          { Metric: 'Average Order Value', Value: data.averageOrderValue },
+          ...Object.entries(data.paymentMethods).map(([method, count]) => ({
+            Metric: `Orders via ${method}`,
+            Value: count,
+          })),
         ];
         break;
-      case 'inventory':
-        rawData = await this.getInventoryReport();
+      }
+      case 'inventory': {
+        const data = await this.getInventoryReport();
         title = 'Inventory Report';
-        exportRows = rawData.lowStockItems.map((item: any) => ({
+        exportRows = data.lowStockItems.map((item) => ({
           Product: item.product,
           SKU: item.sku,
           Quantity: item.quantity,
@@ -294,17 +308,18 @@ export class ReportsService {
         }));
         // If no low stock, provide general stats
         if (exportRows.length === 0) {
-           exportRows = [
-             { Metric: 'Total Products', Value: rawData.totalProducts },
-             { Metric: 'Total Stock', Value: rawData.totalStock },
-             { Metric: 'Low Stock Count', Value: 0 }
-           ];
+          exportRows = [
+            { Metric: 'Total Products', Value: data.totalProducts },
+            { Metric: 'Total Stock', Value: data.totalStock },
+            { Metric: 'Low Stock Count', Value: 0 },
+          ];
         }
         break;
-      case 'customers':
-        rawData = await this.getCustomersReport(from, to);
+      }
+      case 'customers': {
+        const data = await this.getCustomersReport(from, to);
         title = 'Customers Report';
-        exportRows = rawData.topCustomers.map((c: any) => ({
+        exportRows = data.topCustomers.map((c) => ({
           Name: `${c.firstName} ${c.lastName}`,
           Email: c.email,
           Orders: c.ordersCount,
@@ -312,32 +327,36 @@ export class ReportsService {
         }));
         if (exportRows.length === 0) {
           exportRows = [
-            { Metric: 'Total Customers', Value: rawData.totalCustomers },
-            { Metric: 'New Today', Value: rawData.newToday }
+            { Metric: 'Total Customers', Value: data.totalCustomers },
+            { Metric: 'New Today', Value: data.newToday },
           ];
         }
         break;
-      case 'products':
-        rawData = await this.getProductsReport(from, to);
+      }
+      case 'products': {
+        const data = await this.getProductsReport(from, to);
         title = 'Top Products Report';
-        exportRows = rawData.topSelling.map((p: any) => ({
+        exportRows = data.topSelling.map((p) => ({
           Product: p.name,
           Price: p.price,
           TotalSold: p.totalSold,
           Revenue: p.revenue,
         }));
         break;
-      case 'installations':
-        rawData = await this.getInstallationsReport(from, to);
+      }
+      case 'installations': {
+        const data = await this.getInstallationsReport(from, to);
         title = 'Installations Report';
         exportRows = [
-          { Metric: 'Total Requests', Value: rawData.totalRequests },
-          { Metric: 'Total Revenue', Value: rawData.totalRevenue },
-          ...rawData.byStatus.map((s: any) => ({
-            Metric: `Status: ${s.status}`, Value: s.count
-          }))
+          { Metric: 'Total Requests', Value: data.totalRequests },
+          { Metric: 'Total Revenue', Value: data.totalRevenue },
+          ...data.byStatus.map((s) => ({
+            Metric: `Status: ${s.status}`,
+            Value: s.count,
+          })),
         ];
         break;
+      }
       default:
         throw new Error('Invalid report type');
     }
@@ -345,28 +364,30 @@ export class ReportsService {
     return { title, rows: exportRows };
   }
 
-  buildCsv(data: any[]): string {
+  buildCsv(data: ReportRow[]): string {
     if (!data || !data.length) return '';
     const headers = Object.keys(data[0]);
-    const rows = data.map(row =>
-      headers.map(h => {
-        const val = row[h];
-        if (val === null || val === undefined) return '""';
-        let str = String(val);
-        // Neutralize formula/DDE injection: a cell starting with =, +, -, or @ can
-        // execute as a formula when the CSV is opened in Excel/Sheets — this data
-        // includes user-supplied names (e.g. customer firstName/lastName), so a
-        // customer could otherwise plant a payload an admin later opens.
-        if (/^[=+\-@]/.test(str)) {
-          str = `'${str}`;
-        }
-        return `"${str.replace(/"/g, '""')}"`;
-      }).join(',')
+    const rows = data.map((row) =>
+      headers
+        .map((h) => {
+          const val = row[h];
+          if (val === null || val === undefined) return '""';
+          let str = String(val);
+          // Neutralize formula/DDE injection: a cell starting with =, +, -, or @ can
+          // execute as a formula when the CSV is opened in Excel/Sheets — this data
+          // includes user-supplied names (e.g. customer firstName/lastName), so a
+          // customer could otherwise plant a payload an admin later opens.
+          if (/^[=+\-@]/.test(str)) {
+            str = `'${str}`;
+          }
+          return `"${str.replace(/"/g, '""')}"`;
+        })
+        .join(','),
     );
     return [headers.join(','), ...rows].join('\n');
   }
 
-  buildPdf(title: string, data: any[], res: Response) {
+  buildPdf(title: string, data: ReportRow[], res: Response) {
     const doc = new PDFDocument({ margin: 50 });
     doc.pipe(res);
 
@@ -374,7 +395,9 @@ export class ReportsService {
     doc.moveDown(2);
 
     if (data.length === 0) {
-      doc.fontSize(12).text('No data available for this report period.', { align: 'center' });
+      doc
+        .fontSize(12)
+        .text('No data available for this report period.', { align: 'center' });
     } else {
       doc.fontSize(10);
       data.forEach((row, index) => {

@@ -54,7 +54,7 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       toast.success('Profile updated!');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const changePassword = useMutation({
@@ -63,7 +63,7 @@ export default function ProfilePage() {
       toast.success('Password changed!');
       setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const saveAddress = useMutation({
@@ -78,7 +78,7 @@ export default function ProfilePage() {
       setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false });
       toast.success(editingAddress ? 'Address updated' : 'Address added');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const deleteAddress = useMutation({
@@ -88,7 +88,7 @@ export default function ProfilePage() {
       toast.success('Address removed');
       setPendingDeleteAddressId(null);
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const startEditAddress = (addr: any) => {

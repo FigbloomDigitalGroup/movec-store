@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { SendNotificationDto } from './dto/send-notification.dto';
 import { QueryNotificationDto } from './dto/query-notification.dto';
@@ -30,7 +39,11 @@ export class AdminNotificationsController {
 
   @Post('send-all')
   sendToAll(@Body() body: { type: string; title: string; message: string }) {
-    return this.notificationsService.sendToAll(body.type, body.title, body.message);
+    return this.notificationsService.sendToAll(
+      body.type,
+      body.title,
+      body.message,
+    );
   }
 
   @Delete(':id')

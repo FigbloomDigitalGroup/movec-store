@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { FiMessageSquare, FiSearch, FiX, FiSend, FiUser, FiHeadphones } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
 import Pagination from '../../components/ui/Pagination';
+import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 
 const STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const;
 const PAGE_SIZE = 20;
@@ -45,7 +46,7 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
       queryClient.invalidateQueries({ queryKey: ['admin-ticket', ticketId] });
       toast.success('Ticket status updated');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const sendReply = useMutation({
@@ -55,7 +56,7 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
       queryClient.invalidateQueries({ queryKey: ['admin-ticket', ticketId] });
       toast.success('Reply sent');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   useEffect(() => {
@@ -201,6 +202,7 @@ export default function AdminSupport() {
             <input
               type="text"
               placeholder="Search subject or customer..."
+              aria-label="Search support tickets"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
@@ -227,64 +229,42 @@ export default function AdminSupport() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse flex gap-4 items-center">
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-1/3" />
-                  <div className="h-3 bg-gray-100 rounded w-1/2" />
-                </div>
-                <div className="h-6 w-20 bg-gray-100 rounded-full" />
-              </div>
-            ))}
-          </div>
-        ) : tickets.length === 0 ? (
-          <div className="p-16 text-center">
-            <FiMessageSquare size={48} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-base font-bold text-gray-800">No tickets found</h3>
-            <p className="text-gray-500 text-xs mt-1">Try a different search or status filter.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  {['Subject', 'Customer', 'Messages', 'Status', 'Date', ''].map((h) => (
-                    <th key={h} className="text-left px-5 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">{h}</th>
-                  ))}
+      <TableContainer>
+        <table className="w-full min-w-[640px]">
+          <TableHead columns={['Subject', 'Customer', 'Messages', 'Status', 'Date', '']} />
+          <tbody className="divide-y divide-gray-50">
+            {isLoading ? (
+              <TableSkeletonRows rows={4} columns={6} />
+            ) : tickets.length === 0 ? (
+              <TableEmptyState columns={6} icon={FiMessageSquare} title="No tickets found" description="Try a different search or status filter." />
+            ) : (
+              tickets.map((t) => (
+                <tr key={t.id} className="hover:bg-gray-50/80 transition">
+                  <td className="px-5 py-4 text-sm font-semibold text-gray-900">{t.subject}</td>
+                  <td className="px-5 py-4">
+                    <p className="text-xs font-semibold text-gray-900">{t.user?.firstName} {t.user?.lastName}</p>
+                    <p className="text-[11px] text-gray-500">{t.user?.email}</p>
+                  </td>
+                  <td className="px-5 py-4 text-xs text-gray-600">{t._count?.messages ?? 0}</td>
+                  <td className="px-5 py-4"><StatusBadge status={t.status} /></td>
+                  <td className="px-5 py-4 text-[11px] text-gray-500">
+                    {new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </td>
+                  <td className="px-5 py-4">
+                    <button
+                      onClick={() => setOpenTicketId(t.id)}
+                      className="text-xs font-semibold text-primary-500 hover:text-primary-600 transition px-3 py-1.5 rounded-lg hover:bg-primary-50"
+                    >
+                      View & Reply
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {tickets.map((t) => (
-                  <tr key={t.id} className="hover:bg-gray-50/80 transition">
-                    <td className="px-5 py-4 text-sm font-semibold text-gray-900">{t.subject}</td>
-                    <td className="px-5 py-4">
-                      <p className="text-xs font-semibold text-gray-900">{t.user?.firstName} {t.user?.lastName}</p>
-                      <p className="text-[11px] text-gray-500">{t.user?.email}</p>
-                    </td>
-                    <td className="px-5 py-4 text-xs text-gray-600">{t._count?.messages ?? 0}</td>
-                    <td className="px-5 py-4"><StatusBadge status={t.status} /></td>
-                    <td className="px-5 py-4 text-[11px] text-gray-500">
-                      {new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td className="px-5 py-4">
-                      <button
-                        onClick={() => setOpenTicketId(t.id)}
-                        className="text-xs font-semibold text-primary-500 hover:text-primary-600 transition px-3 py-1.5 rounded-lg hover:bg-primary-50"
-                      >
-                        View & Reply
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <Pagination page={page} limit={PAGE_SIZE} total={total} onPageChange={setPage} />
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
+      <Pagination page={page} limit={PAGE_SIZE} total={total} onPageChange={setPage} />
 
       <AnimatePresence>
         {openTicketId && (

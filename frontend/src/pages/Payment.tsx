@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock } from 'react-icons/fi';
+import CheckoutSteps from '../components/CheckoutSteps';
 
 const VERIFY_MAX_ATTEMPTS = 3;
 const VERIFY_RETRY_DELAY_MS = 2000;
@@ -66,7 +67,7 @@ export default function PaymentPage() {
                 }
             });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(getErrorMessage(err));
             setProcessing(false);
         }
@@ -230,7 +231,9 @@ export default function PaymentPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="min-h-screen">
+            <CheckoutSteps currentStep={2} />
+            <div className="max-w-4xl mx-auto px-4 py-8">
             <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Complete Payment</h1>
             <p className="text-gray-600 mb-8">Order #{orderNumber}</p>
 
@@ -335,6 +338,7 @@ export default function PaymentPage() {
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

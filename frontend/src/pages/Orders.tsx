@@ -58,6 +58,7 @@ export default function OrdersPage() {
             <input
               type="text"
               placeholder="Search by order number or product..."
+              aria-label="Search orders"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-500 transition"

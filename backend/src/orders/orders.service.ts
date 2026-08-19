@@ -1,14 +1,24 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
-import { OrderStatus } from '@prisma/client';
-import { buildPagination, paginated, type PaginationQuery } from '../common/pagination';
+import { AuditService } from '../audit/audit.service';
+import { OrderStatus, Prisma } from '@prisma/client';
+import {
+  buildPagination,
+  paginated,
+  type PaginationQuery,
+} from '../common/pagination';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private inventoryService: InventoryService,
+    private auditService: AuditService,
   ) {}
 
   async findByCustomer(userId: string, query: PaginationQuery) {
@@ -60,7 +70,7 @@ export class OrdersService {
   }
 
   async findByOrderNumber(orderNumber: string, userId?: string) {
-    const where: any = { orderNumber };
+    const where: Prisma.OrderWhereInput = { orderNumber };
     if (userId) where.userId = userId;
 
     const order = await this.prisma.order.findFirst({
@@ -106,7 +116,13 @@ export class OrdersService {
       shippingAddress: order.shippingAddress,
       billingAddress: order.billingAddress,
       statusHistory: order.statusHistory,
-      coupon: order.coupon ? { code: order.coupon.code, type: order.coupon.discountType, value: order.coupon.discountValue.toNumber() } : null,
+      coupon: order.coupon
+        ? {
+            code: order.coupon.code,
+            type: order.coupon.discountType,
+            value: order.coupon.discountValue.toNumber(),
+          }
+        : null,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
@@ -122,7 +138,9 @@ export class OrdersService {
 
     const cancellable: OrderStatus[] = ['PENDING', 'CONFIRMED'];
     if (!cancellable.includes(order.status)) {
-      throw new BadRequestException(`Order cannot be cancelled when status is ${order.status}`);
+      throw new BadRequestException(
+        `Order cannot be cancelled when status is ${order.status}`,
+      );
     }
 
     // PENDING means checkout only ever reserved stock (fulfillOrder never ran), so
@@ -149,7 +167,10 @@ export class OrdersService {
 
       await this.inventoryService.returnOrderStock(
         tx,
-        order.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        order.items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+        })),
         order.orderNumber,
         wasFulfilled,
       );
@@ -160,7 +181,7 @@ export class OrdersService {
 
   async findAll(page = 1, limit = 20, status?: OrderStatus) {
     const skip = (page - 1) * limit;
-    const where: any = {};
+    const where: Prisma.OrderWhereInput = {};
     if (status) where.status = status;
 
     const [orders, total] = await Promise.all([
@@ -170,7 +191,9 @@ export class OrdersService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          user: { select: { id: true, email: true, firstName: true, lastName: true } },
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
           items: true,
           payments: true,
           shipping: true,
@@ -196,11 +219,28 @@ export class OrdersService {
     };
   }
 
-  async updateStatus(orderId: string, status: OrderStatus, trackingNumber?: string, carrier?: string) {
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+  async updateStatus(
+    orderId: string,
+    status: OrderStatus,
+    trackingNumber?: string,
+    carrier?: string,
+    actorId?: string,
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('Order not found');
 
-    const data: any = {
+    await this.auditService.log({
+      userId: actorId,
+      action: 'STATUS_CHANGE',
+      entityType: 'Order',
+      entityId: orderId,
+      oldValues: { status: order.status },
+      newValues: { status },
+    });
+
+    const data: Prisma.OrderUpdateInput = {
       status,
       statusHistory: {
         create: { status, changedBy: 'admin' },

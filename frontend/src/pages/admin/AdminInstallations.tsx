@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { FiTool } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
 import Pagination from '../../components/ui/Pagination';
+import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 
 const PAGE_SIZE = 20;
 
@@ -34,7 +35,7 @@ export default function AdminInstallations() {
       queryClient.invalidateQueries({ queryKey: ['admin-installations'] });
       toast.success('Status updated');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const statuses = ['PENDING', 'APPROVED', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
@@ -44,32 +45,14 @@ export default function AdminInstallations() {
       <div className="mb-6">
         <PageHeader icon={FiTool} title="Installation Requests" subtitle="Review and schedule customer installation requests." />
       </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+      <TableContainer>
         <table className="w-full min-w-[640px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Customer</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Service</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Date</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Status</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Action</th>
-            </tr>
-          </thead>
+          <TableHead columns={['Customer', 'Service', 'Date', 'Status', 'Action']} />
           <tbody>
             {isLoading ? (
-              [1, 2, 3].map((i) => (
-                <tr key={i} className="border-t border-gray-100">
-                  <td className="p-4" colSpan={5}><div className="h-4 bg-gray-100 rounded animate-pulse" /></td>
-                </tr>
-              ))
+              <TableSkeletonRows rows={3} columns={5} />
             ) : !requests.length ? (
-              <tr>
-                <td className="p-12 text-center text-gray-500" colSpan={5}>
-                  <FiTool size={36} className="mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm font-semibold">No installation requests yet</p>
-                </td>
-              </tr>
+              <TableEmptyState columns={5} icon={FiTool} title="No installation requests yet" />
             ) : (
               requests.map((req: any) => (
                 <tr key={req.id} className="border-t border-gray-100">
@@ -96,9 +79,8 @@ export default function AdminInstallations() {
             )}
           </tbody>
         </table>
-        </div>
-        <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
-      </div>
+      </TableContainer>
+      <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
     </div>
   );
 }

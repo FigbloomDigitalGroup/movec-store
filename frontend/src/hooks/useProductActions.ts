@@ -42,7 +42,7 @@ export function useProductActions(productId: string) {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       toast.success(`Added ${product.name} to cart`);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
@@ -55,7 +55,7 @@ export function useProductActions(productId: string) {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
       toast.success(`Added ${product.name} to wishlist`);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
@@ -68,7 +68,7 @@ export function useProductActions(productId: string) {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
       toast.success('Removed from wishlist');
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });

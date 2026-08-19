@@ -32,7 +32,9 @@ function parseDurationMs(duration: string, fallbackMs: number): number {
   const match = /^(\d+)\s*(s|m|h|d)$/.exec(duration?.trim() ?? '');
   if (!match) return fallbackMs;
   const value = Number(match[1]);
-  const unitMs = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 }[match[2] as 's' | 'm' | 'h' | 'd'];
+  const unitMs = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 }[
+    match[2] as 's' | 'm' | 'h' | 'd'
+  ];
   return value * unitMs;
 }
 
@@ -58,7 +60,9 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (existingUser) {
       throw new ConflictException('Email already registered');
     }
@@ -67,7 +71,8 @@ export class AuthService {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const autoVerify = this.configService.get<string>('AUTO_VERIFY_EMAIL') === 'true';
+    const autoVerify =
+      this.configService.get<string>('AUTO_VERIFY_EMAIL') === 'true';
 
     const user = await this.prisma.user.create({
       data: {
@@ -90,7 +95,11 @@ export class AuthService {
     });
 
     if (!autoVerify) {
-      await this.emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        user.firstName,
+        verificationToken,
+      );
     }
 
     return {
@@ -106,18 +115,24 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
       // generic response to avoid user enumeration
-      return { message: 'If the email exists, a verification email has been sent.' };
+      return {
+        message: 'If the email exists, a verification email has been sent.',
+      };
     }
 
     if (user.isEmailVerified) {
-      return { message: 'If the email exists, a verification email has been sent.' };
+      return {
+        message: 'If the email exists, a verification email has been sent.',
+      };
     }
 
     const now = Date.now();
     const last = this.resendTimestamps[email] || 0;
     if (now - last < 60 * 1000) {
       const waitSec = Math.ceil((60 * 1000 - (now - last)) / 1000);
-      throw new BadRequestException(`Please wait ${waitSec} seconds before requesting another verification email.`);
+      throw new BadRequestException(
+        `Please wait ${waitSec} seconds before requesting another verification email.`,
+      );
     }
     this.resendTimestamps[email] = now;
 
@@ -132,9 +147,15 @@ export class AuthService {
       },
     });
 
-    await this.emailService.sendVerificationEmail(user.email, user.firstName, verificationToken);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      user.firstName,
+      verificationToken,
+    );
 
-    return { message: 'If the email exists, a verification email has been sent.' };
+    return {
+      message: 'If the email exists, a verification email has been sent.',
+    };
   }
 
   async login(dto: LoginDto) {
@@ -153,7 +174,9 @@ export class AuthService {
     }
 
     if (!user.isEmailVerified) {
-      throw new UnauthorizedException('Please verify your email before logging in');
+      throw new UnauthorizedException(
+        'Please verify your email before logging in',
+      );
     }
 
     if (!user.isActive || user.isSuspended) {
@@ -164,7 +187,9 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET') as string,
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION') as any,
+      expiresIn: this.configService.get<string>(
+        'JWT_REFRESH_EXPIRATION',
+      ) as any,
     });
 
     await this.prisma.session.create({
@@ -221,7 +246,9 @@ export class AuthService {
     const newAccessToken = this.jwtService.sign(newPayload);
     const newRefreshToken = this.jwtService.sign(newPayload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET') as string,
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION') as any,
+      expiresIn: this.configService.get<string>(
+        'JWT_REFRESH_EXPIRATION',
+      ) as any,
     });
 
     await this.prisma.session.create({
@@ -245,7 +272,10 @@ export class AuthService {
 
   async verifyEmail(token: string) {
     const user = await this.prisma.user.findFirst({
-      where: { verificationToken: hashToken(token), verificationTokenExpires: { gte: new Date() } },
+      where: {
+        verificationToken: hashToken(token),
+        verificationTokenExpires: { gte: new Date() },
+      },
     });
 
     if (!user) {
@@ -278,14 +308,21 @@ export class AuthService {
       data: { resetToken: hashToken(resetToken), resetTokenExpires },
     });
 
-    await this.emailService.sendPasswordResetEmail(user.email, user.firstName, resetToken);
+    await this.emailService.sendPasswordResetEmail(
+      user.email,
+      user.firstName,
+      resetToken,
+    );
 
     return { message: 'If the email exists, a reset link has been sent.' };
   }
 
   async resetPassword(token: string, newPassword: string) {
     const user = await this.prisma.user.findFirst({
-      where: { resetToken: hashToken(token), resetTokenExpires: { gte: new Date() } },
+      where: {
+        resetToken: hashToken(token),
+        resetTokenExpires: { gte: new Date() },
+      },
     });
 
     if (!user) {
@@ -310,7 +347,11 @@ export class AuthService {
     return { message: 'Password reset successful. Please log in.' };
   }
 
-  async changePassword(userId: string, oldPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException();

@@ -31,7 +31,7 @@ export default function Register() {
       const { confirmPassword: _, ...payload } = form;
       await register(payload);
       setSuccess('Registration successful!');
-    } catch (err: any) {
+    } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setLoading(false);
@@ -54,7 +54,7 @@ export default function Register() {
             to={loginLink}
             className="inline-block w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition font-medium"
           >
-            Go to Login
+            Go to Sign In
           </Link>
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function Register() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
-      <h1 className="text-3xl md:text-4xl font-section-title text-center mb-8">Register</h1>
+      <h1 className="text-3xl md:text-4xl font-section-title text-center mb-8">Create Account</h1>
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
       {success && <Alert variant="success" className="mb-4">{success}</Alert>}
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -150,15 +150,15 @@ export default function Register() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Registering...
+              Creating account...
             </>
           ) : (
-            'Register'
+            'Create Account'
           )}
         </Button>
       </form>
       <p className="text-center mt-4 text-sm">
-        Already have an account? <Link to={loginLink} className="text-primary-500">Login</Link>
+        Already have an account? <Link to={loginLink} className="text-primary-500">Sign In</Link>
       </p>
     </div>
   );

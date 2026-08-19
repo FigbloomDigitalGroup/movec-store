@@ -1,4 +1,9 @@
-import axios from 'axios';
+import axios, { type AxiosError } from 'axios';
+
+interface ApiErrorResponse {
+  message?: string | string[];
+  error?: { message?: string | string[] };
+}
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
@@ -61,11 +66,15 @@ api.interceptors.response.use(
   }
 );
 
-export const getErrorMessage = (error: any): string => {
-  if (!error.response) {
-    return error.message || 'Network error occurred. Please try again.';
+export const getErrorMessage = (error: unknown): string => {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error ? error.message : 'An unexpected error occurred.';
   }
-  const data = error.response.data;
+  const axiosError = error as AxiosError<ApiErrorResponse>;
+  if (!axiosError.response) {
+    return axiosError.message || 'Network error occurred. Please try again.';
+  }
+  const data = axiosError.response.data;
   if (data) {
     if (data.error && data.error.message) {
       return Array.isArray(data.error.message)

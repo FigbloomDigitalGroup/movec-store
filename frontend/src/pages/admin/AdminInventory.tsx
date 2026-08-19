@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { FiPackage } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
+import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
+import Tooltip from '../../components/ui/Tooltip';
 
 export default function AdminInventory() {
   const queryClient = useQueryClient();
@@ -39,7 +41,7 @@ export default function AdminInventory() {
       toast.success('Stock added');
       setStockForm({ productId: '', warehouseId: '', quantity: 0 });
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const canSubmit = stockForm.productId && stockForm.warehouseId && stockForm.quantity > 0;
@@ -100,42 +102,45 @@ export default function AdminInventory() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Product</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Warehouse</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Quantity</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase">Threshold</th>
-            </tr>
-          </thead>
+      <TableContainer>
+        <table className="w-full min-w-[640px]">
+          <TableHead
+            columns={[
+              'Product',
+              'Warehouse',
+              <span key="qty" className="inline-flex items-center gap-1.5">
+                Quantity
+                <Tooltip text="Total units physically in this warehouse, including any reserved for pending orders." />
+              </span>,
+              <span key="reserved" className="inline-flex items-center gap-1.5">
+                Reserved
+                <Tooltip text="Units held for orders that are placed but not yet fulfilled — not available to sell again." />
+              </span>,
+              <span key="threshold" className="inline-flex items-center gap-1.5">
+                Threshold
+                <Tooltip text="The Low Stock Alert above fires once Quantity falls at or below this number." />
+              </span>,
+            ]}
+          />
           <tbody>
             {isLoading ? (
-              [1, 2, 3].map((i) => (
-                <tr key={i} className="border-t border-gray-100">
-                  <td className="p-4" colSpan={4}><div className="h-4 bg-gray-100 rounded animate-pulse" /></td>
-                </tr>
-              ))
+              <TableSkeletonRows rows={3} columns={5} />
             ) : !data?.length ? (
-              <tr>
-                <td className="p-8 text-center text-gray-500 text-sm" colSpan={4}>No inventory records yet.</td>
-              </tr>
+              <TableEmptyState columns={5} icon={FiPackage} title="No inventory records yet" />
             ) : (
               data?.map((item: any) => (
                 <tr key={item.id} className="border-t border-gray-100">
                   <td className="p-4 text-sm text-gray-900">{item.product?.name}</td>
                   <td className="p-4 text-sm text-gray-600">{item.warehouse?.name}</td>
                   <td className="p-4 text-sm text-gray-900 font-semibold">{item.quantity}</td>
+                  <td className="p-4 text-sm text-gray-600">{item.reservedQuantity ?? 0}</td>
                   <td className="p-4 text-sm text-gray-500">{item.lowStockThreshold}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-        </div>
-      </div>
+      </TableContainer>
     </div>
   );
 }

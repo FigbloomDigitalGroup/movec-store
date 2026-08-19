@@ -6,6 +6,7 @@ import { FiShield, FiCheck, FiX } from 'react-icons/fi';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Pagination from '../../components/ui/Pagination';
 import PageHeader from '../../components/ui/PageHeader';
+import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 
 const PAGE_SIZE = 20;
 
@@ -39,7 +40,7 @@ export default function AdminUsers() {
       toast.success(isActive ? 'User deactivated' : 'User activated');
       setPendingToggle(null);
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const updateRoles = useMutation({
@@ -50,7 +51,7 @@ export default function AdminUsers() {
       setEditingRoles(null);
       toast.success('Roles updated');
     },
-    onError: (err: any) => toast.error(getErrorMessage(err)),
+    onError: (err) => toast.error(getErrorMessage(err)),
   });
 
   const openRoleEditor = (user: any) => {
@@ -69,14 +70,6 @@ export default function AdminUsers() {
     updateRoles.mutate({ id: userId, roles: pendingRoles });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
-        Loading users…
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="mb-6">
@@ -87,25 +80,16 @@ export default function AdminUsers() {
         />
       </div>
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <TableContainer>
         <table className="w-full text-sm min-w-[700px]">
-          <thead className="bg-gray-50 text-gray-600 uppercase tracking-wide text-xs">
-            <tr>
-              <th className="text-left p-4">Name</th>
-              <th className="text-left p-4">Email</th>
-              <th className="text-left p-4">Roles</th>
-              <th className="text-left p-4">Status</th>
-              <th className="text-left p-4">Actions</th>
-            </tr>
-          </thead>
+          <TableHead columns={['Name', 'Email', 'Roles', 'Status', 'Actions']} />
           <tbody>
-            {!data?.data?.length && (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-500 text-sm">No users found.</td>
-              </tr>
-            )}
-            {data?.data?.map((user: any) => (
+            {isLoading ? (
+              <TableSkeletonRows rows={5} columns={5} />
+            ) : !data?.data?.length ? (
+              <TableEmptyState columns={5} icon={FiShield} title="No users found" />
+            ) : (
+              data.data.map((user: any) => (
               <tr key={user.id} className="border-t hover:bg-gray-50 transition">
                 {/* Name */}
                 <td className="p-4 font-medium">
@@ -212,14 +196,14 @@ export default function AdminUsers() {
                   </button>
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
-        </div>
-        {!isLoading && (
-          <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
-        )}
-      </div>
+      </TableContainer>
+      {!isLoading && (
+        <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
+      )}
 
       <ConfirmDialog
         open={!!pendingToggle}

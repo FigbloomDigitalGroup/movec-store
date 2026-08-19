@@ -5,6 +5,7 @@ import { FiEdit2, FiTrash2, FiPlus, FiX, FiLayers } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Input from '../../components/ui/Input';
+import { TableContainer, TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
 
 export default function AdminModules() {
   const queryClient = useQueryClient();
@@ -62,8 +63,6 @@ export default function AdminModules() {
       sortOrder: mod.sortOrder,
     });
   };
-
-  if (isLoading) return <p>Loading modules...</p>;
 
   return (
     <div>
@@ -134,20 +133,16 @@ export default function AdminModules() {
         </div>
       )}
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <TableContainer>
         <table className="w-full min-w-[640px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-4">Name</th>
-              <th className="text-left p-4">Slug</th>
-              <th className="text-left p-4">Status</th>
-              <th className="text-left p-4">Order</th>
-              <th className="text-right p-4">Actions</th>
-            </tr>
-          </thead>
+          <TableHead columns={['Name', 'Slug', 'Status', 'Order', 'Actions']} />
           <tbody>
-            {modules?.length ? modules.map((mod: any) => (
+            {isLoading ? (
+              <TableSkeletonRows rows={3} columns={5} />
+            ) : !modules?.length ? (
+              <TableEmptyState columns={5} icon={FiLayers} title="No modules yet" description="Add one to get started." />
+            ) : (
+              modules.map((mod: any) => (
               <tr key={mod.id} className="border-t">
                 <td className="p-4 font-medium">{mod.name}</td>
                 <td className="p-4 text-gray-500">{mod.slug}</td>
@@ -162,15 +157,11 @@ export default function AdminModules() {
                   <button onClick={() => setPendingDeleteId(mod.id)} className="p-2 text-red-600 hover:bg-red-50 rounded"><FiTrash2 /></button>
                 </td>
               </tr>
-            )) : (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-500 text-sm">No modules yet. Add one to get started.</td>
-              </tr>
+              ))
             )}
           </tbody>
         </table>
-        </div>
-      </div>
+      </TableContainer>
 
       <ConfirmDialog
         open={!!pendingDeleteId}

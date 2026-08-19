@@ -3,22 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import { FiPackage, FiCheckCircle, FiAlertCircle, FiGrid, FiPlus, FiHome, FiUser, FiExternalLink, FiDollarSign, FiClock, FiTool, FiTrendingDown } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
+import { TableHead, TableSkeletonRows, TableEmptyState } from '../../components/ui/Table';
+import Skeleton from '../../components/ui/Skeleton';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  
+
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['admin-dashboard'],
     queryFn: () => api.get('/admin/reports/dashboard').then(r => r.data),
     refetchInterval: 30000,
   });
 
-  const { data: categoriesData } = useQuery({
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ['admin-categories-stats'],
     queryFn: () => api.get('/admin/categories?limit=6').then(r => r.data),
   });
 
-  const { data: recentProducts } = useQuery({
+  const { data: recentProducts, isLoading: recentLoading } = useQuery({
     queryKey: ['admin-recent-products', 'active', 'inStock'],
     queryFn: () => api.get('/admin/products?limit=5&sortBy=createdAt&order=desc&isActive=true&inStock=true').then(r => r.data),
   });
@@ -148,7 +150,9 @@ export default function AdminDashboard() {
             </div>
             
             <div className="space-y-3">
-              {categoriesData?.length > 0 ? (
+              {categoriesLoading ? (
+                [1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-full rounded-lg" />)
+              ) : categoriesData?.length > 0 ? (
                 categoriesData.slice(0, 6).map((category: any) => (
                   <div
                     key={category.id}
@@ -211,16 +215,14 @@ export default function AdminDashboard() {
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Product</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Category</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Price</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600 uppercase">Status</th>
-                </tr>
-              </thead>
+              <TableHead columns={['Product', 'Category', 'Price', 'Status']} />
               <tbody>
-                {recentProducts?.data?.map((product: any) => (
+                {recentLoading ? (
+                  <TableSkeletonRows rows={5} columns={4} />
+                ) : !recentProducts?.data?.length ? (
+                  <TableEmptyState columns={4} icon={FiPackage} title="No products added yet" />
+                ) : (
+                  recentProducts.data.map((product: any) => (
                   <tr
                     key={product.id}
                     className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition"
@@ -271,14 +273,7 @@ export default function AdminDashboard() {
                       )}
                     </td>
                   </tr>
-                ))}
-                
-                {!recentProducts?.data?.length && (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-gray-500">
-                      No products added yet
-                    </td>
-                  </tr>
+                  ))
                 )}
               </tbody>
             </table>

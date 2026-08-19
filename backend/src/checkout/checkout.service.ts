@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { InventoryService } from '../inventory/inventory.service';
@@ -22,12 +26,14 @@ export class CheckoutService {
     const shippingAddress = await this.prisma.address.findFirst({
       where: { id: dto.shippingAddressId, userId },
     });
-    if (!shippingAddress) throw new NotFoundException('Shipping address not found');
+    if (!shippingAddress)
+      throw new NotFoundException('Shipping address not found');
 
     const billingAddress = await this.prisma.address.findFirst({
       where: { id: dto.billingAddressId, userId },
     });
-    if (!billingAddress) throw new NotFoundException('Billing address not found');
+    if (!billingAddress)
+      throw new NotFoundException('Billing address not found');
 
     const subtotal = cart.total;
     let discountAmount = 0;
@@ -82,7 +88,8 @@ export class CheckoutService {
 
     const orderNumber = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const maxUsageAtReadTime = couponId
-      ? (await this.prisma.coupon.findUnique({ where: { id: couponId } }))?.maxUsage
+      ? (await this.prisma.coupon.findUnique({ where: { id: couponId } }))
+          ?.maxUsage
       : null;
 
     const order = await this.prisma.$transaction(async (tx) => {
@@ -91,7 +98,11 @@ export class CheckoutService {
       // reservation is an atomic conditional update, so once stock runs out the
       // remaining attempts fail here and roll back cleanly instead of all "succeeding".
       for (const item of cart.items) {
-        await this.inventoryService.reserveStock(tx, item.productId, item.quantity);
+        await this.inventoryService.reserveStock(
+          tx,
+          item.productId,
+          item.quantity,
+        );
       }
 
       if (couponId) {
@@ -101,7 +112,10 @@ export class CheckoutService {
         const couponUpdate = await tx.coupon.updateMany({
           where: {
             id: couponId,
-            OR: [{ maxUsage: null }, { usedCount: { lt: maxUsageAtReadTime ?? undefined } }],
+            OR: [
+              { maxUsage: null },
+              { usedCount: { lt: maxUsageAtReadTime ?? undefined } },
+            ],
           },
           data: { usedCount: { increment: 1 } },
         });

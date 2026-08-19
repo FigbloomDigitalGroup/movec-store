@@ -1,4 +1,13 @@
-import { Controller, Get, Patch, Post, Param, Query, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { InstallationService } from './installation.service';
 import { UpdateInstallationRequestDto } from './dto/update-installation-request.dto';
 import { QueryInstallationRequestDto } from './dto/query-installation-request.dto';
@@ -19,7 +28,10 @@ export class AdminInstallationController {
   }
 
   @Patch('requests/:id')
-  updateRequest(@Param('id') id: string, @Body() dto: UpdateInstallationRequestDto) {
+  updateRequest(
+    @Param('id') id: string,
+    @Body() dto: UpdateInstallationRequestDto,
+  ) {
     return this.installationService.updateRequest(id, dto);
   }
 
@@ -30,6 +42,9 @@ export class AdminInstallationController {
 
   @Post('technicians')
   createTechnician(@Body() body: { userId: string; specialization?: string }) {
-    return this.installationService.createTechnician(body.userId, body.specialization);
+    return this.installationService.createTechnician(
+      body.userId,
+      body.specialization,
+    );
   }
 }

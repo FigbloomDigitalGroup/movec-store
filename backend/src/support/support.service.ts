@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -71,7 +75,10 @@ export class SupportService {
     const ticket = await this.prisma.supportTicket.findUnique({
       where: { id: ticketId },
       include: {
-        messages: { orderBy: { createdAt: 'asc' }, include: { sender: { select: { firstName: true, lastName: true } } } },
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          include: { sender: { select: { firstName: true, lastName: true } } },
+        },
         user: { select: { firstName: true, lastName: true, email: true } },
       },
     });
@@ -82,7 +89,12 @@ export class SupportService {
     return ticket;
   }
 
-  async addMessage(ticketId: string, senderId: string, isStaff: boolean, dto: CreateMessageDto) {
+  async addMessage(
+    ticketId: string,
+    senderId: string,
+    isStaff: boolean,
+    dto: CreateMessageDto,
+  ) {
     if (!isStaff) {
       const ticket = await this.prisma.supportTicket.findUnique({
         where: { id: ticketId },
@@ -110,7 +122,9 @@ export class SupportService {
     if (query.search) {
       where.OR = [
         { subject: { contains: query.search, mode: 'insensitive' } },
-        { user: { firstName: { contains: query.search, mode: 'insensitive' } } },
+        {
+          user: { firstName: { contains: query.search, mode: 'insensitive' } },
+        },
         { user: { lastName: { contains: query.search, mode: 'insensitive' } } },
         { user: { email: { contains: query.search, mode: 'insensitive' } } },
       ];

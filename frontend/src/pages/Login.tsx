@@ -27,7 +27,7 @@ export default function Login() {
     try {
       await login(email, password);
       navigate(redirect);
-    } catch (err: any) {
+    } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ export default function Login() {
       await resendVerification(email);
       setError('A new verification email has been sent. Please check your inbox and spam folder.');
       setResendCooldown(60);
-    } catch (err: any) {
+    } catch (err) {
       setError(getErrorMessage(err));
     } finally {
       setResendLoading(false);
@@ -61,7 +61,7 @@ export default function Login() {
   return (
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl md:text-4xl font-section-title text-center mb-8">Login</h1>
+        <h1 className="text-3xl md:text-4xl font-section-title text-center mb-8">Sign In</h1>
         {error && (
           <Alert variant="danger" className="mb-4">
             <p>{error}</p>
@@ -122,10 +122,10 @@ export default function Login() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Logging in...
+                Signing in...
               </>
             ) : (
-              'Login'
+              'Sign In'
             )}
           </Button>
         </form>

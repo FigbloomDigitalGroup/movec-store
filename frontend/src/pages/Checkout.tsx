@@ -12,6 +12,7 @@ import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import PageLoader from '../components/PageLoader';
+import CheckoutSteps from '../components/CheckoutSteps';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function CheckoutPage() {
         setPostalCode('');
       });
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast.error(getErrorMessage(err) || 'Failed to add address');
     }
   });
@@ -80,7 +81,7 @@ export default function CheckoutPage() {
     onSuccess: (data) => {
       navigate(`/payment/${data.orderNumber}`);
     },
-    onError: (err: any) => {
+    onError: (err) => {
       toast.error(getErrorMessage(err) || 'Failed to place order');
     },
   });
@@ -151,36 +152,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Progress Stepper */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="w-full px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">1</div>
-              <div>
-                <p className="font-medium text-gray-900">Shipping</p>
-                <p className="text-xs text-gray-500">Enter delivery address</p>
-              </div>
-            </div>
-            <div className="flex-1 h-px bg-gray-200 mx-4" />
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">2</div>
-              <div>
-                <p className="font-medium text-gray-500">Payment</p>
-                <p className="text-xs text-gray-500">Select payment method</p>
-              </div>
-            </div>
-            <div className="flex-1 h-px bg-gray-200 mx-4" />
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">3</div>
-              <div>
-                <p className="font-medium text-gray-500">Confirmation</p>
-                <p className="text-xs text-gray-500">Review and complete</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CheckoutSteps currentStep={1} />
 
       <div className="w-full px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

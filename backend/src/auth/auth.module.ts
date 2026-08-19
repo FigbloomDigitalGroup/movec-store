@@ -16,7 +16,7 @@ import { EmailModule } from '../email/email.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService): JwtModuleOptions => {
         return {
-          secret: config.get<string>('JWT_SECRET') as string,
+          secret: config.get<string>('JWT_SECRET'),
           signOptions: {
             expiresIn: config.get<string>('JWT_EXPIRATION') as any,
           },
