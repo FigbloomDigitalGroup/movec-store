@@ -12,8 +12,10 @@ import {
   FiCalendar,
   FiPackage,
   FiChevronDown,
+  FiBarChart2,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import PageHeader from '../../components/ui/PageHeader';
 
 const INSTALLATION_STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-amber-500',
@@ -81,16 +83,12 @@ export default function AdminReports() {
   const installationStatusTotal = installationStatusEntries.reduce((sum, s) => sum + s.count, 0);
 
   return (
-    <div className="w-full space-y-6 pb-12 font-sans bg-[#f7f9fa] p-2 md:p-6 rounded-3xl border border-gray-200/60 shadow-sm">
-      {/* Top Welcome & Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            An overview of sales, customers, products, and installation activity.
-          </p>
-        </div>
-
+    <div className="w-full space-y-6 pb-12 font-sans bg-neutral-50 p-2 md:p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+      <PageHeader
+        icon={FiBarChart2}
+        title="Reports"
+        subtitle="An overview of sales, customers, products, and installation activity."
+        action={
         <div className="flex items-center gap-3 flex-wrap">
           {/* Date Filter Inputs */}
           <div className="flex items-center gap-2 bg-gray-50 px-3.5 py-2 rounded-xl border border-gray-200 text-xs text-gray-700">
@@ -158,7 +156,8 @@ export default function AdminReports() {
             )}
           </div>
         </div>
-      </div>
+        }
+      />
 
       {/* 4 KPI Summary Cards Grid — every value below comes straight from the report queries, with no fabricated fallback */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -227,7 +226,7 @@ export default function AdminReports() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-8 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm"
+          className="lg:col-span-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
         >
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -262,7 +261,7 @@ export default function AdminReports() {
                           initial={{ width: 0 }}
                           animate={{ width: `${pct}%` }}
                           transition={{ duration: 0.5 }}
-                          className="bg-[#10B982] h-2.5 rounded-full"
+                          className="bg-primary-500 h-2.5 rounded-full"
                         />
                       </div>
                     </div>
@@ -276,7 +275,7 @@ export default function AdminReports() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="lg:col-span-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between"
+          className="lg:col-span-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-5">
@@ -337,7 +336,7 @@ export default function AdminReports() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-5 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between"
+          className="lg:col-span-5 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-1">
@@ -381,7 +380,7 @@ export default function AdminReports() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="lg:col-span-7 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between"
+          className="lg:col-span-7 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-5">
@@ -401,7 +400,7 @@ export default function AdminReports() {
                 {customers.topCustomers.slice(0, 6).map((c: any, i: number) => (
                   <div key={i} className="flex items-center justify-between p-2.5 bg-gray-50/80 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-[#ecfdf5] text-[#10B982] flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
                         {c.firstName?.[0]}{c.lastName?.[0]}
                       </div>
                       <div className="min-w-0">
@@ -423,7 +422,7 @@ export default function AdminReports() {
 
           <div className="pt-4 mt-2 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
             <span>Showing top {Math.min(customers?.topCustomers?.length || 0, 6)} customers by spend</span>
-            <button onClick={() => downloadReport('customers', 'csv')} className="text-[#10B982] font-bold hover:underline">
+            <button onClick={() => downloadReport('customers', 'csv')} className="text-primary-500 font-bold hover:underline">
               Download Customers Report →
             </button>
           </div>

@@ -14,6 +14,7 @@ import {
 import { ORDER_STATUSES, getOrderStatusConfig } from '../../lib/orderStatus';
 import OrderStatusBadge from '../../components/OrderStatusBadge';
 import Pagination from '../../components/ui/Pagination';
+import PageHeader from '../../components/ui/PageHeader';
 
 const PAGE_SIZE = 20;
 
@@ -136,7 +137,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
                     onClick={() => setStatus(s)}
                     className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${
                       status === s
-                        ? `${cfg.bg} ${cfg.text} ${cfg.border} ring-2 ring-offset-1 ring-[#10B982]/40`
+                        ? `${cfg.bg} ${cfg.text} ${cfg.border} ring-2 ring-offset-1 ring-primary-500/40`
                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -158,7 +159,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
                   value={carrier}
                   onChange={(e) => setCarrier(e.target.value)}
                   placeholder="e.g. DHL, FedEx, G4S"
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-blue-500 transition"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-primary-500 transition"
                 />
               </div>
               <div>
@@ -168,7 +169,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
                   placeholder="e.g. DHL1234567890"
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-blue-500 transition"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-primary-500 transition"
                 />
               </div>
             </motion.div>
@@ -184,7 +185,7 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
             <button
               onClick={() => updateMutation.mutate()}
               disabled={updateMutation.isPending || status === order.status}
-              className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition shadow-sm"
+              className="flex-1 py-2.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition shadow-sm"
             >
               {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
             </button>
@@ -242,29 +243,23 @@ export default function AdminOrders() {
 
   return (
     <div className="w-full space-y-6 pb-12">
-      {/* Header */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <FiPackage className="text-blue-600" /> Orders Management
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {grandTotal} total order{grandTotal !== 1 ? 's' : ''} — update status, track shipments, and manage fulfilment.
-          </p>
-        </div>
-
-        {/* Search */}
-        <div className="relative w-full md:w-72">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input
-            type="text"
-            placeholder="Search order # or customer..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition"
-          />
-        </div>
-      </div>
+      <PageHeader
+        icon={FiPackage}
+        title="Orders Management"
+        subtitle={`${grandTotal} total order${grandTotal !== 1 ? 's' : ''} — update status, track shipments, and manage fulfilment.`}
+        action={
+          <div className="relative w-full md:w-72">
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search order # or customer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
+            />
+          </div>
+        }
+      />
 
       {/* KPI Status Pills */}
       <div className="flex gap-2 flex-wrap">
@@ -272,7 +267,7 @@ export default function AdminOrders() {
           onClick={() => { setStatusFilter(''); setPage(1); }}
           className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${
             !statusFilter
-              ? 'bg-[#10B982] text-white border-[#10B982]'
+              ? 'bg-primary-500 text-white border-primary-500'
               : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
           }`}
         >
@@ -286,7 +281,7 @@ export default function AdminOrders() {
               onClick={() => { setStatusFilter(status); setPage(1); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition ${
                 statusFilter === status
-                  ? 'bg-[#10B982] text-white border-[#10B982]'
+                  ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -346,7 +341,7 @@ export default function AdminOrders() {
 
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                           {order.customer?.firstName?.[0]}{order.customer?.lastName?.[0]}
                         </div>
                         <div>
@@ -395,7 +390,7 @@ export default function AdminOrders() {
                     <td className="px-5 py-4">
                       <button
                         onClick={() => setSelectedOrder(order)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition px-3 py-1.5 rounded-lg hover:bg-blue-50"
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary-500 hover:text-primary-700 transition px-3 py-1.5 rounded-lg hover:bg-primary-50"
                       >
                         Update <FiChevronDown size={13} />
                       </button>

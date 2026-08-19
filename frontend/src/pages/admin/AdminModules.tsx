@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
-import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiX, FiLayers } from 'react-icons/fi';
+import PageHeader from '../../components/ui/PageHeader';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 export default function AdminModules() {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 });
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const { data: modules, isLoading } = useQuery({
     queryKey: ['admin-modules'],
@@ -33,7 +36,10 @@ export default function AdminModules() {
 
   const deleteApi = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/modules/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-modules'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
+      setPendingDeleteId(null);
+    },
   });
 
   const handleSave = () => {
@@ -60,18 +66,24 @@ export default function AdminModules() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Modules (Solutions)</h1>
-        <button
-          onClick={() => { setIsCreating(true); setIsEditing(null); setFormData({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 }); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
-        >
-          <FiPlus /> Add Module
-        </button>
+      <div className="mb-6">
+        <PageHeader
+          icon={FiLayers}
+          title="Modules (Solutions)"
+          subtitle="Product categories shown as solution landing pages on the storefront."
+          action={
+            <button
+              onClick={() => { setIsCreating(true); setIsEditing(null); setFormData({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 }); }}
+              className="bg-primary-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-600 transition"
+            >
+              <FiPlus /> Add Module
+            </button>
+          }
+        />
       </div>
 
       {(isCreating || isEditing) && (
-        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow mb-6 relative">
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm mb-6 relative">
           <button onClick={() => { setIsCreating(false); setIsEditing(null); }} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
             <FiX size={20} />
           </button>
@@ -127,12 +139,12 @@ export default function AdminModules() {
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <button onClick={() => { setIsCreating(false); setIsEditing(null); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
-            <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+            <button onClick={handleSave} className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600">Save</button>
           </div>
         </div>
       )}
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -155,14 +167,24 @@ export default function AdminModules() {
                 </td>
                 <td className="p-4">{mod.sortOrder}</td>
                 <td className="p-4 flex justify-end gap-2">
-                  <button onClick={() => handleEdit(mod)} className="p-2 text-blue-600 hover:bg-blue-50 rounded"><FiEdit2 /></button>
-                  <button onClick={() => { if(confirm('Are you sure you want to delete this module?')) deleteApi.mutate(mod.id) }} className="p-2 text-red-600 hover:bg-red-50 rounded"><FiTrash2 /></button>
+                  <button onClick={() => handleEdit(mod)} className="p-2 text-primary-500 hover:bg-primary-50 rounded"><FiEdit2 /></button>
+                  <button onClick={() => setPendingDeleteId(mod.id)} className="p-2 text-red-600 hover:bg-red-50 rounded"><FiTrash2 /></button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        title="Delete this module?"
+        description="This removes it from the storefront's solutions navigation. It cannot be undone."
+        confirmLabel="Delete"
+        isPending={deleteApi.isPending}
+        onConfirm={() => pendingDeleteId && deleteApi.mutate(pendingDeleteId)}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

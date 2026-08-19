@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { FiTool } from 'react-icons/fi';
+import PageHeader from '../../components/ui/PageHeader';
+import Pagination from '../../components/ui/Pagination';
+
+const PAGE_SIZE = 20;
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-amber-100 text-amber-700',
@@ -14,11 +19,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function AdminInstallations() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-installations'],
-    queryFn: () => api.get('/admin/installation/requests').then(r => r.data),
+    queryKey: ['admin-installations', page],
+    queryFn: () => api.get(`/admin/installation/requests?page=${page}&limit=${PAGE_SIZE}`).then(r => r.data),
   });
+
+  const requests: any[] = data?.data || [];
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) => api.patch(`/admin/installation/requests/${id}`, { status }),
@@ -33,8 +41,10 @@ export default function AdminInstallations() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900">Installation Requests</h1>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="mb-6">
+        <PageHeader icon={FiTool} title="Installation Requests" subtitle="Review and schedule customer installation requests." />
+      </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -52,7 +62,7 @@ export default function AdminInstallations() {
                   <td className="p-4" colSpan={5}><div className="h-4 bg-gray-100 rounded animate-pulse" /></td>
                 </tr>
               ))
-            ) : !data?.length ? (
+            ) : !requests.length ? (
               <tr>
                 <td className="p-12 text-center text-gray-400" colSpan={5}>
                   <FiTool size={36} className="mx-auto text-gray-300 mb-2" />
@@ -60,7 +70,7 @@ export default function AdminInstallations() {
                 </td>
               </tr>
             ) : (
-              data.map((req: any) => (
+              requests.map((req: any) => (
                 <tr key={req.id} className="border-t border-gray-100">
                   <td className="p-4 text-sm text-gray-900">{req.user?.firstName} {req.user?.lastName}</td>
                   <td className="p-4 text-sm text-gray-600">{req.service?.name}</td>
@@ -85,6 +95,7 @@ export default function AdminInstallations() {
             )}
           </tbody>
         </table>
+        <Pagination page={page} limit={PAGE_SIZE} total={data?.meta?.total || 0} onPageChange={setPage} />
       </div>
     </div>
   );

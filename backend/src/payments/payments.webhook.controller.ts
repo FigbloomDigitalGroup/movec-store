@@ -1,5 +1,6 @@
-import { Controller, Post, Body, Headers, Logger, Req } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Logger, Req, Query } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { PaymentsService } from './payments.service';
@@ -13,13 +14,30 @@ export class PaymentsWebhookController {
     private prisma: PrismaService,
     private inventoryService: InventoryService,
     private paymentsService: PaymentsService,
+    private configService: ConfigService,
   ) {}
 
   // ─── M-Pesa Callback ─────────────────────────────────────────────────────────
 
   @Post('mpesa/callback')
-  async mpesaCallback(@Body() body: any) {
+  async mpesaCallback(@Body() body: any, @Query('secret') secret: string) {
     this.logger.log('M-Pesa callback received');
+
+    // Safaricom's STK callback has no signature of its own, so the shared secret
+    // stamped onto the callback URL at initiation time (see PaymentsService.initiateMpesa)
+    // is what stands in for authentication here. Without it, anyone who finds this
+    // URL could forge a "payment succeeded" callback for any order.
+    const expectedSecret = this.configService.get<string>('MPESA_CALLBACK_SECRET');
+    if (expectedSecret) {
+      if (secret !== expectedSecret) {
+        this.logger.warn('Rejected M-Pesa callback: missing or invalid secret');
+        return { ResultCode: 1, ResultDesc: 'Rejected' };
+      }
+    } else {
+      this.logger.warn(
+        'MPESA_CALLBACK_SECRET is not set — the M-Pesa callback endpoint is currently unauthenticated. Set MPESA_CALLBACK_SECRET to secure it.',
+      );
+    }
 
     if (body.Body?.stkCallback) {
       const callback = body.Body.stkCallback;
@@ -34,16 +52,32 @@ export class PaymentsWebhookController {
         include: { payment: true },
       });
 
-      if (transaction) {
+      // Safaricom may redeliver the same callback more than once — only act on it
+      // the first time. Once the transaction has left PENDING, later deliveries are
+      // acknowledged but ignored so we never double-fulfil the same order.
+      if (transaction && transaction.status === 'PENDING') {
+        let amountMismatch = false;
+        if (resultCode === 0) {
+          const items: any[] = callback.CallbackMetadata?.Item ?? [];
+          const callbackAmount = items.find((i) => i.Name === 'Amount')?.Value;
+          const expectedAmount = Number(transaction.payment.amount);
+          amountMismatch = callbackAmount == null || Math.abs(Number(callbackAmount) - expectedAmount) >= 1;
+          if (amountMismatch) {
+            this.logger.warn(
+              `M-Pesa callback amount mismatch for ${checkoutRequestId}: expected ${expectedAmount}, got ${callbackAmount}`,
+            );
+          }
+        }
+
         await this.prisma.transaction.update({
           where: { id: transaction.id },
           data: {
-            status: resultCode === 0 ? 'COMPLETED' : 'FAILED',
+            status: resultCode === 0 && !amountMismatch ? 'COMPLETED' : 'FAILED',
             responsePayload: callback,
           },
         });
 
-        if (resultCode === 0) {
+        if (resultCode === 0 && !amountMismatch) {
           await this.prisma.payment.update({
             where: { id: transaction.paymentId },
             data: { status: 'COMPLETED', paidAt: new Date() },

@@ -11,9 +11,9 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { Prisma } from '@prisma/client';
+import { buildPagination } from '../common/pagination';
 
 const SORTABLE_FIELDS = ['createdAt', 'price', 'name'] as const;
-const MAX_PAGE_SIZE = 100;
 
 @Injectable()
 export class ProductsService {
@@ -72,13 +72,6 @@ export class ProductsService {
     return where;
   }
 
-  private buildPagination(query: QueryProductDto) {
-    const page = Math.max(1, parseInt(query.page || '1', 10) || 1);
-    const requestedLimit = parseInt(query.limit || '20', 10) || 20;
-    const limit = Math.min(Math.max(1, requestedLimit), MAX_PAGE_SIZE);
-    return { page, limit, skip: (page - 1) * limit };
-  }
-
   private buildOrderBy(query: QueryProductDto): Prisma.ProductOrderByWithRelationInput {
     const sortBy = (SORTABLE_FIELDS as readonly string[]).includes(query.sortBy || '')
       ? (query.sortBy as (typeof SORTABLE_FIELDS)[number])
@@ -88,7 +81,7 @@ export class ProductsService {
   }
 
   async findAll(query: QueryProductDto) {
-    const { page, limit, skip } = this.buildPagination(query);
+    const { page, limit, skip } = buildPagination(query);
     const where = { ...this.buildBaseWhere(query), isActive: true };
     const orderBy = this.buildOrderBy(query);
 
@@ -146,7 +139,7 @@ export class ProductsService {
   }
 
   async findAllAdmin(query: QueryProductDto) {
-    const { page, limit, skip } = this.buildPagination(query);
+    const { page, limit, skip } = buildPagination(query);
     const where = this.buildBaseWhere(query);
     const orderBy = this.buildOrderBy(query);
 

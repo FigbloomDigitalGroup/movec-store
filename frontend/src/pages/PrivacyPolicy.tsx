@@ -8,8 +8,8 @@ export default function PrivacyPolicy() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-[#10B982]/10 rounded-xl flex items-center justify-center">
-              <FiShield className="text-[#10B982]" size={24} />
+            <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center">
+              <FiShield className="text-primary-500" size={24} />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Privacy Policy</h1>
           </div>
@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Cookies</h2>
               <p className="text-gray-700">
                 We use cookies and similar technologies to keep you logged in, remember items in your cart, and keep the Service secure. See our{' '}
-                <Link to="/cookies" className="text-[#10B982] hover:underline font-medium">Cookie Policy</Link>{' '}
+                <Link to="/cookies" className="text-primary-500 hover:underline font-medium">Cookie Policy</Link>{' '}
                 for full details and how to manage your preferences.
               </p>
             </section>

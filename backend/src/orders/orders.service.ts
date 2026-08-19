@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { OrderStatus } from '@prisma/client';
+import { buildPagination, paginated, type PaginationQuery } from '../common/pagination';
 
 @Injectable()
 export class OrdersService {
@@ -10,8 +11,8 @@ export class OrdersService {
     private inventoryService: InventoryService,
   ) {}
 
-  async findByCustomer(userId: string, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async findByCustomer(userId: string, query: PaginationQuery) {
+    const { page, limit, skip } = buildPagination(query);
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
         where: { userId },
@@ -33,8 +34,8 @@ export class OrdersService {
       this.prisma.order.count({ where: { userId } }),
     ]);
 
-    return {
-      data: orders.map((o) => ({
+    return paginated(
+      orders.map((o) => ({
         orderNumber: o.orderNumber,
         status: o.status,
         subtotal: o.subtotal.toNumber(),
@@ -52,8 +53,10 @@ export class OrdersService {
         shipping: o.shipping,
         createdAt: o.createdAt,
       })),
-      meta: { page, limit, total },
-    };
+      total,
+      page,
+      limit,
+    );
   }
 
   async findByOrderNumber(orderNumber: string, userId?: string) {

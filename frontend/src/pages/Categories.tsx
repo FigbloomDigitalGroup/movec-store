@@ -41,7 +41,7 @@ export default function Categories() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories?.map((cat: any) => {
           const Icon = categoryIcons[cat.slug] || FiTool;
-          const colorClass = categoryColors[cat.slug] || 'bg-[#10B982]/10 text-[#10B982]';
+          const colorClass = categoryColors[cat.slug] || 'bg-accent-100 text-accent';
 
           return (
             <Link

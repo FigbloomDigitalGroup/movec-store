@@ -115,7 +115,7 @@ export default function ModuleLanding() {
         <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#10B982]/10 text-[#10B982] text-2xl">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-500 text-2xl">
                 {theme.icon}
               </div>
               <div>
@@ -129,7 +129,7 @@ export default function ModuleLanding() {
               <p>Focused product collection for {title} buyers.</p>
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 text-[#10B982] hover:text-[#0d9b6f]"
+                className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600"
               >
                 View all products <FiArrowRight size={14} />
               </Link>
@@ -144,12 +144,12 @@ export default function ModuleLanding() {
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder={`Search ${title} products...`}
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-28 text-sm text-gray-900 outline-none transition focus:border-[#10B982] focus:bg-white"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-28 text-sm text-gray-900 outline-none transition focus:border-primary-500 focus:bg-white"
               />
               <button
                 type="button"
                 onClick={handleSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-2xl bg-[#10B982] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9b6f]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-2xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-600"
               >
                 Search
               </button>
@@ -166,7 +166,7 @@ export default function ModuleLanding() {
               onClick={() => handleCategoryChange()}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 selectedCategory === ''
-                  ? 'bg-[#10B982] text-white'
+                  ? 'bg-primary-500 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -179,7 +179,7 @@ export default function ModuleLanding() {
                 onClick={() => handleCategoryChange(category.slug)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                   selectedCategory === category.slug
-                    ? 'bg-[#10B982] text-white'
+                    ? 'bg-primary-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -206,7 +206,7 @@ export default function ModuleLanding() {
         )}
 
         {!isProductsLoading && products.length === 0 && (
-          <div className="rounded-3xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
             <FiSearch size={48} className="mx-auto mb-4" />
             <p className="text-lg font-semibold">No products found.</p>
             <p className="mt-2 text-sm text-gray-500">Try another search term or choose a different category.</p>
@@ -225,7 +225,7 @@ export default function ModuleLanding() {
           <div ref={sentinelRef} className="h-10" />
         )}
         {isFetchingNextPage && (
-          <div className="rounded-3xl border border-gray-200 bg-white p-6 text-center text-gray-500 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-500 shadow-sm">
             Loading more products...
           </div>
         )}

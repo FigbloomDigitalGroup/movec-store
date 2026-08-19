@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { FiMessageSquare, FiSearch, FiX, FiSend, FiUser, FiHeadphones } from 'react-icons/fi';
+import PageHeader from '../../components/ui/PageHeader';
+import Pagination from '../../components/ui/Pagination';
 
 const STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const;
+const PAGE_SIZE = 20;
 
 const STATUS_STYLES: Record<string, string> = {
   OPEN: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -55,12 +58,26 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
     onError: (err: any) => toast.error(getErrorMessage(err)),
   });
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl"
       >
         {isLoading || !ticket ? (
@@ -102,10 +119,10 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
               {ticket.messages?.length ? (
                 ticket.messages.map((m: any) => (
                   <div key={m.id} className={`flex gap-2 ${m.isStaffReply ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${m.isStaffReply ? 'bg-[#ecfdf5] text-[#10B982]' : 'bg-gray-100 text-gray-500'}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${m.isStaffReply ? 'bg-primary-50 text-primary-500' : 'bg-gray-100 text-gray-500'}`}>
                       {m.isStaffReply ? <FiHeadphones size={13} /> : <FiUser size={13} />}
                     </div>
-                    <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${m.isStaffReply ? 'bg-[#ecfdf5] text-gray-900' : 'bg-gray-100 text-gray-900'}`}>
+                    <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${m.isStaffReply ? 'bg-primary-50 text-gray-900' : 'bg-gray-100 text-gray-900'}`}>
                       <p>{m.message}</p>
                       <p className="text-[10px] text-gray-400 mt-1">
                         {new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -124,12 +141,12 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
                 onChange={(e) => setReply(e.target.value)}
                 placeholder="Type a reply..."
                 rows={2}
-                className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#10B982] transition resize-none"
+                className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-500 transition resize-none"
               />
               <button
                 onClick={() => sendReply.mutate()}
                 disabled={!reply.trim() || sendReply.isPending}
-                className="px-4 py-2.5 bg-[#10B982] hover:bg-[#0d9b6f] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition flex items-center gap-2 text-sm font-semibold"
+                className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition flex items-center gap-2 text-sm font-semibold"
               >
                 <FiSend size={14} /> {sendReply.isPending ? 'Sending...' : 'Send'}
               </button>
@@ -144,57 +161,66 @@ function TicketDetailModal({ ticketId, onClose }: { ticketId: string; onClose: (
 export default function AdminSupport() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [openTicketId, setOpenTicketId] = useState<string | null>(null);
 
+  // Debounce the search box so every keystroke doesn't fire its own request.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [search]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-tickets', statusFilter],
-    queryFn: () => api.get(`/admin/support/tickets${statusFilter ? `?status=${statusFilter}` : ''}`).then((r) => r.data),
+    queryKey: ['admin-tickets', statusFilter, debouncedSearch, page],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('limit', String(PAGE_SIZE));
+      if (statusFilter) params.set('status', statusFilter);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      return api.get(`/admin/support/tickets?${params.toString()}`).then((r) => r.data);
+    },
   });
 
-  const tickets: any[] = data || [];
-  const filtered = tickets.filter((t) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      t.subject.toLowerCase().includes(q) ||
-      `${t.user?.firstName} ${t.user?.lastName}`.toLowerCase().includes(q) ||
-      t.user?.email?.toLowerCase().includes(q)
-    );
-  });
+  const tickets: any[] = data?.data || [];
+  const total: number = data?.meta?.total || 0;
 
   return (
     <div className="w-full space-y-6 pb-12">
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <FiMessageSquare className="text-[#10B982]" /> Support Tickets
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">{tickets.length} ticket{tickets.length !== 1 ? 's' : ''} — view, reply, and update status.</p>
-        </div>
-        <div className="relative w-full md:w-72">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input
-            type="text"
-            placeholder="Search subject or customer..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] transition"
-          />
-        </div>
-      </div>
+      <PageHeader
+        icon={FiMessageSquare}
+        title="Support Tickets"
+        subtitle={`${total} ticket${total !== 1 ? 's' : ''} — view, reply, and update status.`}
+        action={
+          <div className="relative w-full md:w-72">
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search subject or customer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
+            />
+          </div>
+        }
+      />
 
       <div className="flex gap-2 flex-wrap">
         <button
-          onClick={() => setStatusFilter('')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${!statusFilter ? 'bg-[#10B982] text-white border-[#10B982]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+          onClick={() => { setStatusFilter(''); setPage(1); }}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${!statusFilter ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
         >
           All
         </button>
         {STATUSES.map((s) => (
           <button
             key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${statusFilter === s ? 'bg-[#10B982] text-white border-[#10B982]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+            onClick={() => { setStatusFilter(s); setPage(1); }}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${statusFilter === s ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
           >
             {s.replace('_', ' ')}
           </button>
@@ -214,7 +240,7 @@ export default function AdminSupport() {
               </div>
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : tickets.length === 0 ? (
           <div className="p-16 text-center">
             <FiMessageSquare size={48} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-base font-bold text-gray-800">No tickets found</h3>
@@ -231,7 +257,7 @@ export default function AdminSupport() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((t) => (
+                {tickets.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50/80 transition">
                     <td className="px-5 py-4 text-sm font-semibold text-gray-900">{t.subject}</td>
                     <td className="px-5 py-4">
@@ -246,7 +272,7 @@ export default function AdminSupport() {
                     <td className="px-5 py-4">
                       <button
                         onClick={() => setOpenTicketId(t.id)}
-                        className="text-xs font-semibold text-[#10B982] hover:text-[#0d9b6f] transition px-3 py-1.5 rounded-lg hover:bg-[#ecfdf5]"
+                        className="text-xs font-semibold text-primary-500 hover:text-primary-600 transition px-3 py-1.5 rounded-lg hover:bg-primary-50"
                       >
                         View & Reply
                       </button>
@@ -257,6 +283,7 @@ export default function AdminSupport() {
             </table>
           </div>
         )}
+        <Pagination page={page} limit={PAGE_SIZE} total={total} onPageChange={setPage} />
       </div>
 
       <AnimatePresence>

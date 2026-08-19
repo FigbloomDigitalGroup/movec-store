@@ -53,7 +53,7 @@ export default function InstallationPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="space-y-6">
           {hasNoAddress && (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-sm">
@@ -101,7 +101,7 @@ export default function InstallationPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any special requirements or instructions..."
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none"
               rows={4}
             />
           </div>
@@ -114,7 +114,7 @@ export default function InstallationPage() {
               w-full py-3 rounded-lg font-medium transition-all duration-200
               ${submit.isPending || !serviceId || !preferredDate || hasNoAddress
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm hover:shadow-md'
+                : 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm hover:shadow-md'
               }
             `}
           >

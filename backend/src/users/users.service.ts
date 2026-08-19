@@ -12,6 +12,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import * as bcrypt from 'bcrypt';
+import { buildPagination, paginated, type PaginationQuery } from '../common/pagination';
 
 @Injectable()
 export class UsersService {
@@ -20,8 +21,8 @@ export class UsersService {
     private cloudinaryService: CloudinaryService,
   ) {}
 
-  async findAll(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async findAll(query: PaginationQuery) {
+    const { page, limit, skip } = buildPagination(query);
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         skip,
@@ -32,8 +33,8 @@ export class UsersService {
       this.prisma.user.count(),
     ]);
 
-    return {
-      data: users.map((u) => ({
+    return paginated(
+      users.map((u) => ({
         id: u.id,
         email: u.email,
         firstName: u.firstName,
@@ -44,8 +45,10 @@ export class UsersService {
         roles: u.userRoles.map((r) => r.role.name),
         createdAt: u.createdAt,
       })),
-      meta: { page, limit, total },
-    };
+      total,
+      page,
+      limit,
+    );
   }
 
   async findById(id: string) {

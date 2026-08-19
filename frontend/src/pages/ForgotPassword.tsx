@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { Prisma } from '@prisma/client';
+import { buildPagination } from '../common/pagination';
 
 @Injectable()
 export class ModulesService {
@@ -87,9 +88,7 @@ export class ModulesService {
     const mod = await this.prisma.storeModule.findUnique({ where: { slug } });
     if (!mod) throw new NotFoundException(`Module "${slug}" not found`);
 
-    const page = parseInt(query.page || '1', 10);
-    const limit = parseInt(query.limit || '20', 10);
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = buildPagination(query);
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,

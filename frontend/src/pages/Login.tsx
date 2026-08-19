@@ -69,7 +69,7 @@ export default function Login() {
                   type="button"
                   onClick={handleResend}
                   disabled={resendLoading || resendCooldown > 0}
-                  className="text-[#10B982] underline hover:text-[#0d9b6f] disabled:opacity-50"
+                  className="text-primary-500 underline hover:text-primary-600 disabled:opacity-50"
                 >
                   {resendLoading ? 'Resending...' : 'Resend Verification Email'}
                 </button>
@@ -109,7 +109,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -128,13 +128,13 @@ export default function Login() {
           Don't have an account?{' '}
           <Link
             to={redirect !== '/' ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'}
-            className="text-[#10B982]"
+            className="text-primary-500"
           >
             Register
           </Link>
         </p>
         <p className="text-center mt-2 text-sm">
-          <Link to="/forgot-password" className="text-[#10B982]">Forgot password?</Link>
+          <Link to="/forgot-password" className="text-primary-500">Forgot password?</Link>
         </p>
       </div>
     </div>

@@ -16,6 +16,8 @@ import {
 } from 'react-icons/fi';
 import { getOrderStatusConfig } from '../lib/orderStatus';
 import OrderStatusBadge from '../components/OrderStatusBadge';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { useState } from 'react';
 
 /* ─── Order Timeline ─────────────────────────────────────────── */
 const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
@@ -89,6 +91,7 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
 export default function OrderDetailPage() {
   const { orderNumber } = useParams();
   const queryClient = useQueryClient();
+  const [pendingCancel, setPendingCancel] = useState(false);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderNumber],
@@ -101,6 +104,7 @@ export default function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['order', orderNumber] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Order cancelled successfully.');
+      setPendingCancel(false);
     },
     onError: (error: any) => {
       toast.error(getErrorMessage(error));
@@ -124,7 +128,7 @@ export default function OrderDetailPage() {
         <div className="text-center">
           <FiAlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
           <h2 className="text-lg font-bold text-gray-800">Order not found</h2>
-          <Link to="/orders" className="text-[#10B982] text-sm mt-2 inline-block hover:text-[#0d9b6f]">← Back to orders</Link>
+          <Link to="/orders" className="text-primary-500 text-sm mt-2 inline-block hover:text-primary-600">← Back to orders</Link>
         </div>
       </div>
     );
@@ -169,7 +173,7 @@ export default function OrderDetailPage() {
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <div className="border-b border-gray-100 px-6 py-4">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <FiShoppingBag className="text-[#10B982]" size={16} /> Items Ordered
+                  <FiShoppingBag className="text-primary-500" size={16} /> Items Ordered
                 </h2>
               </div>
               <div className="divide-y divide-gray-100">
@@ -185,7 +189,7 @@ export default function OrderDetailPage() {
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/products/${item.slug}`}
-                        className="font-semibold text-gray-900 text-sm hover:text-[#10B982] transition line-clamp-2"
+                        className="font-semibold text-gray-900 text-sm hover:text-primary-500 transition line-clamp-2"
                       >
                         {item.productName}
                       </Link>
@@ -206,7 +210,7 @@ export default function OrderDetailPage() {
             {order.shippingAddress && (
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <FiMapPin className="text-[#10B982]" size={16} /> Delivery Address
+                  <FiMapPin className="text-primary-500" size={16} /> Delivery Address
                 </h2>
                 <div className="text-sm text-gray-700 space-y-1">
                   <p className="font-semibold text-gray-900">
@@ -251,7 +255,7 @@ export default function OrderDetailPage() {
             {order.payments?.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <FiCreditCard className="text-[#10B982]" size={16} /> Payment
+                  <FiCreditCard className="text-primary-500" size={16} /> Payment
                 </h2>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Method</span>
@@ -332,11 +336,7 @@ export default function OrderDetailPage() {
               {/* Cancel order */}
               {canCancel && (
                 <button
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to cancel this order?')) {
-                      cancelMutation.mutate();
-                    }
-                  }}
+                  onClick={() => setPendingCancel(true)}
                   disabled={cancelMutation.isPending}
                   className="flex items-center justify-center gap-2 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-sm transition"
                 >
@@ -356,6 +356,16 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingCancel}
+        title="Cancel this order?"
+        description="This cannot be undone. You'll need to place a new order if you change your mind."
+        confirmLabel="Cancel Order"
+        isPending={cancelMutation.isPending}
+        onConfirm={() => cancelMutation.mutate()}
+        onCancel={() => setPendingCancel(false)}
+      />
     </div>
   );
 }

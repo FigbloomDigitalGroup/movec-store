@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { FiShield, FiCheck, FiX } from 'react-icons/fi';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Pagination from '../../components/ui/Pagination';
+import PageHeader from '../../components/ui/PageHeader';
 
 const PAGE_SIZE = 20;
 
@@ -78,15 +79,15 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <FiShield size={22} className="text-purple-600" />
-        <h1 className="text-2xl font-bold">Users &amp; Roles</h1>
-        <span className="ml-auto text-sm text-gray-500">
-          {data?.meta?.total ?? 0} users total
-        </span>
+      <div className="mb-6">
+        <PageHeader
+          icon={FiShield}
+          title="Users & Roles"
+          subtitle={`${data?.meta?.total ?? 0} users total`}
+        />
       </div>
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-600 uppercase tracking-wide text-xs">
             <tr>
@@ -132,7 +133,7 @@ export default function AdminUsers() {
                         <button
                           onClick={() => saveRoles(user.id)}
                           disabled={pendingRoles.length === 0 || updateRoles.isPending}
-                          className="px-3 py-1 bg-[#10B982] text-white rounded text-xs hover:bg-[#0d9b6f] disabled:opacity-50"
+                          className="px-3 py-1 bg-primary-500 text-white rounded text-xs hover:bg-primary-600 disabled:opacity-50"
                         >
                           {updateRoles.isPending ? 'Saving…' : 'Save'}
                         </button>
@@ -160,7 +161,7 @@ export default function AdminUsers() {
                       <button
                         onClick={() => openRoleEditor(user)}
                         title="Edit roles"
-                        className="ml-1 text-gray-400 hover:text-blue-600 transition"
+                        className="ml-1 text-gray-400 hover:text-primary-500 transition"
                       >
                         <FiShield size={14} />
                       </button>

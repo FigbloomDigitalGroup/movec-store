@@ -56,7 +56,7 @@ export default function ContactPage() {
                 <h3 className="text-xl font-semibold mb-4">Business Information</h3>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-[#10B982]/10 p-3 rounded-full text-[#10B982]">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiMapPin size={24} />
                   </div>
                   <div>
@@ -66,20 +66,20 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-green-100 p-3 rounded-full text-green-600">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiPhone size={24} />
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Phone & WhatsApp</h4>
                     <p className="text-gray-600">+254 796285718</p>
-                    <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm font-medium hover:underline mt-1 inline-block">
+                    <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="text-primary-500 text-sm font-medium hover:underline mt-1 inline-block">
                       Chat on WhatsApp
                     </a>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 p-3 rounded-full text-purple-600">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiMail size={24} />
                   </div>
                   <div>
@@ -89,7 +89,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-orange-100 p-3 rounded-full text-orange-600">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiClock size={24} />
                   </div>
                   <div>
@@ -153,7 +153,7 @@ export default function ContactPage() {
                           required
                           value={formData.name}
                           onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B982] focus:border-[#10B982] bg-white text-gray-900"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
                           placeholder="John Doe"
                         />
                       </div>
@@ -166,7 +166,7 @@ export default function ContactPage() {
                           required
                           value={formData.email}
                           onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B982] focus:border-[#10B982] bg-white text-gray-900"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
                           placeholder="john@example.com"
                         />
                       </div>
@@ -181,7 +181,7 @@ export default function ContactPage() {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B982] focus:border-[#10B982] bg-white text-gray-900"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
                           placeholder="+254 796285718"
                         />
                       </div>
@@ -194,7 +194,7 @@ export default function ContactPage() {
                           required
                           value={formData.subject}
                           onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B982] focus:border-[#10B982] bg-white text-gray-900"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
                           placeholder="How can we help?"
                         />
                       </div>
@@ -209,7 +209,7 @@ export default function ContactPage() {
                         rows={6}
                         value={formData.message}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#10B982] focus:border-[#10B982] bg-white text-gray-900"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
                         placeholder="Please describe your inquiry in detail..."
                       ></textarea>
                     </div>

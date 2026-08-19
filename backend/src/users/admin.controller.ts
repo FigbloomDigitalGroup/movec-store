@@ -17,6 +17,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 import { IsArray, IsEnum } from 'class-validator';
+import type { PaginationQuery } from '../common/pagination';
 
 class AssignRolesDto {
   @IsArray()
@@ -31,8 +32,8 @@ export class AdminUsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(@Query('page') page = 1, @Query('limit') limit = 20) {
-    return this.usersService.findAll(+page, +limit);
+  findAll(@Query() query: PaginationQuery) {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')

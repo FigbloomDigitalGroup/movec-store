@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { QueryNotificationDto } from './dto/query-notification.dto';
+import { buildPagination, paginated } from '../common/pagination';
 
 @Injectable()
 export class NotificationsService {
@@ -57,14 +60,25 @@ export class NotificationsService {
     return { sent: users.length };
   }
 
-  async getAllNotifications() {
-    return this.prisma.notification.findMany({
-      include: {
-        user: { select: { firstName: true, lastName: true, email: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
+  async getAllNotifications(query: QueryNotificationDto) {
+    const { page, limit, skip } = buildPagination(query);
+    const where: Prisma.NotificationWhereInput = {};
+    if (query.type) where.type = query.type;
+
+    const [data, total] = await Promise.all([
+      this.prisma.notification.findMany({
+        where,
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.notification.count({ where }),
+    ]);
+
+    return paginated(data, total, page, limit);
   }
 
   async deleteNotification(id: string) {

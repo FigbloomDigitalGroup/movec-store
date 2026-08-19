@@ -1,5 +1,6 @@
-import { Controller, Get, Patch, Delete, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Param, Query, UseGuards } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
+import { QueryReviewDto } from './dto/query-review.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -12,8 +13,8 @@ export class AdminReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Get()
-  getAll() {
-    return this.reviewsService.getAllReviews();
+  getAll(@Query() query: QueryReviewDto) {
+    return this.reviewsService.getAllReviews(query);
   }
 
   @Patch(':id/approve')

@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInstallationRequestDto } from './dto/create-installation-request.dto';
 import { UpdateInstallationRequestDto } from './dto/update-installation-request.dto';
+import { QueryInstallationRequestDto } from './dto/query-installation-request.dto';
+import { buildPagination, paginated } from '../common/pagination';
 
 @Injectable()
 export class InstallationService {
@@ -51,22 +54,30 @@ export class InstallationService {
     });
   }
 
-  async getAllRequests(status?: string) {
-    const where: any = {};
-    if (status) where.status = status;
+  async getAllRequests(query: QueryInstallationRequestDto) {
+    const { page, limit, skip } = buildPagination(query);
+    const where: Prisma.InstallationRequestWhereInput = {};
+    if (query.status) where.status = query.status as any;
 
-    return this.prisma.installationRequest.findMany({
-      where,
-      include: {
-        user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
-        service: true,
-        address: true,
-        technicianAssignment: {
-          include: { technician: { include: { user: { select: { firstName: true, lastName: true } } } } },
+    const [data, total] = await Promise.all([
+      this.prisma.installationRequest.findMany({
+        where,
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+          service: true,
+          address: true,
+          technicianAssignment: {
+            include: { technician: { include: { user: { select: { firstName: true, lastName: true } } } } },
+          },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.installationRequest.count({ where }),
+    ]);
+
+    return paginated(data, total, page, limit);
   }
 
   async updateRequest(requestId: string, dto: UpdateInstallationRequestDto) {

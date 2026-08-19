@@ -15,6 +15,16 @@
   --color-primary-600: #0d9b6f;
   --color-primary-700: #0b7d59;
 
+  /* Second brand color (the orange used across marketing/storefront pages
+     alongside the green primary) — same reasoning as `primary` above: without
+     this, bg-secondary-500 etc. would silently compile to nothing. */
+  --color-secondary-50: #fff4ee;
+  --color-secondary-100: #ffe4d4;
+  --color-secondary-200: #ffc7a8;
+  --color-secondary-500: #fc6501;
+  --color-secondary-600: #e65500;
+  --color-secondary-700: #c04600;
+
   /* A single-value theme color (not a full scale) so bg-accent/text-accent/
      border-accent — and, crucially, hover:/group-hover:-prefixed variants of
      them like group-hover:text-accent — become real Tailwind utilities. The

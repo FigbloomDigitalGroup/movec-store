@@ -190,7 +190,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               onChange={(e) => setTitle(e.target.value)}
               placeholder='e.g. "Great product, very easy to set up"'
               maxLength={120}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] focus:bg-white transition"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent focus:bg-white transition"
             />
           </div>
 
@@ -205,7 +205,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               placeholder="Share details about your experience — what you liked, how it performed, tips for other buyers..."
               rows={4}
               maxLength={2000}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] focus:bg-white transition resize-none"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent focus:bg-white transition resize-none"
             />
             <p className="text-xs text-gray-400 mt-1 text-right">{body.length}/2000</p>
           </div>
@@ -395,7 +395,7 @@ export default function ProductDetail() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => refetch()}
-            className="text-sm font-semibold text-[#10B982] hover:text-[#0d9b6f]"
+            className="text-sm font-semibold text-accent hover:text-accent-dark"
           >
             Retry
           </button>
@@ -627,8 +627,8 @@ export default function ProductDetail() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <FiShield className="text-green-600" size={20} />
+                <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+                  <FiShield className="text-accent" size={20} />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">Warranty</p>
@@ -636,8 +636,8 @@ export default function ProductDetail() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <FiCheck className="text-purple-600" size={20} />
+                <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+                  <FiCheck className="text-accent" size={20} />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">Genuine</p>

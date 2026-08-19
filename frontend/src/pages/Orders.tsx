@@ -38,8 +38,8 @@ export default function OrdersPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 bg-[#10B982]/10 rounded-xl flex items-center justify-center">
-              <FiPackage className="text-[#10B982]" size={20} />
+            <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center">
+              <FiPackage className="text-primary-500" size={20} />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Orders</h1>
           </div>
@@ -60,7 +60,7 @@ export default function OrdersPage() {
               placeholder="Search by order number or product..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#10B982] transition"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-500 transition"
             />
           </div>
 
@@ -70,7 +70,7 @@ export default function OrdersPage() {
               onClick={() => setStatusFilter('all')}
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition border ${
                 statusFilter === 'all'
-                  ? 'bg-[#10B982] text-white border-[#10B982]'
+                  ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -86,7 +86,7 @@ export default function OrdersPage() {
                   onClick={() => setStatusFilter(s)}
                   className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition border ${
                     statusFilter === s
-                      ? 'bg-[#10B982] text-white border-[#10B982]'
+                      ? 'bg-primary-500 text-white border-primary-500'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -121,7 +121,7 @@ export default function OrdersPage() {
             {orders.length === 0 && (
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 bg-[#10B982] hover:bg-[#0d9b6f] text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
+                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
               >
                 <FiShoppingBag size={16} /> Start Shopping
               </Link>
@@ -133,7 +133,7 @@ export default function OrdersPage() {
               <Link
                 key={order.orderNumber}
                 to={`/orders/${order.orderNumber}`}
-                className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-[#10B982]/30 transition group"
+                className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-500/30 transition group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   {/* Left: Order info */}
@@ -175,7 +175,7 @@ export default function OrdersPage() {
                     <span className="text-lg font-bold text-gray-900">
                       KES {order.total.toLocaleString()}
                     </span>
-                    <div className="flex items-center gap-1 text-xs text-[#10B982] font-semibold group-hover:gap-2 transition-all">
+                    <div className="flex items-center gap-1 text-xs text-primary-500 font-semibold group-hover:gap-2 transition-all">
                       View Details <FiChevronRight size={14} />
                     </div>
                   </div>

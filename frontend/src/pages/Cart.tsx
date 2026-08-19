@@ -98,7 +98,7 @@ export default function CartPage() {
           {!isAuthenticated && (
             <p className="text-gray-700 text-sm">
               You're browsing as a guest.{' '}
-              <Link to="/login" className="text-[#10B982] hover:text-[#0d9b6f] hover:underline font-medium">
+              <Link to="/login" className="text-primary-500 hover:text-primary-600 hover:underline font-medium">
                 Sign in
               </Link>{' '}
               to save your cart.
@@ -134,10 +134,10 @@ export default function CartPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <Link to={`/products/${item.slug}`} className="font-product-name text-gray-900 hover:text-[#10B982] transition">
+                        <Link to={`/products/${item.slug}`} className="font-product-name text-gray-900 hover:text-primary-500 transition">
                           {item.name}
                         </Link>
-                        <p className="text-[#10B982] font-price mt-1">KES {item.price.toLocaleString()}</p>
+                        <p className="text-primary-500 font-price mt-1">KES {item.price.toLocaleString()}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {isAuthenticated ? (
@@ -242,7 +242,7 @@ export default function CartPage() {
                     <FiArrowRight className="ml-2" size={18} />
                   </Button>
 
-                  <Link to="/products" className="block text-center mt-4 text-[#10B982] hover:text-[#0d9b6f] hover:underline text-sm font-medium">
+                  <Link to="/products" className="block text-center mt-4 text-primary-500 hover:text-primary-600 hover:underline text-sm font-medium">
                     Continue Shopping
                   </Link>
                 </CardBody>

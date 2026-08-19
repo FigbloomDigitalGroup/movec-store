@@ -10,6 +10,7 @@ import {
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { Request } from 'express';
+import type { PaginationQuery } from '../common/pagination';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -17,9 +18,9 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  findMyOrders(@Req() req: Request, @Query('page') page = 1, @Query('limit') limit = 20) {
+  findMyOrders(@Req() req: Request, @Query() query: PaginationQuery) {
     const user = req.user as any;
-    return this.ordersService.findByCustomer(user.id, +page, +limit);
+    return this.ordersService.findByCustomer(user.id, query);
   }
 
   @Get(':orderNumber')

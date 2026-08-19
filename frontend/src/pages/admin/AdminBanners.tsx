@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FiPlus, FiEdit2, FiTrash2, FiHash, FiImage, FiEye, FiEyeOff } from 'react-icons/fi';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
 import type { Product } from '../../types';
+import PageHeader from '../../components/ui/PageHeader';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 interface PromoBanner {
   id: string;
@@ -26,6 +28,7 @@ export default function AdminBanners() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<PromoBanner | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   // Fetch banners
   const { data: banners, isLoading } = useQuery<PromoBanner[]>({
@@ -54,6 +57,7 @@ export default function AdminBanners() {
       queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
       queryClient.invalidateQueries({ queryKey: ['promo-banners'] });
       toast.success('Banner deleted successfully');
+      setPendingDelete(null);
     },
     onError: (error: any) => {
       toast.error(getErrorMessage(error));
@@ -86,9 +90,7 @@ export default function AdminBanners() {
   };
 
   const handleDelete = (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setPendingDelete({ id, title });
   };
 
   const handleToggleActive = (id: string, isActive: boolean) => {
@@ -103,19 +105,21 @@ export default function AdminBanners() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">Homepage Banners</h1>
-          <p className="text-gray-500 text-sm">Manage hero carousel banners on the homepage</p>
-        </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
-        >
-          <FiPlus size={18} />
-          Add Banner
-        </button>
+      <div className="mb-6">
+        <PageHeader
+          icon={FiImage}
+          title="Homepage Banners"
+          subtitle="Manage hero carousel banners on the homepage"
+          action={
+            <button
+              onClick={handleCreate}
+              className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition font-medium"
+            >
+              <FiPlus size={18} />
+              Add Banner
+            </button>
+          }
+        />
       </div>
 
       {/* Banners Grid */}
@@ -185,7 +189,7 @@ export default function AdminBanners() {
                         Link: {banner.ctaLink}
                       </span>
                       {banner.product && (
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded">
                           Product: {banner.product.name} (KES {banner.product.price.toLocaleString()})
                         </span>
                       )}
@@ -209,7 +213,7 @@ export default function AdminBanners() {
                     
                     <button
                       onClick={() => handleEdit(banner)}
-                      className="flex items-center justify-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 transition font-medium text-sm"
+                      className="flex items-center justify-center gap-2 bg-primary-100 text-primary-700 px-3 py-2 rounded-lg hover:bg-primary-200 transition font-medium text-sm"
                     >
                       <FiEdit2 size={16} />
                       Edit
@@ -233,7 +237,7 @@ export default function AdminBanners() {
             <p className="text-gray-500 mb-4">Create your first homepage banner to get started</p>
             <button
               onClick={handleCreate}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+              className="inline-flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition font-medium"
             >
               <FiPlus size={18} />
               Add Banner
@@ -259,6 +263,16 @@ export default function AdminBanners() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Delete this banner?"
+        description={pendingDelete ? `"${pendingDelete.title}" will be removed from the homepage carousel. This cannot be undone.` : undefined}
+        confirmLabel="Delete"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
@@ -356,9 +370,22 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
     });
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit}>
           {/* Header */}
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
@@ -379,7 +406,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="e.g., Starlink Gen 3 Now Available!"
               />
             </div>
@@ -393,7 +420,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                 type="text"
                 value={formData.subtitle}
                 onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="e.g., Get high-speed internet anywhere"
               />
             </div>
@@ -408,7 +435,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                   type="text"
                   value={formData.badge}
                   onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="e.g., NEW ARRIVAL"
                 />
               </div>
@@ -436,7 +463,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                   required
                   value={formData.ctaText}
                   onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="e.g., Shop Now"
                 />
               </div>
@@ -449,7 +476,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                   required
                   value={formData.ctaLink}
                   onChange={(e) => setFormData({ ...formData, ctaLink: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="e.g., /products/starlink"
                 />
               </div>
@@ -481,7 +508,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                   </button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <FiImage size={40} className="text-gray-400 mb-2" />
                     <p className="mb-2 text-sm text-gray-500">
@@ -510,7 +537,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
               <select
                 value={formData.productId}
                 onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">None - manual price</option>
                 {products.map((product) => (
@@ -562,7 +589,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                   min="0"
                   value={formData.sortOrder}
                   onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div>
@@ -574,7 +601,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
                     type="checkbox"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-500 rounded focus:ring-2 focus:ring-primary-500"
                   />
                   <span className="text-sm text-gray-700">Active (visible on homepage)</span>
                 </label>
@@ -594,7 +621,7 @@ function BannerModal({ banner, products, onClose, onSuccess }: BannerModalProps)
             <button
               type="submit"
               disabled={saveMutation.isPending || uploading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
+              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition font-medium disabled:opacity-50"
             >
               {uploading ? 'Uploading image...' : saveMutation.isPending ? 'Saving...' : banner ? 'Update' : 'Create'}
             </button>

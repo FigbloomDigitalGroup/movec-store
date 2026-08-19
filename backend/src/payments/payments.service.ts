@@ -39,10 +39,20 @@ export class PaymentsService {
     const passkey = this.configService.get<string>('MPESA_PASSKEY');
     const shortcode = this.configService.get<string>('MPESA_SHORTCODE');
     const callbackUrl = this.configService.get<string>('MPESA_CALLBACK_URL');
+    const callbackSecret = this.configService.get<string>('MPESA_CALLBACK_SECRET');
 
     if (!consumerKey || !consumerSecret) {
       throw new BadRequestException('M-Pesa is not configured');
     }
+
+    // Unlike Paystack, Safaricom's STK callback carries no signature — the callback
+    // URL is supplied fresh on every request, so we stamp our own shared secret onto
+    // it here and the webhook checks it, rather than trusting the caller on identity
+    // alone. If MPESA_CALLBACK_SECRET isn't set yet, this is a no-op (see the webhook
+    // handler's matching fallback) so existing deployments keep working uninterrupted.
+    const finalCallbackUrl = callbackUrl && callbackSecret
+      ? `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}secret=${encodeURIComponent(callbackSecret)}`
+      : callbackUrl;
 
     const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
 
@@ -64,7 +74,7 @@ export class PaymentsService {
         PartyA: phoneNumber.replace(/^\+254/, '254').replace(/^0/, '254'),
         PartyB: shortcode,
         PhoneNumber: phoneNumber.replace(/^\+254/, '254').replace(/^0/, '254'),
-        CallBackURL: callbackUrl || 'https://example.com/callback',
+        CallBackURL: finalCallbackUrl || 'https://example.com/callback',
         AccountReference: orderNumber,
         TransactionDesc: `Payment for ${orderNumber}`,
       };

@@ -114,7 +114,7 @@ export default function ProfilePage() {
             aria-selected={activeTab === tab.key}
             aria-controls={`account-panel-${tab.key}`}
             onClick={() => setActiveTab(tab.key as any)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === tab.key ? 'bg-[#10B982] text-white' : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${activeTab === tab.key ? 'bg-primary-500 text-white' : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white'}`}
           >
             <tab.icon size={16} />
             {tab.label}
@@ -126,7 +126,7 @@ export default function ProfilePage() {
       {activeTab === 'profile' && (
         <div role="tabpanel" id="account-panel-profile" aria-labelledby="account-tab-profile" className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-[#10B982]/10 rounded-full flex items-center justify-center text-2xl font-bold text-[#10B982]">
+            <div className="w-16 h-16 bg-primary-500/10 rounded-full flex items-center justify-center text-2xl font-bold text-primary-500">
               {profile?.firstName?.[0]}{profile?.lastName?.[0]}
             </div>
             <div>
@@ -155,7 +155,7 @@ export default function ProfilePage() {
           <button
             onClick={() => updateProfile.mutate(profileForm)}
             disabled={updateProfile.isPending}
-            className="mt-6 bg-[#10B982] text-white px-6 py-2 rounded-lg hover:bg-[#0d9b6f] transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-6 bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSave size={16} /> {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
           </button>
@@ -167,7 +167,7 @@ export default function ProfilePage() {
         <div role="tabpanel" id="account-panel-addresses" aria-labelledby="account-tab-addresses">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Saved Addresses</h2>
-            <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2">
+            <button onClick={() => { setEditingAddress(null); setAddressForm({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false }); setShowAddAddress(true); }} className="bg-primary-500 text-white px-4 py-2 rounded-lg flex items-center gap-2">
               <FiPlus size={16} /> Add Address
             </button>
           </div>
@@ -195,7 +195,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => saveAddress.mutate(addressForm)}
                   disabled={!addressForm.line1 || !addressForm.city || !addressForm.postalCode || saveAddress.isPending}
-                  className="bg-[#10B982] text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-primary-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FiCheck size={16} /> {saveAddress.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -210,13 +210,13 @@ export default function ProfilePage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{addr.type}</span>
-                    {addr.isDefault && <span className="bg-[#ecfdf5] text-[#10B982] text-xs px-2 py-0.5 rounded-full">Default</span>}
+                    {addr.isDefault && <span className="bg-primary-50 text-primary-500 text-xs px-2 py-0.5 rounded-full">Default</span>}
                   </div>
                   <p className="text-gray-600">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}</p>
                   <p className="text-gray-500 text-sm">{addr.city}{addr.state ? `, ${addr.state}` : ''} · {addr.postalCode} · {addr.country}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => startEditAddress(addr)} aria-label="Edit address" className="p-2 text-[#10B982] hover:bg-[#ecfdf5] rounded-lg"><FiEdit2 size={16} /></button>
+                  <button onClick={() => startEditAddress(addr)} aria-label="Edit address" className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg"><FiEdit2 size={16} /></button>
                   <button onClick={() => setPendingDeleteAddressId(addr.id)} aria-label="Delete address" className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><FiTrash2 size={16} /></button>
                 </div>
               </div>
@@ -249,7 +249,7 @@ export default function ProfilePage() {
                 changePassword.mutate();
               }}
               disabled={changePassword.isPending}
-              className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {changePassword.isPending ? 'Changing...' : 'Change Password'}
             </button>

@@ -149,7 +149,7 @@ export default function Products() {
 
       <div className="w-full px-4 py-8">
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <form onSubmit={handleSearch} className="relative flex-1">
               <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -158,7 +158,7 @@ export default function Products() {
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <Button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
                 Search
@@ -182,7 +182,7 @@ export default function Products() {
                   <select
                     value={searchParams.get('category') || ''}
                     onChange={(e) => setParam('category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">All Categories</option>
                     {(categories || []).map((c: any) => (
@@ -195,7 +195,7 @@ export default function Products() {
                   <select
                     value={priceRangeValue}
                     onChange={(e) => handlePriceRangeChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     {PRICE_RANGES.map((r) => (
                       <option key={r.value} value={r.value}>{r.label}</option>
@@ -207,7 +207,7 @@ export default function Products() {
                   <select
                     value={searchParams.get('brand') || ''}
                     onChange={(e) => setParam('brand', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">All Brands</option>
                     {(brands || []).map((b: any) => (
@@ -220,7 +220,7 @@ export default function Products() {
                   <select
                     value={searchParams.get('inStock') || ''}
                     onChange={(e) => setParam('inStock', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">All</option>
                     <option value="true">In Stock</option>
@@ -236,7 +236,7 @@ export default function Products() {
                     params.delete('page');
                     setSearchParams(params);
                   }}
-                  className="mt-3 text-xs font-semibold text-[#10B982] hover:text-[#0d9b6f]"
+                  className="mt-3 text-xs font-semibold text-primary-500 hover:text-primary-600"
                 >
                   Clear filters
                 </button>
@@ -255,7 +255,7 @@ export default function Products() {
             <select
               value={sortValue}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {SORT_OPTIONS.map((s) => (
                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -280,7 +280,7 @@ export default function Products() {
             ))}
           </div>
         ) : total === 0 ? (
-          <div className="rounded-3xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-16 text-center text-gray-500 shadow-sm">
             <FiSearch size={48} className="mx-auto mb-4" />
             <p className="text-lg font-semibold">No products match your search.</p>
             <p className="mt-2 text-sm text-gray-500">Try changing your search term, clearing filters, or browsing another category.</p>
@@ -293,7 +293,7 @@ export default function Products() {
                   setSearch('');
                   setSearchParams(params);
                 }}
-                className="rounded-2xl border border-[#10B982]/30 bg-[#ecfdf5] px-5 py-3 text-sm font-semibold text-[#10B982] transition hover:bg-[#d9f8ee]"
+                className="rounded-2xl border border-primary-500/30 bg-primary-50 px-5 py-3 text-sm font-semibold text-primary-500 transition hover:bg-primary-100"
               >
                 Clear filters
               </button>
@@ -317,7 +317,7 @@ export default function Products() {
         {hasNextPage && <div ref={sentinelRef} className="h-10" />}
         {isFetchingNextPage && (
           <div className="flex justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#10B982]" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-primary-500" />
           </div>
         )}
         {!hasNextPage && products.length > 0 && (

@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8">
         <h1 className="text-3xl font-bold text-center mb-8">Reset Password</h1>
         {message && (
-          <p className={`p-3 rounded mb-4 ${isError ? 'bg-red-50 text-red-700' : 'bg-[#ecfdf5] text-[#10B982]'}`}>
+          <p className={`p-3 rounded mb-4 ${isError ? 'bg-red-50 text-red-700' : 'bg-primary-50 text-primary-500'}`}>
             {message}
           </p>
         )}
@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#10B982] text-white py-2 rounded-lg hover:bg-[#0d9b6f] transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

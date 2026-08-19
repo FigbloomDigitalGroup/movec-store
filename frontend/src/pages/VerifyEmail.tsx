@@ -36,7 +36,7 @@ export default function VerifyEmailPage() {
             <div className="text-6xl mb-4 text-green-600 flex justify-center"><FiCheckCircle size={64} /></div>
             <h1 className="text-2xl font-bold mb-2">Email Verified!</h1>
             <p className="text-gray-600 mb-6">{message}</p>
-            <Link to="/login" className="bg-[#10B982] text-white px-6 py-3 rounded-lg hover:bg-[#0d9b6f] transition">Go to Login</Link>
+            <Link to="/login" className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition">Go to Login</Link>
           </div>
         )}
         {status === 'error' && (
@@ -44,7 +44,7 @@ export default function VerifyEmailPage() {
             <div className="text-6xl mb-4 text-red-600 flex justify-center"><FiXCircle size={64} /></div>
             <h1 className="text-2xl font-bold mb-2">Verification Failed</h1>
             <p className="text-gray-600 mb-6">{message}</p>
-            <Link to="/login" className="bg-[#10B982] text-white px-6 py-3 rounded-lg hover:bg-[#0d9b6f] transition">Go to Login</Link>
+            <Link to="/login" className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition">Go to Login</Link>
           </div>
         )}
       </div>

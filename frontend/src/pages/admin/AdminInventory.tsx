@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
+import { FiPackage } from 'react-icons/fi';
+import PageHeader from '../../components/ui/PageHeader';
 
 export default function AdminInventory() {
   const queryClient = useQueryClient();
@@ -44,10 +46,12 @@ export default function AdminInventory() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900">Inventory</h1>
+      <div className="mb-6">
+        <PageHeader icon={FiPackage} title="Inventory" subtitle="Track stock levels and add new stock across warehouses." />
+      </div>
 
       {lowStock?.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
           <h2 className="font-semibold text-red-700 mb-2">Low Stock Alert</h2>
           {lowStock.map((item: any) => (
             <p key={item.id} className="text-sm text-red-600">{item.product?.name} - {item.quantity} remaining</p>
@@ -55,13 +59,13 @@ export default function AdminInventory() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <h2 className="font-semibold mb-4 text-gray-900">Stock In</h2>
         <div className="flex flex-col sm:flex-row gap-4">
           <select
             value={stockForm.productId}
             onChange={e => setStockForm({ ...stockForm, productId: e.target.value })}
-            className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+            className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Select product...</option>
             {products.map((p: any) => (
@@ -71,7 +75,7 @@ export default function AdminInventory() {
           <select
             value={stockForm.warehouseId}
             onChange={e => setStockForm({ ...stockForm, warehouseId: e.target.value })}
-            className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+            className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Select warehouse...</option>
             {warehouses?.map((w: any) => (
@@ -84,19 +88,19 @@ export default function AdminInventory() {
             placeholder="Quantity"
             value={stockForm.quantity || ''}
             onChange={e => setStockForm({ ...stockForm, quantity: Math.max(0, +e.target.value) })}
-            className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-32 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#10B982]"
+            className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-32 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <button
             onClick={() => stockIn.mutate(stockForm)}
             disabled={!canSubmit || stockIn.isPending}
-            className="bg-[#10B982] hover:bg-[#0d9b6f] disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-semibold text-sm transition whitespace-nowrap"
+            className="bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-semibold text-sm transition whitespace-nowrap"
           >
             {stockIn.isPending ? 'Adding...' : 'Add Stock'}
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>

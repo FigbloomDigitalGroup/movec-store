@@ -12,8 +12,8 @@ export default function CookiePolicy() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-[#10B982]/10 rounded-xl flex items-center justify-center">
-              <FiShield className="text-[#10B982]" size={24} />
+            <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center">
+              <FiShield className="text-primary-500" size={24} />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Cookie Policy</h1>
           </div>
@@ -26,7 +26,7 @@ export default function CookiePolicy() {
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 leading-relaxed mb-8">
             This Cookie Policy explains what cookies are, which ones Movec Store ("we", "us", "our") uses, and how you can manage your preferences. It should be read alongside our{' '}
-            <Link to="/privacy" className="text-[#10B982] hover:underline font-medium">Privacy Policy</Link>.
+            <Link to="/privacy" className="text-primary-500 hover:underline font-medium">Privacy Policy</Link>.
           </p>
 
           <div className="space-y-8">

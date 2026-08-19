@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/api';
 import { FiPackage, FiCheckCircle, FiAlertCircle, FiGrid, FiPlus, FiHome, FiUser, FiExternalLink, FiDollarSign, FiClock, FiTool, FiTrendingDown } from 'react-icons/fi';
+import PageHeader from '../../components/ui/PageHeader';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -33,20 +34,18 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-        <p className="text-gray-500 text-sm">Welcome back, Admin. Here's what's happening.</p>
+        <PageHeader icon={FiGrid} title="Dashboard" subtitle="Welcome back, Admin. Here's what's happening." />
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <button
           onClick={() => navigate('/admin/products')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-            <FiPackage className="text-blue-600" size={20} />
+          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+            <FiPackage className="text-gray-600" size={20} />
           </div>
           <p className="text-2xl font-bold mb-1">{dashboardData?.products?.total || 0}</p>
           <p className="text-sm text-gray-500">Total Products</p>
@@ -54,7 +53,7 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => navigate('/admin/products')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
           <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-4">
             <FiCheckCircle className="text-green-600" size={20} />
@@ -65,7 +64,7 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => navigate('/admin/products')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
           <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
             <FiAlertCircle className="text-orange-600" size={20} />
@@ -76,10 +75,10 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => navigate('/admin/categories')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-            <FiGrid className="text-purple-600" size={20} />
+          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+            <FiGrid className="text-gray-600" size={20} />
           </div>
           <p className="text-2xl font-bold mb-1">{dashboardData?.categories?.total || 0}</p>
           <p className="text-sm text-gray-500">Categories</p>
@@ -91,7 +90,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <button
           onClick={() => navigate('/admin/reports')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
           <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
             <FiDollarSign className="text-emerald-600" size={20} />
@@ -102,7 +101,7 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => navigate('/admin/orders')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
           <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
             <FiClock className="text-amber-600" size={20} />
@@ -113,7 +112,7 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => navigate('/admin/installations')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
           <div className="w-10 h-10 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
             <FiTool className="text-sky-600" size={20} />
@@ -124,7 +123,7 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => navigate('/admin/inventory')}
-          className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
+          className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition text-left cursor-pointer"
         >
           <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mb-4">
             <FiTrendingDown className="text-red-600" size={20} />
@@ -137,12 +136,12 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Products by Category */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-lg">Products by Category</h2>
               <button
                 onClick={() => navigate('/admin/categories')}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-primary-500 hover:underline"
               >
                 View all
               </button>
@@ -162,7 +161,7 @@ export default function AdminDashboard() {
                       </div>
                       <span className="font-medium text-gray-700">{category.name}</span>
                     </div>
-                    <span className="text-blue-600 font-semibold">{category._count?.products || 0}</span>
+                    <span className="text-primary-500 font-semibold">{category._count?.products || 0}</span>
                   </div>
                 ))
               ) : (
@@ -174,7 +173,7 @@ export default function AdminDashboard() {
 
         {/* Quick Actions */}
         <div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="font-semibold text-lg mb-4">Quick Actions</h2>
             
             <div className="space-y-2">
@@ -184,7 +183,7 @@ export default function AdminDashboard() {
                   onClick={action.action}
                   className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition ${
                     action.primary
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-primary-500 text-white hover:bg-primary-600'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
@@ -199,12 +198,12 @@ export default function AdminDashboard() {
 
       {/* Recently Added Products */}
       <div className="mt-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-lg">Recently Added Products</h2>
             <button
               onClick={() => navigate('/admin/products')}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-primary-500 hover:underline"
             >
               See all
             </button>

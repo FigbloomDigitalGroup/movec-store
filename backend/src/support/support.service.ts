@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateFaqDto } from './dto/create-faq.dto';
 import { CreateContactDto } from './dto/create-contact.dto';
+import { QueryTicketDto } from './dto/query-ticket.dto';
 import { EmailService } from '../email/email.service';
+import { buildPagination, paginated } from '../common/pagination';
 
 @Injectable()
 export class SupportService {
@@ -100,17 +103,34 @@ export class SupportService {
     });
   }
 
-  async getAllTickets(status?: string) {
-    const where: any = {};
-    if (status) where.status = status;
-    return this.prisma.supportTicket.findMany({
-      where,
-      include: {
-        user: { select: { firstName: true, lastName: true, email: true } },
-        _count: { select: { messages: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async getAllTickets(query: QueryTicketDto) {
+    const { page, limit, skip } = buildPagination(query);
+    const where: Prisma.SupportTicketWhereInput = {};
+    if (query.status) where.status = query.status as any;
+    if (query.search) {
+      where.OR = [
+        { subject: { contains: query.search, mode: 'insensitive' } },
+        { user: { firstName: { contains: query.search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: query.search, mode: 'insensitive' } } },
+        { user: { email: { contains: query.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.supportTicket.findMany({
+        where,
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+          _count: { select: { messages: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.supportTicket.count({ where }),
+    ]);
+
+    return paginated(data, total, page, limit);
   }
 
   async updateTicketStatus(ticketId: string, status: string) {

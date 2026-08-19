@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Param, Query, Body, Req, UseGuard
 import { SupportService } from './support.service';
 import { CreateFaqDto } from './dto/create-faq.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { QueryTicketDto } from './dto/query-ticket.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -15,8 +16,8 @@ export class AdminSupportController {
   constructor(private readonly supportService: SupportService) {}
 
   @Get('tickets')
-  getAllTickets(@Query('status') status?: string) {
-    return this.supportService.getAllTickets(status);
+  getAllTickets(@Query() query: QueryTicketDto) {
+    return this.supportService.getAllTickets(query);
   }
 
   @Get('tickets/:id')
