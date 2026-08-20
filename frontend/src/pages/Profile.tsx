@@ -8,6 +8,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 import Input from '../components/ui/Input';
 import Skeleton from '../components/ui/Skeleton';
 import type { Address } from '../types';
+import { getPasswordError, PASSWORD_REQUIREMENTS_HINT } from '../lib/passwordPolicy';
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
@@ -250,6 +251,7 @@ export default function ProfilePage() {
             <div>
               <label htmlFor="profile-newPassword" className="block text-sm font-medium mb-1">New Password</label>
               <input id="profile-newPassword" type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+              <p className="text-xs text-gray-500 mt-1">{PASSWORD_REQUIREMENTS_HINT}</p>
             </div>
             <div>
               <label htmlFor="profile-confirmPassword" className="block text-sm font-medium mb-1">Confirm New Password</label>
@@ -257,8 +259,9 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={() => {
+                const passwordError = getPasswordError(passwordForm.newPassword);
+                if (passwordError) return toast.error(passwordError);
                 if (passwordForm.newPassword !== passwordForm.confirmPassword) return toast.error('Passwords do not match');
-                if (passwordForm.newPassword.length < 8) return toast.error('Password must be at least 8 characters');
                 changePassword.mutate();
               }}
               disabled={changePassword.isPending}

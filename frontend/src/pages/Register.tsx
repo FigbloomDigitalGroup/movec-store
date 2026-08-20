@@ -6,12 +6,14 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
+import { getPasswordError, PASSWORD_REQUIREMENTS_HINT } from '../lib/passwordPolicy';
 
 export default function Register() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register } = useAuthStore();
   const [searchParams] = useSearchParams();
@@ -22,6 +24,11 @@ export default function Register() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    const passwordError = getPasswordError(form.password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -126,6 +133,7 @@ export default function Register() {
               {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
             </button>
           </div>
+          <p className="text-xs text-gray-500 mt-1">{PASSWORD_REQUIREMENTS_HINT}</p>
 
           <label htmlFor="register-confirmPassword" className="block text-sm font-medium text-gray-700 mb-1 mt-4">
             Confirm Password<span className="text-red-500" aria-hidden="true"> *</span>
@@ -133,7 +141,7 @@ export default function Register() {
           <div className="relative">
             <input
               id="register-confirmPassword"
-              type={showPassword ? 'text' : 'password'}
+              type={showConfirmPassword ? 'text' : 'password'}
               value={form.confirmPassword}
               onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
               required
@@ -141,11 +149,11 @@ export default function Register() {
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
             >
-              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+              {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
             </button>
           </div>
         </div>

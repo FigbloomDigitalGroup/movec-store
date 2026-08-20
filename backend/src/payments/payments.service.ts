@@ -10,6 +10,7 @@ import { InventoryService } from '../inventory/inventory.service';
 import axios from 'axios';
 import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
+import { getPrimaryFrontendUrl } from '../common/frontend-url';
 
 interface OAuthTokenResponse {
   access_token: string;
@@ -274,10 +275,7 @@ export class PaymentsService {
       throw new BadRequestException('PayPal is not configured');
     }
 
-    const frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:5173',
-    );
+    const frontendUrl = getPrimaryFrontendUrl(this.configService);
     const baseUrl =
       mode === 'live'
         ? 'https://api-m.paypal.com'

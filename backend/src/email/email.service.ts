@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 import * as nodemailer from 'nodemailer';
+import { getPrimaryFrontendUrl } from '../common/frontend-url';
 
 @Injectable()
 export class EmailService {
@@ -22,10 +23,7 @@ export class EmailService {
       'BREVO_FROM_NAME',
       'Movec Store',
     );
-    this.frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:5173',
-    );
+    this.frontendUrl = getPrimaryFrontendUrl(this.configService);
 
     // 1. Try to initialize Brevo transactional email client
     const apiKey = this.configService.get<string>('BREVO_API_KEY');
