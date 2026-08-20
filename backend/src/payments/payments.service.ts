@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
+import { EmailService } from '../email/email.service';
 import axios from 'axios';
 import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
@@ -46,7 +47,61 @@ export class PaymentsService {
     private prisma: PrismaService,
     private configService: ConfigService,
     private inventoryService: InventoryService,
+    private emailService: EmailService,
   ) {}
+
+  // Fired from every path that transitions an order to CONFIRMED (M-Pesa/Paystack
+  // webhooks, PayPal capture, admin bank-transfer confirmation). Failure to send is
+  // logged, not thrown — a flaky mail provider should never roll back or fail a
+  // payment that has already been captured.
+  async sendOrderConfirmationEmail(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true, user: true, payments: true, shippingAddress: true },
+    });
+    if (!order) return;
+
+    const payment =
+      order.payments.find((p) => p.status === 'COMPLETED') ??
+      order.payments[0];
+
+    try {
+      await this.emailService.sendOrderConfirmation({
+        toEmail: order.user.email,
+        toName: `${order.user.firstName} ${order.user.lastName}`.trim(),
+        orderNumber: order.orderNumber,
+        orderDate: order.createdAt,
+        items: order.items.map((item) => ({
+          name: item.productNameSnapshot,
+          sku: item.productSkuSnapshot,
+          quantity: item.quantity,
+          price: Number(item.priceSnapshot),
+        })),
+        subtotal: Number(order.subtotal),
+        shippingCost: Number(order.shippingCost),
+        taxAmount: Number(order.taxAmount),
+        discountAmount: Number(order.discountAmount),
+        total: Number(order.total),
+        currency: payment?.currency,
+        paymentMethod: payment?.method,
+        shippingAddress: order.shippingAddress
+          ? {
+              line1: order.shippingAddress.line1,
+              line2: order.shippingAddress.line2,
+              city: order.shippingAddress.city,
+              state: order.shippingAddress.state,
+              postalCode: order.shippingAddress.postalCode,
+              country: order.shippingAddress.country,
+            }
+          : undefined,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send order receipt for ${order.orderNumber}:`,
+        error,
+      );
+    }
+  }
 
   // Scoping every lookup to the requesting user prevents one authenticated
   // customer from initiating or capturing payment against another customer's
@@ -412,6 +467,7 @@ export class PaymentsService {
         });
 
         await this.inventoryService.fulfillOrder(order.id);
+        await this.sendOrderConfirmationEmail(order.id);
 
         const transaction = await this.prisma.transaction.findFirst({
           where: { paymentId: payment.id, provider: 'PAYPAL' },
@@ -518,6 +574,7 @@ export class PaymentsService {
     });
 
     await this.inventoryService.fulfillOrder(order.id);
+    await this.sendOrderConfirmationEmail(order.id);
 
     return { message: 'Payment confirmed. Order is now confirmed.' };
   }

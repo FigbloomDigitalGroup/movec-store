@@ -137,6 +137,9 @@ export class PaymentsWebhookController {
           });
 
           await this.inventoryService.fulfillOrder(transaction.payment.orderId);
+          await this.paymentsService.sendOrderConfirmationEmail(
+            transaction.payment.orderId,
+          );
         }
       }
     }
@@ -192,6 +195,7 @@ export class PaymentsWebhookController {
         });
 
         await this.inventoryService.fulfillOrder(payment.orderId);
+        await this.paymentsService.sendOrderConfirmationEmail(payment.orderId);
 
         // Update transaction record
         const transaction = await this.prisma.transaction.findFirst({
