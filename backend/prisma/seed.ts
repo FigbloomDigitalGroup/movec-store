@@ -183,6 +183,18 @@ async function main() {
     },
   });
 
+  // Cross-module catch-all — the homepage's "Accessories" tile links here.
+  // Not scoped to a moduleId since it spans both Starlink and CCTV gear.
+  const catAccessories = await prisma.category.upsert({
+    where: { slug: 'accessories' },
+    update: {},
+    create: {
+      name: 'Accessories',
+      slug: 'accessories',
+      description: 'Mounts, cables, adapters, and other add-ons across all product lines',
+    },
+  });
+
   // CCTV categories
   const catIPCameras = await prisma.category.upsert({
     where: { slug: 'ip-cameras' },
@@ -320,6 +332,13 @@ async function main() {
     update: {},
     create: { productId: prod3.id, warehouseId: mainWarehouse.id, quantity: 100, lowStockThreshold: 10 },
   });
+  // Also surface it under the cross-module Accessories category, alongside its
+  // original starlink-accessories tag.
+  await prisma.productCategory.upsert({
+    where: { productId_categoryId: { productId: prod3.id, categoryId: catAccessories.id } },
+    update: {},
+    create: { productId: prod3.id, categoryId: catAccessories.id },
+  });
 
   const prod4 = await prisma.product.upsert({
     where: { slug: 'starlink-pipe-adapter' },
@@ -342,6 +361,13 @@ async function main() {
     where: { productId_warehouseId: { productId: prod4.id, warehouseId: mainWarehouse.id } },
     update: {},
     create: { productId: prod4.id, warehouseId: mainWarehouse.id, quantity: 60, lowStockThreshold: 10 },
+  });
+  // Also surface it under the cross-module Accessories category, alongside its
+  // original starlink-mounts tag.
+  await prisma.productCategory.upsert({
+    where: { productId_categoryId: { productId: prod4.id, categoryId: catAccessories.id } },
+    update: {},
+    create: { productId: prod4.id, categoryId: catAccessories.id },
   });
 
   // ─── Products — CCTV ───────────────────────────────────────────
