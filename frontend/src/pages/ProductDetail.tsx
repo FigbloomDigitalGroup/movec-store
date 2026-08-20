@@ -4,8 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
-import { useCartStore } from '../store/cartStore';
-import { useWishlistStore } from '../store/wishlistStore';
+import { useProductActions } from '../hooks/useProductActions';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -17,11 +16,12 @@ import {
   FiEdit3,
   FiLock,
   FiCheckCircle,
-  FiClock,
 } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import SectionHero from '../components/ui/SectionHero';
+import Breadcrumbs from '../components/ui/Breadcrumbs';
+import type { Review, Inventory, ProductImage, Category } from '../types';
 
 /* ─── Star Picker Component ─────────────────────────────────── */
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -45,7 +45,8 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
             onClick={() => onChange(star)}
             onMouseEnter={() => setHovered(star)}
             onMouseLeave={() => setHovered(0)}
-            className="transition-transform hover:scale-125 focus:outline-none"
+            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+            className="transition-transform hover:scale-125 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
           >
             <FiStar
               size={28}
@@ -84,7 +85,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
       queryClient.invalidateQueries({ queryKey: ['product'] });
       setSubmitted(true);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       const msg = getErrorMessage(error);
       if (msg.toLowerCase().includes('already reviewed')) {
         toast.error('You have already submitted a review for this product.');
@@ -111,7 +112,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   if (!isAuthenticated) {
     return (
       <div className="mt-10 border-t border-gray-200 pt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-section-title text-gray-900 mb-6 flex items-center gap-2">
           <FiEdit3 className="text-accent" /> Write a Review
         </h2>
         <div className="bg-accent-100 border border-accent rounded-2xl p-8 text-center">
@@ -146,7 +147,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   if (submitted) {
     return (
       <div className="mt-10 border-t border-gray-200 pt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-section-title text-gray-900 mb-6 flex items-center gap-2">
           <FiEdit3 className="text-accent" /> Write a Review
         </h2>
         <div className="bg-accent-100 border border-accent rounded-2xl p-8 text-center">
@@ -154,9 +155,8 @@ function ReviewForm({ productId, productName }: { productId: string; productName
             <FiCheckCircle className="text-accent" size={26} />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">Review submitted! Thank you.</h3>
-          <p className="text-gray-600 text-sm max-w-sm mx-auto flex items-center justify-center gap-2">
-            <FiClock className="text-amber-500 flex-shrink-0" size={16} />
-            Your review is pending approval. It will appear publicly once our team reviews it.
+          <p className="text-gray-600 text-sm max-w-sm mx-auto">
+            Your review is now live on this product's page.
           </p>
         </div>
       </div>
@@ -166,7 +166,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
   /* Review form */
   return (
     <div className="mt-10 border-t border-gray-200 pt-10">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+      <h2 className="text-2xl font-section-title text-gray-900 mb-6 flex items-center gap-2">
             <FiEdit3 className="text-accent" /> Write a Review
       </h2>
 
@@ -183,7 +183,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
           {/* Review Title */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Review Title <span className="text-gray-400 font-normal">(optional)</span>
+              Review Title <span className="text-gray-500 font-normal">(optional)</span>
             </label>
             <input
               type="text"
@@ -191,7 +191,7 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               onChange={(e) => setTitle(e.target.value)}
               placeholder='e.g. "Great product, very easy to set up"'
               maxLength={120}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] focus:bg-white transition"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent focus:bg-white transition"
             />
           </div>
 
@@ -206,17 +206,13 @@ function ReviewForm({ productId, productName }: { productId: string; productName
               placeholder="Share details about your experience — what you liked, how it performed, tips for other buyers..."
               rows={4}
               maxLength={2000}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#10B982] focus:bg-white transition resize-none"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent focus:bg-white transition resize-none"
             />
-            <p className="text-xs text-gray-400 mt-1 text-right">{body.length}/2000</p>
+            <p className="text-xs text-gray-500 mt-1 text-right">{body.length}/2000</p>
           </div>
 
-          {/* Moderation notice + submit */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-gray-100 pt-4">
-            <p className="text-xs text-gray-500 flex items-start gap-1.5">
-              <FiClock size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
-              Reviews are moderated before appearing publicly. Usually approved within 24 hours.
-            </p>
+          {/* Submit */}
+          <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-4">
             <button
               type="submit"
               disabled={submitMutation.isPending}
@@ -233,10 +229,10 @@ function ReviewForm({ productId, productName }: { productId: string; productName
 }
 
 /* ─── Reviews Display Component ─────────────────────────────── */
-function ReviewsDisplay({ reviews }: { reviews: any[] }) {
+function ReviewsDisplay({ reviews }: { reviews: Review[] }) {
   if (!reviews || reviews.length === 0) return null;
 
-  const avg = (reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length).toFixed(1);
+  const avg = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
   const counts = [5, 4, 3, 2, 1].map((star) => ({
     star,
     count: reviews.filter((r) => r.rating === star).length,
@@ -244,7 +240,7 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 
   return (
     <div className="mt-10 border-t border-gray-200 pt-10">
-      <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+      <h2 className="text-2xl font-section-title text-gray-900 mb-8 flex items-center gap-2">
         <FiStar className="text-yellow-400 fill-yellow-400" /> Customer Reviews
       </h2>
 
@@ -289,7 +285,7 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 
       {/* Review Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {reviews.map((review: any) => (
+        {reviews.map((review) => (
           <div
             key={review.id}
             className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
@@ -306,7 +302,7 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
                   <p className="font-semibold text-gray-900 text-sm">
                     {review.user?.firstName} {review.user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     {new Date(review.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric', month: 'short', day: 'numeric',
                     })}
@@ -349,14 +345,11 @@ function ReviewsDisplay({ reviews }: { reviews: any[] }) {
 export default function ProductDetail() {
   const { slug } = useParams();
   const { isAuthenticated } = useAuthStore();
-  const guestCart = useCartStore();
-  const guestWishlist = useWishlistStore();
-  const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
   const [currentImage, setCurrentImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  const { data: product } = useQuery({
+  const { data: product, isLoading, isError, refetch } = useQuery({
     queryKey: ['product', slug],
     queryFn: async () => {
       const { data } = await api.get(`/products/${slug}`);
@@ -364,73 +357,49 @@ export default function ProductDetail() {
     },
   });
 
-  const addToCartApi = useMutation({
-    mutationFn: async () => {
-      await api.post('/cart/items', { productId: product.id, quantity });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-      toast.success(`Added ${product.name} to cart`);
-    },
-    onError: (error: any) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
-
-  const addToWishlistApi = useMutation({
-    mutationFn: async () => {
-      await api.post('/wishlist', { productId: product.id });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      toast.success('Wishlist updated');
-    },
-    onError: (error: any) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
+  const {
+    isWishlisted,
+    addToCart,
+    toggleWishlist,
+    isAddingToCart,
+    isTogglingWishlist,
+  } = useProductActions(product?.id || '');
 
   const handleAddToCart = () => {
-    if (isAuthenticated) {
-      addToCartApi.mutate();
-    } else {
-      guestCart.addItem({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        image: product.images?.[0]?.url || null,
-        quantity,
-      });
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    }
+    addToCart(product, quantity, product.images?.[0]?.url || null);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const handleWishlist = () => {
-    if (isAuthenticated) {
-      addToWishlistApi.mutate();
-    } else {
-      guestWishlist.toggleItem({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        image: product.images?.[0]?.url || null,
-      });
-    }
+    toggleWishlist(product, product.images?.[0]?.url || null);
   };
 
-  const isWishlisted = isAuthenticated
-    ? false
-    : guestWishlist.isInWishlist(product?.id || '');
-
-  if (!product)
+  if (isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
         Loading...
+      </div>
+    );
+
+  if (isError || !product)
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <h2 className="text-lg font-bold text-gray-800 mb-2">Product not found</h2>
+        <p className="text-sm text-gray-500 mb-6 max-w-sm">
+          This product may have been removed, or the link may be incorrect.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-semibold text-accent hover:text-accent-dark"
+          >
+            Retry
+          </button>
+          <Link to="/products" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+            ← Back to Products
+          </Link>
+        </div>
       </div>
     );
 
@@ -441,21 +410,22 @@ export default function ProductDetail() {
   const goPrev = () => {
     if (images.length > 1) setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
   };
-  const inStock = product.inventory?.reduce((sum: number, i: any) => sum + i.quantity, 0) > 0;
-  const approvedReviews = (product.reviews || []).filter((r: any) => r.isApproved);
+  const inStock = product.inventory?.reduce((sum: number, i: Inventory) => sum + i.quantity, 0) > 0;
+  const approvedReviews: Review[] = (product.reviews || []).filter((r: Review) => r.isApproved);
+
+  const primaryCategory = product.categories?.[0];
 
   return (
     <div className="min-h-screen">
-      {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="w-full px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm">
-            <Link to="/shop" className="text-gray-500 hover:text-gray-700">Shop</Link>
-            <span className="text-gray-400">/</span>
-            <Link to="/products" className="text-gray-500 hover:text-gray-700">Products</Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">{product.name}</span>
-          </nav>
+          <Breadcrumbs
+            items={[
+              { label: 'Products', to: '/products' },
+              ...(primaryCategory ? [{ label: primaryCategory.name, to: `/products?category=${primaryCategory.slug}` }] : []),
+              { label: product.name },
+            ]}
+          />
         </div>
       </div>
 
@@ -475,7 +445,7 @@ export default function ProductDetail() {
                   loading="lazy"
                 />
               ) : (
-                <div className="text-gray-400 text-xl">No image available</div>
+                <div className="text-gray-500 text-xl">No image available</div>
               )}
               {images.length > 1 && (
                 <>
@@ -492,7 +462,7 @@ export default function ProductDetail() {
                     <FiChevronRight size={24} />
                   </button>
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {images.map((_: any, i: number) => (
+                    {images.map((_: ProductImage, i: number) => (
                       <button
                         key={i}
                         onClick={() => setCurrentImage(i)}
@@ -507,7 +477,7 @@ export default function ProductDetail() {
             </div>
             {images.length > 1 && (
               <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
-                {images.map((img: any, i: number) => (
+                {images.map((img: ProductImage, i: number) => (
                   <button
                     key={img.id}
                     onClick={() => setCurrentImage(i)}
@@ -538,7 +508,7 @@ export default function ProductDetail() {
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => {
-                      const avg = approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / approvedReviews.length;
+                      const avg = approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length;
                       return (
                         <FiStar
                           key={s}
@@ -549,7 +519,7 @@ export default function ProductDetail() {
                     })}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {(approvedReviews.reduce((s: number, r: any) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} ({approvedReviews.length} review{approvedReviews.length !== 1 ? 's' : ''})
+                    {(approvedReviews.reduce((s, r) => s + r.rating, 0) / approvedReviews.length).toFixed(1)} ({approvedReviews.length} review{approvedReviews.length !== 1 ? 's' : ''})
                   </span>
                 </div>
               )}
@@ -561,7 +531,7 @@ export default function ProductDetail() {
               </span>
               {product.compareAtPrice && (
                 <>
-                  <span className="text-lg text-gray-400 line-through">
+                  <span className="text-lg text-gray-500 line-through">
                     KES {product.compareAtPrice.toLocaleString()}
                   </span>
                   <Badge variant="success">
@@ -584,7 +554,7 @@ export default function ProductDetail() {
               <div className="mb-6">
                 <p className="text-sm font-medium text-gray-900 mb-2">Categories:</p>
                 <div className="flex gap-2 flex-wrap">
-                  {product.categories.map((cat: any) => (
+                  {product.categories.map((cat: Category) => (
                     <Link
                       key={cat.id}
                       to={`/products?category=${cat.slug}`}
@@ -620,12 +590,15 @@ export default function ProductDetail() {
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleAddToCart} disabled={!inStock} className="flex-1" size="lg">
-                  {addedToCart ? '✓ Added!' : 'Add to Cart'}
+                <Button onClick={handleAddToCart} disabled={!inStock || isAddingToCart} className="flex-1" size="lg">
+                  {addedToCart ? '✓ Added!' : isAddingToCart ? 'Adding...' : 'Add to Cart'}
                 </Button>
                 <Button
                   onClick={handleWishlist}
                   variant="outline"
+                  disabled={isTogglingWishlist}
+                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  aria-pressed={isWishlisted}
                   className={isWishlisted ? 'border-red-500 text-red-500 hover:bg-red-50' : ''}
                 >
                   <FiHeart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
@@ -652,8 +625,8 @@ export default function ProductDetail() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <FiShield className="text-green-600" size={20} />
+                <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+                  <FiShield className="text-accent" size={20} />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">Warranty</p>
@@ -661,8 +634,8 @@ export default function ProductDetail() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <FiCheck className="text-purple-600" size={20} />
+                <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+                  <FiCheck className="text-accent" size={20} />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">Genuine</p>

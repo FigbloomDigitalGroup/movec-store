@@ -1,5 +1,10 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -8,31 +13,39 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesService {
   constructor(
     private prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheManager: any,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private async clearCategoryCache() {
     await this.cacheManager.del('categories:all');
   }
 
-  async findAll(moduleSlug?: string) {
-    const cacheKey = moduleSlug ? `categories:module:${moduleSlug}` : 'categories:all';
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) return cached;
-
-    const data = await this.prisma.category.findMany({
+  private async fetchCategories(moduleSlug?: string) {
+    return this.prisma.category.findMany({
       where: moduleSlug ? { module: { slug: moduleSlug } } : undefined,
-      include: { 
-        children: true, 
-        parent: true, 
+      include: {
+        children: true,
+        parent: true,
         module: true,
         _count: {
-          select: { products: true }
-        }
+          select: { products: true },
+        },
       },
       orderBy: { name: 'asc' },
     });
+  }
 
+  async findAll(moduleSlug?: string) {
+    const cacheKey = moduleSlug
+      ? `categories:module:${moduleSlug}`
+      : 'categories:all';
+    const cached =
+      await this.cacheManager.get<
+        Awaited<ReturnType<typeof this.fetchCategories>>
+      >(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.fetchCategories(moduleSlug);
     await this.cacheManager.set(cacheKey, data, 15 * 60 * 1000);
     return data;
   }
@@ -47,7 +60,9 @@ export class CategoriesService {
   }
 
   async create(dto: CreateCategoryDto) {
-    const existing = await this.prisma.category.findUnique({ where: { slug: dto.slug } });
+    const existing = await this.prisma.category.findUnique({
+      where: { slug: dto.slug },
+    });
     if (existing) throw new ConflictException('Slug already exists');
     const created = await this.prisma.category.create({ data: dto });
     await this.clearCategoryCache();
@@ -56,7 +71,10 @@ export class CategoriesService {
 
   async update(id: string, dto: UpdateCategoryDto) {
     await this.findOne(id);
-    const updated = await this.prisma.category.update({ where: { id }, data: dto });
+    const updated = await this.prisma.category.update({
+      where: { id },
+      data: dto,
+    });
     await this.clearCategoryCache();
     return updated;
   }

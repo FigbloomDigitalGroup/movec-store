@@ -1,6 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy, StrategyOptionsWithoutRequest } from 'passport-jwt';
+import {
+  ExtractJwt,
+  Strategy,
+  StrategyOptionsWithoutRequest,
+} from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -19,7 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     const options: StrategyOptionsWithoutRequest = {
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => req?.cookies?.[ACCESS_TOKEN_COOKIE] ?? null,
+        (req: Request) =>
+          (req.cookies as Record<string, string> | undefined)?.[
+            ACCESS_TOKEN_COOKIE
+          ] ?? null,
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET') as string,

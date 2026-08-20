@@ -5,42 +5,25 @@ import toast from 'react-hot-toast';
 import {
   FiPackage,
   FiChevronLeft,
-  FiClock,
-  FiCheckCircle,
-  FiTruck,
-  FiXCircle,
   FiAlertCircle,
-  FiRefreshCw,
   FiMapPin,
+  FiTruck,
   FiCreditCard,
   FiTag,
   FiShoppingBag,
   FiArrowRight,
+  FiXCircle,
 } from 'react-icons/fi';
-
-/* ─── Status helpers ─────────────────────────────────────────── */
-const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  PENDING:    { label: 'Pending',    color: 'text-amber-600',   bg: 'bg-amber-100',   icon: <FiClock size={18} /> },
-  CONFIRMED:  { label: 'Confirmed',  color: 'text-[#10B982]',    bg: 'bg-[#ecfdf5]',    icon: <FiCheckCircle size={18} /> },
-  PROCESSING: { label: 'Processing', color: 'text-purple-600',  bg: 'bg-purple-100',  icon: <FiRefreshCw size={18} /> },
-  SHIPPED:    { label: 'Shipped',    color: 'text-sky-600',     bg: 'bg-sky-100',     icon: <FiTruck size={18} /> },
-  DELIVERED:  { label: 'Delivered',  color: 'text-emerald-600', bg: 'bg-emerald-100', icon: <FiCheckCircle size={18} /> },
-  CANCELLED:  { label: 'Cancelled',  color: 'text-red-600',     bg: 'bg-red-100',     icon: <FiXCircle size={18} /> },
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: 'text-gray-600', bg: 'bg-gray-100', icon: <FiAlertCircle size={18} /> };
-  return (
-    <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold ${cfg.bg} ${cfg.color}`}>
-      {cfg.icon} {cfg.label}
-    </span>
-  );
-}
+import { getOrderStatusConfig } from '../lib/orderStatus';
+import OrderStatusBadge from '../components/OrderStatusBadge';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { useState } from 'react';
+import type { OrderStatusHistoryEntry, OrderItem } from '../types';
 
 /* ─── Order Timeline ─────────────────────────────────────────── */
-function OrderTimeline({ status, history }: { status: string; history: any[] }) {
+const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+
+function OrderTimeline({ status, history }: { status: string; history: OrderStatusHistoryEntry[] }) {
   const isCancelled = status === 'CANCELLED';
   const steps = isCancelled
     ? ['PENDING', 'CANCELLED']
@@ -57,7 +40,7 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
 
         <div className="space-y-6">
           {steps.map((step, i) => {
-            const cfg = STATUS_CONFIG[step];
+            const cfg = getOrderStatusConfig(step);
             const isDone = isCancelled
               ? (step === 'PENDING' || step === 'CANCELLED')
               : i <= currentIdx;
@@ -72,21 +55,21 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
                 <div
                   className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition ${
                     isActive
-                      ? `${cfg.bg} ${cfg.color} ring-4 ring-offset-1 ${cfg.bg}`
+                      ? `${cfg.bg} ${cfg.text} ring-4 ring-offset-1 ${cfg.bg}`
                       : isDone
-                      ? `${cfg.bg} ${cfg.color}`
-                      : 'bg-gray-100 text-gray-400'
+                      ? `${cfg.bg} ${cfg.text}`
+                      : 'bg-gray-100 text-gray-500'
                   }`}
                 >
                   {cfg.icon}
                 </div>
 
                 <div className="pt-1">
-                  <p className={`text-sm font-semibold ${isActive ? cfg.color : isDone ? 'text-gray-800' : 'text-gray-400'}`}>
+                  <p className={`text-sm font-semibold ${isActive ? cfg.text : isDone ? 'text-gray-800' : 'text-gray-500'}`}>
                     {cfg.label}
                   </p>
                   {histEntry ? (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       {new Date(histEntry.changedAt).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric',
                         hour: '2-digit', minute: '2-digit',
@@ -109,6 +92,7 @@ function OrderTimeline({ status, history }: { status: string; history: any[] }) 
 export default function OrderDetailPage() {
   const { orderNumber } = useParams();
   const queryClient = useQueryClient();
+  const [pendingCancel, setPendingCancel] = useState(false);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderNumber],
@@ -116,13 +100,14 @@ export default function OrderDetailPage() {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: () => api.patch(`/orders/${orderNumber}/cancel`),
+    mutationFn: () => api.post(`/orders/${orderNumber}/cancel`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', orderNumber] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Order cancelled successfully.');
+      setPendingCancel(false);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
@@ -144,7 +129,7 @@ export default function OrderDetailPage() {
         <div className="text-center">
           <FiAlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
           <h2 className="text-lg font-bold text-gray-800">Order not found</h2>
-          <Link to="/orders" className="text-[#10B982] text-sm mt-2 inline-block hover:text-[#0d9b6f]">← Back to orders</Link>
+          <Link to="/orders" className="text-primary-500 text-sm mt-2 inline-block hover:text-primary-600">← Back to orders</Link>
         </div>
       </div>
     );
@@ -165,7 +150,7 @@ export default function OrderDetailPage() {
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl md:text-3xl font-section-title text-gray-900">
                 Order #{order.orderNumber}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
@@ -174,7 +159,7 @@ export default function OrderDetailPage() {
                 })}
               </p>
             </div>
-            <StatusBadge status={order.status} />
+            <OrderStatusBadge status={order.status} size="lg" />
           </div>
         </div>
       </div>
@@ -189,11 +174,11 @@ export default function OrderDetailPage() {
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <div className="border-b border-gray-100 px-6 py-4">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <FiShoppingBag className="text-[#10B982]" size={16} /> Items Ordered
+                  <FiShoppingBag className="text-primary-500" size={16} /> Items Ordered
                 </h2>
               </div>
               <div className="divide-y divide-gray-100">
-                {order.items.map((item: any, i: number) => (
+                {order.items.map((item: OrderItem, i: number) => (
                   <div key={i} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition">
                     <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {item.image ? (
@@ -205,7 +190,7 @@ export default function OrderDetailPage() {
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/products/${item.slug}`}
-                        className="font-semibold text-gray-900 text-sm hover:text-[#10B982] transition line-clamp-2"
+                        className="font-semibold text-gray-900 text-sm hover:text-primary-500 transition line-clamp-2"
                       >
                         {item.productName}
                       </Link>
@@ -215,7 +200,7 @@ export default function OrderDetailPage() {
                       <p className="font-bold text-gray-900 text-sm">
                         KES {(item.price * item.quantity).toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-400">KES {item.price.toLocaleString()} each</p>
+                      <p className="text-xs text-gray-500">KES {item.price.toLocaleString()} each</p>
                     </div>
                   </div>
                 ))}
@@ -226,7 +211,7 @@ export default function OrderDetailPage() {
             {order.shippingAddress && (
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <FiMapPin className="text-[#10B982]" size={16} /> Delivery Address
+                  <FiMapPin className="text-primary-500" size={16} /> Delivery Address
                 </h2>
                 <div className="text-sm text-gray-700 space-y-1">
                   <p className="font-semibold text-gray-900">
@@ -271,7 +256,7 @@ export default function OrderDetailPage() {
             {order.payments?.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <FiCreditCard className="text-[#10B982]" size={16} /> Payment
+                  <FiCreditCard className="text-primary-500" size={16} /> Payment
                 </h2>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Method</span>
@@ -323,7 +308,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
                 {order.coupon && (
-                  <div className="text-xs text-gray-400 text-right">
+                  <div className="text-xs text-gray-500 text-right">
                     Coupon: <span className="font-mono font-semibold text-gray-600">{order.coupon.code}</span>
                   </div>
                 )}
@@ -352,11 +337,7 @@ export default function OrderDetailPage() {
               {/* Cancel order */}
               {canCancel && (
                 <button
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to cancel this order?')) {
-                      cancelMutation.mutate();
-                    }
-                  }}
+                  onClick={() => setPendingCancel(true)}
                   disabled={cancelMutation.isPending}
                   className="flex items-center justify-center gap-2 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-sm transition"
                 >
@@ -376,6 +357,16 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingCancel}
+        title="Cancel this order?"
+        description="This cannot be undone. You'll need to place a new order if you change your mind."
+        confirmLabel="Cancel Order"
+        isPending={cancelMutation.isPending}
+        onConfirm={() => cancelMutation.mutate()}
+        onCancel={() => setPendingCancel(false)}
+      />
     </div>
   );
 }

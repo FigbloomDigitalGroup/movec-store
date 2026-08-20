@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { FiArrowUp } from 'react-icons/fi';
+import { useCookieConsentStore } from '../store/cookieConsentStore';
 
 export default function BackToTop() {
   const [visible, setVisible] = useState(false);
+  const showBanner = useCookieConsentStore((s) => s.showBanner);
 
   useEffect(() => {
     const toggleVisible = () => {
@@ -24,7 +26,7 @@ export default function BackToTop() {
     });
   };
 
-  if (!visible) return null;
+  if (!visible || showBanner) return null;
 
   return (
     <button

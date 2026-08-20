@@ -6,54 +6,37 @@ import {
   FiPackage,
   FiChevronRight,
   FiClock,
-  FiCheckCircle,
-  FiTruck,
-  FiXCircle,
-  FiAlertCircle,
   FiShoppingBag,
   FiSearch,
-  FiRefreshCw,
 } from 'react-icons/fi';
+import { ORDER_STATUSES, getOrderStatusConfig } from '../lib/orderStatus';
+import OrderStatusBadge from '../components/OrderStatusBadge';
+import type { Order } from '../types';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  PENDING:    { label: 'Pending',    color: 'bg-amber-50 text-amber-700 border-amber-200',   icon: <FiClock size={13} /> },
-  CONFIRMED:  { label: 'Confirmed',  color: 'bg-[#ecfdf5] text-[#10B982] border-[#10B982]/20', icon: <FiCheckCircle size={13} /> },
-  PROCESSING: { label: 'Processing', color: 'bg-purple-50 text-purple-700 border-purple-200', icon: <FiRefreshCw size={13} /> },
-  SHIPPED:    { label: 'Shipped',    color: 'bg-sky-50 text-sky-700 border-sky-200',          icon: <FiTruck size={13} /> },
-  DELIVERED:  { label: 'Delivered',  color: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: <FiCheckCircle size={13} /> },
-  CANCELLED:  { label: 'Cancelled',  color: 'bg-red-50 text-red-700 border-red-200',          icon: <FiXCircle size={13} /> },
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: 'bg-gray-100 text-gray-700 border-gray-200', icon: <FiAlertCircle size={13} /> };
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
-      {cfg.icon} {cfg.label}
-    </span>
-  );
+interface OrdersResponse {
+  data: Order[];
+  meta: { page: number; limit: number; total: number };
 }
 
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<OrdersResponse>({
     queryKey: ['orders'],
     queryFn: () => api.get('/orders').then((r) => r.data),
   });
 
-  const orders: any[] = data?.data || [];
+  const orders: Order[] = data?.data || [];
 
   const filtered = orders.filter((o) => {
     const matchStatus = statusFilter === 'all' || o.status === statusFilter;
     const matchSearch =
       search === '' ||
       o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-      o.items?.some((i: any) => i.productName.toLowerCase().includes(search.toLowerCase()));
+      o.items?.some((i) => i.productName.toLowerCase().includes(search.toLowerCase()));
     return matchStatus && matchSearch;
   });
-
-  const statuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
   return (
     <div className="min-h-screen">
@@ -61,10 +44,10 @@ export default function OrdersPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 bg-[#10B982]/10 rounded-xl flex items-center justify-center">
-              <FiPackage className="text-[#10B982]" size={20} />
+            <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center">
+              <FiPackage className="text-primary-500" size={20} />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Orders</h1>
+            <h1 className="text-3xl md:text-4xl font-section-title text-gray-900">My Orders</h1>
           </div>
           <p className="text-gray-500 text-sm ml-14">
             Track and manage all your purchases in one place.
@@ -77,13 +60,14 @@ export default function OrdersPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search */}
           <div className="relative flex-1">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
             <input
               type="text"
               placeholder="Search by order number or product..."
+              aria-label="Search orders"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#10B982] transition"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-500 transition"
             />
           </div>
 
@@ -93,23 +77,23 @@ export default function OrdersPage() {
               onClick={() => setStatusFilter('all')}
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition border ${
                 statusFilter === 'all'
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
               }`}
             >
               All ({orders.length})
             </button>
-            {statuses.map((s) => {
+            {ORDER_STATUSES.map((s) => {
               const count = orders.filter((o) => o.status === s).length;
               if (count === 0) return null;
-              const cfg = STATUS_CONFIG[s];
+              const cfg = getOrderStatusConfig(s);
               return (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
                   className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition border ${
                     statusFilter === s
-                      ? 'bg-[#10B982] text-white border-[#10B982]'
+                      ? 'bg-primary-500 text-white border-primary-500'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -144,7 +128,7 @@ export default function OrdersPage() {
             {orders.length === 0 && (
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 bg-[#10B982] hover:bg-[#0d9b6f] text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
+                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition"
               >
                 <FiShoppingBag size={16} /> Start Shopping
               </Link>
@@ -156,7 +140,7 @@ export default function OrdersPage() {
               <Link
                 key={order.orderNumber}
                 to={`/orders/${order.orderNumber}`}
-                className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-blue-200 transition group"
+                className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-primary-500/30 transition group"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   {/* Left: Order info */}
@@ -170,22 +154,22 @@ export default function OrdersPage() {
                           className="w-full h-full object-contain p-1"
                         />
                       ) : (
-                        <FiPackage className="text-gray-400" size={22} />
+                        <FiPackage className="text-gray-500" size={22} />
                       )}
                     </div>
 
                     <div>
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="font-bold text-gray-900 text-sm">#{order.orderNumber}</span>
-                        <StatusBadge status={order.status} />
+                        <OrderStatusBadge status={order.status} size="sm" />
                       </div>
 
                       {/* Item names preview */}
                       <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                        {order.items?.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
+                        {order.items?.map((i) => `${i.productName} ×${i.quantity}`).join(', ')}
                       </p>
 
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         Placed {new Date(order.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric', month: 'short', day: 'numeric',
                         })}
@@ -198,7 +182,7 @@ export default function OrdersPage() {
                     <span className="text-lg font-bold text-gray-900">
                       KES {order.total.toLocaleString()}
                     </span>
-                    <div className="flex items-center gap-1 text-xs text-[#10B982] font-semibold group-hover:gap-2 transition-all">
+                    <div className="flex items-center gap-1 text-xs text-primary-500 font-semibold group-hover:gap-2 transition-all">
                       View Details <FiChevronRight size={14} />
                     </div>
                   </div>

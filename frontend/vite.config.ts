@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -14,29 +15,21 @@ export default defineConfig({
       open: false,
     }),
   ],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.ts',
+  },
   build: {
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return
 
-          if (id.includes('@stripe')) return 'stripe'
-          if (id.includes('@dnd-kit')) return 'dnd'
           if (id.includes('embla-carousel')) return 'carousel'
           if (id.includes('@tanstack/react-query')) return 'query'
-          if (
-            id.includes('framer-motion') ||
-            id.includes('/gsap/') ||
-            id.includes('/ogl/')
-          ) {
+          if (id.includes('framer-motion') || id.includes('/gsap/')) {
             return 'animation'
-          }
-          if (
-            id.includes('react-hook-form') ||
-            id.includes('@hookform') ||
-            id.includes('/zod/')
-          ) {
-            return 'forms'
           }
           if (id.includes('react-icons')) return 'icons'
           if (

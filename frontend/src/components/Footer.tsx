@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { FiFacebook, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin, FiClock, FiRefreshCw, FiTruck, FiHeadphones, FiAward } from 'react-icons/fi';
+import { FiFacebook, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapPin, FiClock, FiRefreshCw, FiTruck, FiHeadphones, FiAward, FiLock } from 'react-icons/fi';
 import { FaTiktok } from 'react-icons/fa6';
-import { FaLock } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 
 export default function Footer() {
@@ -12,7 +11,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
             {[
               { icon: FiAward, title: '100% Genuine Products', subtitle: 'Quality you can trust' },
-              { icon: FaLock, title: 'Secure Payments', subtitle: 'Safe & encrypted' },
+              { icon: FiLock, title: 'Secure Payments', subtitle: 'Safe & encrypted' },
               { icon: FiRefreshCw, title: 'Easy Returns', subtitle: 'Hassle-free returns' },
               { icon: FiTruck, title: 'Nationwide Delivery', subtitle: 'Fast delivery to your door' },
               { icon: FiHeadphones, title: '24/7 Customer Support', subtitle: 'We are always here' },
@@ -40,16 +39,16 @@ export default function Footer() {
               Your trusted partner for Starlink internet, AI-powered CCTV security, networking equipment, and smart devices in Kenya.
             </p>
             <div className="flex gap-4">
-              <a href="https://www.facebook.com/profile.php?id=61592342871606" target="_blank" rel="noopener noreferrer" className="text-[#7B837D] hover:text-[#10B982] transition">
+              <a href="https://www.facebook.com/profile.php?id=61592342871606" target="_blank" rel="noopener noreferrer" aria-label="Movec Store on Facebook" className="text-[#7B837D] hover:text-[#10B982] transition">
                 <FiFacebook size={20} />
               </a>
-              <a href="https://www.tiktok.com/@movec.connect" target="_blank" rel="noopener noreferrer" className="text-[#7B837D] hover:text-[#10B982] transition">
+              <a href="https://www.tiktok.com/@movec.connect" target="_blank" rel="noopener noreferrer" aria-label="Movec Store on TikTok" className="text-[#7B837D] hover:text-[#10B982] transition">
                 <FaTiktok size={20} />
               </a>
-              <a href="https://www.instagram.com/figbloomdigital/?hl=en" target="_blank" rel="noopener noreferrer" className="text-[#7B837D] hover:text-[#10B982] transition">
+              <a href="https://www.instagram.com/figbloomdigital/?hl=en" target="_blank" rel="noopener noreferrer" aria-label="Movec Store on Instagram" className="text-[#7B837D] hover:text-[#10B982] transition">
                 <FiInstagram size={20} />
               </a>
-              <a href="https://www.linkedin.com/company/135305554/admin/dashboard/" target="_blank" rel="noopener noreferrer" className="text-[#7B837D] hover:text-[#10B982] transition">
+              <a href="https://www.linkedin.com/company/135305554/admin/dashboard/" target="_blank" rel="noopener noreferrer" aria-label="Movec Store on LinkedIn" className="text-[#7B837D] hover:text-[#10B982] transition">
                 <FiLinkedin size={20} />
               </a>
             </div>
@@ -103,7 +102,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-[#E3E8E5] mt-10 pt-6">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#86898B]">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-600">
             <span>Copyright &copy; {new Date().getFullYear()} Movec Store. All rights reserved.</span>
             <span className="hidden sm:inline">&nbsp;</span>
             <Link to="/privacy" className="hover:text-[#10B982] transition">Privacy Policy</Link>

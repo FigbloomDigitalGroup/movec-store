@@ -17,6 +17,11 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 import { IsArray, IsEnum } from 'class-validator';
+import type { PaginationQuery } from '../common/pagination';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 class AssignRolesDto {
   @IsArray()
@@ -31,8 +36,8 @@ export class AdminUsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(@Query('page') page = 1, @Query('limit') limit = 20) {
-    return this.usersService.findAll(+page, +limit);
+  findAll(@Query() query: PaginationQuery) {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')
@@ -46,17 +51,25 @@ export class AdminUsersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, dto, admin.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.softDelete(id);
+  remove(@CurrentUser() admin: AuthenticatedUser, @Param('id') id: string) {
+    return this.usersService.softDelete(id, admin.id);
   }
 
   @Patch(':id/roles')
-  assignRoles(@Param('id') id: string, @Body() dto: AssignRolesDto) {
-    return this.usersService.update(id, { roles: dto.roles });
+  assignRoles(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: AssignRolesDto,
+  ) {
+    return this.usersService.update(id, { roles: dto.roles }, admin.id);
   }
 }

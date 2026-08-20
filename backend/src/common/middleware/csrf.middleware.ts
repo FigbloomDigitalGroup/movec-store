@@ -5,13 +5,22 @@ import type { ConfigService } from '@nestjs/config';
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'x-xsrf-token';
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-const EXEMPT_PATHS = new Set(['/payments/mpesa/callback', '/payments/paystack/webhook']);
+const EXEMPT_PATHS = new Set([
+  '/payments/mpesa/callback',
+  '/payments/paystack/webhook',
+]);
+
+export type RequestWithCsrf = Request & { csrfToken?: string };
 
 export function createCsrfMiddleware(configService: ConfigService) {
-  return function csrfMiddleware(req: Request, res: Response, next: NextFunction) {
+  return function csrfMiddleware(
+    req: RequestWithCsrf,
+    res: Response,
+    next: NextFunction,
+  ) {
     const isProd = configService.get<string>('NODE_ENV') === 'production';
 
-    let token = req.cookies?.[CSRF_COOKIE];
+    let token = req.cookies?.[CSRF_COOKIE] as string | undefined;
     if (!token) {
       token = crypto.randomBytes(32).toString('hex');
       res.cookie(CSRF_COOKIE, token, {
@@ -22,7 +31,7 @@ export function createCsrfMiddleware(configService: ConfigService) {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     }
-    (req as any).csrfToken = token;
+    req.csrfToken = token;
 
     if (!UNSAFE_METHODS.has(req.method) || EXEMPT_PATHS.has(req.path)) {
       return next();
@@ -30,7 +39,9 @@ export function createCsrfMiddleware(configService: ConfigService) {
 
     const headerToken = req.headers[CSRF_HEADER];
     if (!headerToken || headerToken !== token) {
-      return res.status(403).json({ statusCode: 403, message: 'Invalid CSRF token' });
+      return res
+        .status(403)
+        .json({ statusCode: 403, message: 'Invalid CSRF token' });
     }
 
     return next();

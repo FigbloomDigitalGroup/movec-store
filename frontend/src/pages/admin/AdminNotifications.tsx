@@ -12,6 +12,11 @@ import {
   FiSmartphone,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import PageHeader from '../../components/ui/PageHeader';
+import Pagination from '../../components/ui/Pagination';
+
+const PAGE_SIZE = 10;
 
 interface NotificationLog {
   id: string;
@@ -42,6 +47,8 @@ export default function AdminNotifications() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -52,9 +59,15 @@ export default function AdminNotifications() {
   });
 
   // Fetch past notification logs
-  const { data: notificationLogs, isLoading: logsLoading } = useQuery<NotificationLog[]>({
-    queryKey: ['admin-notification-logs'],
-    queryFn: () => api.get('/admin/notifications').then((r) => r.data),
+  const { data: notificationLogs, isLoading: logsLoading } = useQuery<{ data: NotificationLog[]; meta: { total: number } }>({
+    queryKey: ['admin-notification-logs', filterType, page],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('limit', String(PAGE_SIZE));
+      if (filterType !== 'all') params.set('type', filterType);
+      return api.get(`/admin/notifications?${params.toString()}`).then((r) => r.data);
+    },
   });
 
   // Mutation: Send to Single User
@@ -101,6 +114,7 @@ export default function AdminNotifications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-notification-logs'] });
       toast.success('Notification deleted from history');
+      setPendingDeleteId(null);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -141,9 +155,8 @@ export default function AdminNotifications() {
       u.email.toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  const filteredLogs = (notificationLogs || []).filter(
-    (log) => filterType === 'all' || log.type?.toUpperCase() === filterType.toUpperCase()
-  );
+  const logs = notificationLogs?.data || [];
+  const logsTotal = notificationLogs?.meta?.total || 0;
 
   const getTypeBadge = (t: string) => {
     switch (t.toUpperCase()) {
@@ -162,30 +175,24 @@ export default function AdminNotifications() {
 
   return (
     <div className="w-full space-y-6 pb-12">
-      {/* Header */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <FiBell className="text-purple-600" /> Notifications & Broadcast Center
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Send real-time promotional updates, order alerts, and system notices to customers.
-          </p>
-        </div>
-
-        {/* Quick Mode Indicator */}
-        <div className="flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-100 px-4 py-2 rounded-xl text-xs font-semibold">
-          <FiUsers size={16} /> Broadcast Studio Ready
-        </div>
-      </div>
+      <PageHeader
+        icon={FiBell}
+        title="Notifications & Broadcast Center"
+        subtitle="Send real-time promotional updates, order alerts, and system notices to customers."
+        action={
+          <div className="flex items-center gap-2 bg-primary-50 text-primary-700 border border-primary-100 px-4 py-2 rounded-xl text-xs font-semibold">
+            <FiUsers size={16} /> Broadcast Studio Ready
+          </div>
+        }
+      />
 
       {/* Main Grid: Form + Live Preview (Left) vs History Log (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Form & Live Preview (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
             <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <FiSend className="text-purple-600" /> Send New Notification
+              <FiSend className="text-primary-500" /> Send New Notification
             </h2>
 
             <form onSubmit={handleSend} className="space-y-4">
@@ -200,7 +207,7 @@ export default function AdminNotifications() {
                     onClick={() => setRecipientMode('all')}
                     className={`py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 ${
                       recipientMode === 'all'
-                        ? 'bg-purple-600 text-white shadow-sm'
+                        ? 'bg-primary-500 text-white shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -211,7 +218,7 @@ export default function AdminNotifications() {
                     onClick={() => setRecipientMode('single')}
                     className={`py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 ${
                       recipientMode === 'single'
-                        ? 'bg-purple-600 text-white shadow-sm'
+                        ? 'bg-primary-500 text-white shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -225,13 +232,14 @@ export default function AdminNotifications() {
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
                   <label className="block text-xs font-bold text-gray-700">Select Target Customer</label>
                   <div className="relative">
-                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
                     <input
                       type="text"
                       placeholder="Search customer by name or email..."
+                      aria-label="Search customers"
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-purple-500"
+                      className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-primary-500"
                     />
                   </div>
 
@@ -239,7 +247,7 @@ export default function AdminNotifications() {
                   <select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">-- Choose a customer from list --</option>
                     {filteredUsers.map((u) => (
@@ -256,7 +264,7 @@ export default function AdminNotifications() {
                 <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">
                   Notification Category
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { key: 'PROMO', label: 'Promo 🏷️' },
                     { key: 'ORDER', label: 'Order 📦' },
@@ -269,7 +277,7 @@ export default function AdminNotifications() {
                       onClick={() => setType(cat.key)}
                       className={`py-2 text-xs font-semibold rounded-xl border transition ${
                         type === cat.key
-                          ? 'border-purple-600 bg-purple-50 text-purple-700 font-bold'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700 font-bold'
                           : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
                       }`}
                     >
@@ -287,7 +295,7 @@ export default function AdminNotifications() {
                   placeholder="e.g. Starlink Gen 3 Kits Now Available! 🛰️"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:bg-white transition"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white transition"
                 />
               </div>
 
@@ -299,7 +307,7 @@ export default function AdminNotifications() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={3}
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:bg-white transition resize-none"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white transition resize-none"
                 />
               </div>
 
@@ -307,7 +315,7 @@ export default function AdminNotifications() {
               <button
                 type="submit"
                 disabled={isSending}
-                className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-purple-600/20"
+                className="w-full py-3 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-primary-500/20"
               >
                 <FiSend size={15} />
                 {isSending
@@ -320,24 +328,24 @@ export default function AdminNotifications() {
           </div>
 
           {/* Live Mobile Notification Preview */}
-          <div className="bg-gradient-to-br from-slate-900 to-gray-900 rounded-3xl p-5 text-white border border-gray-800 shadow-lg">
+          <div className="bg-gradient-to-br from-slate-900 to-gray-900 rounded-2xl p-5 text-white border border-gray-800 shadow-lg">
             <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary-200 flex items-center gap-1.5">
                 <FiSmartphone size={14} /> Mobile App Preview
               </span>
-              <span className="text-[10px] text-gray-400">Live Render</span>
+              <span className="text-[10px] text-gray-500">Live Render</span>
             </div>
 
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl backdrop-blur-sm flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <div className="w-10 h-10 rounded-xl bg-primary-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
                 <FiBell size={18} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary-200">
                     Movec Store • {type}
                   </span>
-                  <span className="text-[10px] text-gray-400">Just now</span>
+                  <span className="text-[10px] text-gray-500">Just now</span>
                 </div>
                 <h4 className="text-sm font-bold text-white mt-0.5 truncate">
                   {title.trim() || 'Notification Title Here'}
@@ -351,19 +359,19 @@ export default function AdminNotifications() {
         </div>
 
         {/* Right Column: Notification History Logs (5 cols) */}
-        <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Sent Notification Logs</h3>
-                <p className="text-xs text-gray-400">History of recent alerts</p>
+                <p className="text-xs text-gray-500">History of recent alerts</p>
               </div>
 
               {/* Type Filter */}
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1 text-xs text-gray-700 font-semibold focus:outline-none"
+                onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+                className="bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1 text-xs text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="all">All Types</option>
                 <option value="PROMO">PROMO</option>
@@ -382,20 +390,20 @@ export default function AdminNotifications() {
                     <div className="h-4 bg-gray-200 rounded w-3/4" />
                   </div>
                 ))
-              ) : filteredLogs.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
+              ) : logs.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
                   <FiBell size={36} className="mx-auto text-gray-300 mb-2" />
                   <p className="text-xs font-semibold">No notification logs found</p>
                 </div>
               ) : (
-                filteredLogs.map((log) => (
+                logs.map((log) => (
                   <div
                     key={log.id}
                     className="p-3.5 bg-gray-50/80 hover:bg-gray-100/80 border border-gray-100 rounded-2xl transition space-y-1.5"
                   >
                     <div className="flex items-center justify-between gap-2">
                       {getTypeBadge(log.type)}
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-gray-500">
                         {new Date(log.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -416,8 +424,8 @@ export default function AdminNotifications() {
                           : 'Broadcast (All Customers)'}
                       </span>
                       <button
-                        onClick={() => deleteMutation.mutate(log.id)}
-                        className="text-gray-400 hover:text-red-500 transition p-1"
+                        onClick={() => setPendingDeleteId(log.id)}
+                        className="text-gray-500 hover:text-red-500 transition p-1"
                         title="Delete log"
                       >
                         <FiTrash2 size={13} />
@@ -427,9 +435,20 @@ export default function AdminNotifications() {
                 ))
               )}
             </div>
+            <Pagination page={page} limit={PAGE_SIZE} total={logsTotal} onPageChange={setPage} />
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        title="Delete this notification log?"
+        description="This removes it from the history list. It cannot be undone."
+        confirmLabel="Delete"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => pendingDeleteId && deleteMutation.mutate(pendingDeleteId)}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

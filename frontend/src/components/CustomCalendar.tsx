@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { IoChevronBack, IoChevronForward, IoCalendarOutline } from 'react-icons/io5';
+import { FiChevronLeft, FiChevronRight, FiCalendar } from 'react-icons/fi';
 
 interface CustomCalendarProps {
   value: string;
@@ -13,6 +13,7 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
   const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dayRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   const daysOfWeek = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   const monthNames = [
@@ -30,6 +31,20 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Escape closes the calendar — already documented as intended behavior
+  // (see README-Calendar.md) but never actually implemented.
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        inputRef.current?.focus();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   // Get days in month
   const getDaysInMonth = (date: Date) => {
@@ -65,9 +80,12 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
     const formattedDate = selected.toISOString().split('T')[0];
     onChange(formattedDate);
     
-    // Close popup and trigger auto-progression
+    // Close popup and trigger auto-progression. The day button that was just
+    // clicked unmounts along with the grid; without refocusing the input,
+    // focus drops to <body> and keyboard/screen-reader users lose their place.
     setTimeout(() => {
       setIsOpen(false);
+      inputRef.current?.focus();
       onComplete?.();
     }, 200);
   };
@@ -96,6 +114,25 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
 
   const handleNextMonth = () => {
     setDisplayDate(new Date(displayDate.getFullYear(), displayDate.getMonth() + 1));
+  };
+
+  // Standard date-picker grid keyboard pattern: Left/Right move a day, Up/Down
+  // move a week, within the currently displayed month. Crossing into the next
+  // or previous month via arrow keys isn't handled — a reasonable scope
+  // boundary for a single-month grid rather than a full calendar widget.
+  const handleGridKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, day: number) => {
+    const daysInMonth = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0).getDate();
+    const deltas: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowLeft: -1,
+      ArrowDown: 7,
+      ArrowUp: -7,
+    };
+    const delta = deltas[e.key];
+    if (delta === undefined) return;
+    e.preventDefault();
+    const target = Math.max(1, Math.min(day + delta, daysInMonth));
+    dayRefs.current[target]?.focus();
   };
 
   const isToday = (day: number) => {
@@ -149,12 +186,20 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
           value={formatDisplayDate()}
           onChange={handleManualInput}
           onClick={() => setIsOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setIsOpen(true);
+              const day = selectedDate && selectedDate.getMonth() === displayDate.getMonth() ? selectedDate.getDate() : 1;
+              requestAnimationFrame(() => dayRefs.current[day]?.focus());
+            }
+          }}
           placeholder="YYYY-MM-DD"
           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
           aria-label="Select installation date"
         />
-        <IoCalendarOutline 
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer"
+        <FiCalendar
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 cursor-pointer"
           onClick={() => setIsOpen(true)}
         />
       </div>
@@ -172,7 +217,7 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
               }`}
               aria-label="Previous month"
             >
-              <IoChevronBack className="w-5 h-5" />
+              <FiChevronLeft className="w-5 h-5" />
             </button>
             
             <div className="font-medium text-gray-900">
@@ -184,7 +229,7 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
               className="p-1 rounded hover:bg-gray-100 transition"
               aria-label="Next month"
             >
-              <IoChevronForward className="w-5 h-5" />
+              <FiChevronRight className="w-5 h-5" />
             </button>
           </div>
 
@@ -206,7 +251,9 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
               <div key={idx} className="aspect-square">
                 {day ? (
                   <button
+                    ref={(el) => { dayRefs.current[day] = el; }}
                     onClick={() => !isPast(day) && handleDateSelect(day)}
+                    onKeyDown={(e) => handleGridKeyDown(e, day)}
                     disabled={isPast(day)}
                     className={`
                       w-full h-full rounded-full flex flex-col items-center justify-center text-sm
@@ -227,14 +274,6 @@ export default function CustomCalendar({ value, onChange, onComplete }: CustomCa
                     aria-label={`Select ${monthNames[displayDate.getMonth()]} ${day}`}
                   >
                     <span className="font-medium">{day}</span>
-                    {/* Availability dots - you can customize this based on your data */}
-                    {!isPast(day) && (
-                      <div className="flex gap-0.5 mt-0.5">
-                        {day % 3 === 0 && <span className="w-1 h-1 rounded-full bg-blue-400"></span>}
-                        {day % 5 === 0 && <span className="w-1 h-1 rounded-full bg-orange-400"></span>}
-                        {day % 7 === 0 && <span className="w-1 h-1 rounded-full bg-purple-400"></span>}
-                      </div>
-                    )}
                   </button>
                 ) : (
                   <div></div>

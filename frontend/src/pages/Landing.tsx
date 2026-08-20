@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fi';
 import Card, { CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import Alert from '../components/ui/Alert';
 import ProductCarousel from '../components/ProductCarousel';
 import type { Product } from '../types';
 
@@ -104,8 +105,8 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
   const categories = mod.categories ?? [];
 
   return (
-    <Link to={`/solutions/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10B982] focus-visible:ring-offset-2 rounded-xl">
-      <Card hover className="h-full transition-shadow group-hover:border-[#10B982]/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
+    <Link to={`/solutions/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-xl">
+      <Card hover className="h-full transition-shadow group-hover:border-primary-500/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
         <CardBody className="flex h-full flex-col">
           <div className="relative mb-6 overflow-hidden rounded-2xl p-8 text-white shadow-lg">
             {config.image && (
@@ -130,14 +131,14 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
           {categories.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {categories.map((cat) => (
-                <span key={cat.id} className="rounded-full bg-[#F3F5F2] px-3 py-1 text-xs text-slate-700">
+                <span key={cat.id} className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-slate-700">
                   {cat.name}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="flex items-center gap-2 font-semibold text-[#FC6501] transition-all group-hover:gap-3">
+          <div className="flex items-center gap-2 font-semibold text-secondary-500 transition-all group-hover:gap-3">
             Explore {mod.name}
             <FiArrowRight className="transition-transform group-hover:translate-x-1" />
           </div>
@@ -230,7 +231,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen text-slate-900">
-      <div className="bg-[#FC6501] text-white text-sm px-4 py-3 text-center font-medium shadow-sm">
+      <div className="bg-secondary-500 text-white text-sm px-4 py-3 text-center font-medium shadow-sm">
         Free delivery on orders over KES 50,000 • Nationwide installation available
       </div>
 
@@ -247,7 +248,7 @@ export default function Landing() {
             }}
           />
         )}
-        <div className="absolute inset-x-0 top-0 h-48 bg-[#10B982]/10" />
+        <div className="absolute inset-x-0 top-0 h-48 bg-primary-500/10" />
         <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16 overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -277,7 +278,7 @@ export default function Landing() {
                 {isInternalLink(activeSlide.ctaLink) ? (
                   <Link
                     to={activeSlide.ctaLink}
-                    className="inline-flex items-center justify-center rounded-full border border-[#10B982] bg-[#10B982] px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-[#0fa872] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:ring-offset-2"
+                    className="inline-flex items-center justify-center rounded-full border border-primary-500 bg-primary-500 px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-primary-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                     style={{
                       backgroundColor: activeSlide.badgeColor || '#10B982',
                       color: '#ffffff',
@@ -288,7 +289,7 @@ export default function Landing() {
                 ) : (
                   <a
                     href={activeSlide.ctaLink}
-                    className="inline-flex items-center justify-center rounded-full border border-[#10B982] bg-[#10B982] px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-[#0fa872] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#10B982] focus:ring-offset-2"
+                    className="inline-flex items-center justify-center rounded-full border border-primary-500 bg-primary-500 px-7 py-4 text-base font-semibold text-white shadow-[0_20px_40px_rgba(16,185,130,0.22)] transition hover:bg-primary-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                     style={{
                       backgroundColor: activeSlide.badgeColor || '#10B982',
                       color: '#ffffff',
@@ -300,7 +301,7 @@ export default function Landing() {
                   </a>
                 )}
 
-                <Link to="/shop" className="inline-flex items-center justify-center rounded-full border border-[#FC6501]/40 bg-[#fff8f4] px-6 py-4 text-base font-semibold text-slate-900 transition hover:border-[#FC6501] hover:bg-[#fff1ea] hover:text-[#0f172a]">
+                <Link to="/shop" className="inline-flex items-center justify-center rounded-full border border-secondary-500/40 bg-secondary-50 px-6 py-4 text-base font-semibold text-slate-900 transition hover:border-secondary-500 hover:bg-secondary-100 hover:text-slate-900">
                   Browse products
                 </Link>
               </div>
@@ -308,19 +309,19 @@ export default function Landing() {
               {hasProduct && activeSlide.product && (
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <p className="text-sm font-semibold text-slate-900">Featured product</p>
-                  <p className="mt-2 text-base font-semibold text-[#0F172A]">{activeSlide.product.name}</p>
+                  <p className="mt-2 text-base font-semibold text-slate-900">{activeSlide.product.name}</p>
                   <p className="mt-1 text-sm text-slate-500">From KES {activeSlide.product.price.toLocaleString()}</p>
                 </div>
               )}
             </div>
 
             <div className="relative overflow-hidden rounded-[36px] bg-white p-6 shadow-[0_40px_80px_rgba(16,185,130,0.12)] max-w-[520px] w-full">
-              <div className="absolute -right-16 top-10 h-36 w-36 rounded-full bg-[#FC6501]/20 blur-3xl" />
+              <div className="absolute -right-16 top-10 h-36 w-36 rounded-full bg-secondary-500/20 blur-3xl" />
               <div className="relative flex min-h-[360px] items-center justify-center">
                 {activeSlide.imageUrl ? (
                   <img src={activeSlide.imageUrl} alt={activeSlide.title} className="h-[360px] w-full max-w-full object-contain" />
                 ) : (
-                  <div className="flex h-[360px] items-center justify-center rounded-[32px] border border-dashed border-slate-200 bg-[#F8FBF7] text-center text-slate-500">
+                  <div className="flex h-[360px] items-center justify-center rounded-[32px] border border-dashed border-slate-200 bg-neutral-50 text-center text-slate-500">
                     <div>
                       <p className="text-xl font-semibold text-slate-900">Movec hero banner</p>
                       <p className="mt-2 text-sm text-slate-500">Upload an image from the admin banner editor to personalize this slide.</p>
@@ -334,7 +335,7 @@ export default function Landing() {
 
           <div className="mt-10 flex items-center justify-center gap-3">
             {slides.map((_, index) => (
-              <button key={index} type="button" onClick={() => setActiveIndex(index)} className={`h-3 rounded-full transition-all ${index === activeIndex ? 'w-10 bg-[#FC6501]' : 'w-3 bg-slate-300 hover:bg-slate-400'}`} aria-label={`Show slide ${index + 1}`} />
+              <button key={index} type="button" onClick={() => setActiveIndex(index)} className={`h-3 rounded-full transition-all ${index === activeIndex ? 'w-10 bg-secondary-500' : 'w-3 bg-slate-300 hover:bg-slate-400'}`} aria-label={`Show slide ${index + 1}`} />
             ))}
           </div>
         </div>
@@ -359,7 +360,7 @@ export default function Landing() {
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <p className="text-sm uppercase tracking-[0.3em] text-[#FC6501] font-semibold">Shop by solution</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-secondary-500 font-semibold">Shop by solution</p>
             <h2 className="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Browse our main product lines</h2>
             <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600">
               Explore Starlink, CCTV, and networking solutions directly from the homepage. Each card opens the relevant product line so customers can shop faster.
@@ -367,9 +368,9 @@ export default function Landing() {
           </div>
 
           {modulesError && (
-            <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-5 text-sm text-amber-800">
+            <Alert variant="warning" className="mb-6">
               Could not load the latest solution listings. Showing core product lines instead.
-            </div>
+            </Alert>
           )}
 
           {modulesLoading ? (
@@ -388,17 +389,17 @@ export default function Landing() {
 
           <div className="mt-12 flex flex-col items-center gap-4 text-center">
             <p className="text-slate-700">Want to browse the full catalog?</p>
-            <Link to="/products" className="inline-flex items-center gap-2 rounded-full border border-[#FC6501]/40 bg-[#fff8f4] px-6 py-3 text-sm font-semibold text-slate-900 transition hover:border-[#FC6501] hover:bg-[#fff1ea] hover:text-[#0f172a]">
+            <Link to="/products" className="inline-flex items-center gap-2 rounded-full border border-secondary-500/40 bg-secondary-50 px-6 py-3 text-sm font-semibold text-slate-900 transition hover:border-secondary-500 hover:bg-secondary-100 hover:text-slate-900">
               <FiPackage size={18} /> Browse All Products
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="bg-[#f7faf8] py-16 md:py-20">
+      <section className="bg-neutral-50 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FC6501]">Why Choose Movec Systems?</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-secondary-500">Why Choose Movec Systems?</p>
             <h2 className="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Next-generation connectivity and security, in one place.</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base text-slate-600">
               Because life is already busy enough without buffering videos, ghost alerts, or wondering if your signal is pretending to work.
@@ -439,7 +440,7 @@ export default function Landing() {
               },
             ].map(({ icon: Icon, title, text, accent }) => (
               <div key={title} className={`rounded-3xl border border-slate-200 bg-gradient-to-br ${accent} p-6 shadow-[0_16px_40px_rgba(15,23,42,0.04)]`}>
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#10B982] shadow-sm">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-primary-500 shadow-sm">
                   <Icon size={22} />
                 </div>
                 <h3 className="mb-3 text-lg font-semibold text-slate-900">{title}</h3>
@@ -451,7 +452,7 @@ export default function Landing() {
           <div className="mt-12 rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.04)] md:p-8">
             <div className="flex items-center justify-between gap-4 flex-col md:flex-row">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#FC6501]">Perfect For</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-secondary-500">Perfect For</p>
                 <h3 className="mt-3 text-2xl font-semibold text-slate-900">Homes, businesses, and every place that deserves solid internet and better security.</h3>
               </div>
               <div className="flex flex-wrap justify-center gap-2 md:justify-end">
@@ -462,7 +463,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="mt-12 rounded-[28px] bg-gradient-to-r from-[#0d9b6f] to-[#FC6501] p-6 text-white shadow-[0_22px_50px_rgba(16,185,130,0.18)] md:p-8">
+          <div className="mt-12 rounded-[28px] bg-gradient-to-r from-primary-600 to-secondary-500 p-6 text-white shadow-[0_22px_50px_rgba(16,185,130,0.18)] md:p-8">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div className="text-center">
                 <div className="mx-auto mb-4 flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white p-2 shadow-lg animate-spin-slow sm:h-24 sm:w-24">

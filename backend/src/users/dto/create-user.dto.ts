@@ -1,5 +1,14 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsArray, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsArray,
+  IsEnum,
+} from 'class-validator';
 import { RoleName } from '@prisma/client';
+import { IsStrongPassword } from '../../common/decorators/is-strong-password.decorator';
 
 export class CreateUserDto {
   @IsEmail()
@@ -18,6 +27,7 @@ export class CreateUserDto {
   @IsString()
   @MinLength(8)
   @MaxLength(50)
+  @IsStrongPassword()
   password: string;
 
   @IsOptional()

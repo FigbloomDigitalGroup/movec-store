@@ -62,7 +62,7 @@ export default function AdminLayout() {
       >
         {/* Logo */}
         <div className="px-5 py-5 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
-          <Link to="/admin" className="text-xl font-semibold tracking-tight" style={{ color: '#93c5fd' }}>
+          <Link to="/admin" className="text-xl font-semibold tracking-tight text-primary-200">
             Admin Panel
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-100">
@@ -71,7 +71,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav aria-label="Admin sidebar" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {sidebarLinks.map((link) => (
             <Link
               key={link.to}
@@ -79,13 +79,12 @@ export default function AdminLayout() {
               onClick={() => setSidebarOpen(false)}
               className={`group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
                 location.pathname === link.to
-                  ? 'bg-blue-500/15 shadow-sm shadow-blue-500/20'
-                  : 'hover:bg-slate-800 hover:text-white'
+                  ? 'bg-primary-500/15 text-primary-200 shadow-sm shadow-primary-500/20'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
-              style={{ color: location.pathname === link.to ? '#bfdbfe' : '#cbd5e1' }}
             >
-              <link.icon size={18} className="flex-shrink-0" style={{ color: 'inherit' }} />
-              <span className="text-sm font-medium" style={{ color: 'inherit' }}>{link.label}</span>
+              <link.icon size={18} className="flex-shrink-0" />
+              <span className="text-sm font-medium">{link.label}</span>
             </Link>
           ))}
         </nav>
@@ -94,7 +93,7 @@ export default function AdminLayout() {
         <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex-shrink-0">
           {/* User info */}
           <div className="flex items-center gap-3 mb-4 px-1">
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-slate-950 font-semibold text-sm shadow-lg shadow-blue-500/20 flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-slate-950 font-semibold text-sm shadow-lg shadow-primary-500/20 flex-shrink-0">
               {user?.firstName?.[0]?.toUpperCase() ?? 'A'}
             </div>
             <div className="min-w-0">
@@ -127,7 +126,7 @@ export default function AdminLayout() {
 
             {/* Right: clock + View Site */}
             <div className="flex items-center gap-3 ml-auto">
-              <span className="text-sm text-gray-400 font-medium hidden sm:block">{time}</span>
+              <span className="text-sm text-gray-500 font-medium hidden sm:block">{time}</span>
               <Link
                 to="/"
                 target="_blank"

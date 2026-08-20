@@ -1,9 +1,21 @@
-import { Controller, Get, Patch, Delete, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Delete,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
+import { QueryReviewDto } from './dto/query-review.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 @Controller('admin/reviews')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -12,22 +24,12 @@ export class AdminReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Get()
-  getAll() {
-    return this.reviewsService.getAllReviews();
-  }
-
-  @Patch(':id/approve')
-  approve(@Param('id') id: string) {
-    return this.reviewsService.approveReview(id);
-  }
-
-  @Patch(':id/reject')
-  reject(@Param('id') id: string) {
-    return this.reviewsService.rejectReview(id);
+  getAll(@Query() query: QueryReviewDto) {
+    return this.reviewsService.getAllReviews(query);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.reviewsService.deleteReview(id);
+  delete(@CurrentUser() admin: AuthenticatedUser, @Param('id') id: string) {
+    return this.reviewsService.deleteReview(id, admin.id);
   }
 }

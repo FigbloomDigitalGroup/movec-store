@@ -2,9 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import SectionHero from '../components/ui/SectionHero';
+import PageLoader from '../components/PageLoader';
 import { FiWifi, FiCamera, FiHardDrive, FiServer, FiCpu, FiTool } from 'react-icons/fi';
+import type { IconType } from 'react-icons';
+import type { Category } from '../types';
 
-const categoryIcons: Record<string, any> = {
+const categoryIcons: Record<string, IconType> = {
   'starlink-kits': FiWifi,
   'starlink-accessories': FiTool,
   'cctv-cameras': FiCamera,
@@ -26,21 +29,21 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function Categories() {
-  const { data: categories, isLoading } = useQuery({
+  const { data: categories, isLoading } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/categories').then(r => r.data),
   });
 
-  if (isLoading) return <div className="w-full px-4 py-8">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="w-full px-4 py-8">
       <SectionHero title="Categories" subtitle="Browse products by category" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories?.map((cat: any) => {
+        {categories?.map((cat) => {
           const Icon = categoryIcons[cat.slug] || FiTool;
-          const colorClass = categoryColors[cat.slug] || 'bg-[#10B982]/10 text-[#10B982]';
+          const colorClass = categoryColors[cat.slug] || 'bg-accent-100 text-accent';
 
           return (
             <Link

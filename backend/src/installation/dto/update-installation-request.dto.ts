@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsNumber } from 'class-validator';
 import { InstallationStatus } from '@prisma/client';
 
 export class UpdateInstallationRequestDto {
@@ -9,10 +9,6 @@ export class UpdateInstallationRequestDto {
   @IsOptional()
   @IsString()
   technicianId?: string;
-
-  @IsOptional()
-  @IsDateString()
-  scheduledDate?: string;
 
   @IsOptional()
   @IsNumber()

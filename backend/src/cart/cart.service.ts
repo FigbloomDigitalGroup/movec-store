@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -49,11 +54,15 @@ export class CartService {
         productId: item.productId,
         name: item.product.name,
         slug: item.product.slug,
+        sku: item.product.sku,
         price: item.product.price.toNumber(),
         image: item.product.images[0]?.url || null,
         quantity: item.quantity,
         subtotal: item.product.price.toNumber() * item.quantity,
-        inStock: item.product.inventory.reduce((sum, inv) => sum + inv.quantity, 0),
+        inStock: item.product.inventory.reduce(
+          (sum, inv) => sum + inv.quantity,
+          0,
+        ),
       })),
       total: cart.items.reduce(
         (sum, item) => sum + item.product.price.toNumber() * item.quantity,
@@ -72,7 +81,10 @@ export class CartService {
       throw new NotFoundException('Product not found');
     }
 
-    const totalStock = product.inventory.reduce((sum, inv) => sum + inv.quantity, 0);
+    const totalStock = product.inventory.reduce(
+      (sum, inv) => sum + inv.quantity,
+      0,
+    );
     if (totalStock < dto.quantity) {
       throw new BadRequestException('Insufficient stock');
     }
@@ -83,7 +95,9 @@ export class CartService {
     }
 
     const existingItem = await this.prisma.cartItem.findUnique({
-      where: { cartId_productId: { cartId: cart.id, productId: dto.productId } },
+      where: {
+        cartId_productId: { cartId: cart.id, productId: dto.productId },
+      },
     });
 
     if (existingItem) {
@@ -118,7 +132,8 @@ export class CartService {
       include: { inventory: true },
     });
 
-    const totalStock = product?.inventory.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
+    const totalStock =
+      product?.inventory.reduce((sum, inv) => sum + inv.quantity, 0) || 0;
     if (totalStock < dto.quantity) {
       throw new BadRequestException('Insufficient stock');
     }
@@ -145,10 +160,11 @@ export class CartService {
     return this.getCart(userId);
   }
 
-  async clearCart(userId: string) {
-    const cart = await this.prisma.cart.findUnique({ where: { userId } });
+  async clearCart(userId: string, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+    const cart = await client.cart.findUnique({ where: { userId } });
     if (cart) {
-      await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      await client.cartItem.deleteMany({ where: { cartId: cart.id } });
     }
   }
 }

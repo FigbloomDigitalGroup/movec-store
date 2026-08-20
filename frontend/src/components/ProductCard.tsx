@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '../types';
 import { FiShoppingCart, FiHeart, FiChevronLeft, FiChevronRight, FiStar } from 'react-icons/fi';
-import { useAuthStore } from '../store/authStore';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api, { getErrorMessage } from '../lib/api';
-import { useCartStore } from '../store/cartStore';
-import { useWishlistStore } from '../store/wishlistStore';
-import toast from 'react-hot-toast';
+import { useProductActions } from '../hooks/useProductActions';
 
 interface ProductCardProps {
   product: Product;
@@ -16,36 +11,8 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = product.images || [];
-  const { isAuthenticated } = useAuthStore();
-  const queryClient = useQueryClient();
-  const cartStore = useCartStore();
-  const wishlistStore = useWishlistStore();
-
-  const addToCartApi = useMutation({
-    mutationFn: async () => {
-      await api.post('/cart/items', { productId: product.id, quantity: 1 });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      toast.success(`Added ${product.name} to cart`);
-    },
-    onError: (error: any) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
-
-  const addToWishlistApi = useMutation({
-    mutationFn: async () => {
-      await api.post('/wishlist', { productId: product.id });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      toast.success(`Added ${product.name} to wishlist`);
-    },
-    onError: (error: any) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
+  const { isWishlisted, addToCart, toggleWishlist, isAddingToCart, isTogglingWishlist } =
+    useProductActions(product.id);
 
   const goNext = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,34 +29,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isAuthenticated) {
-      addToCartApi.mutate();
-    } else {
-      cartStore.addItem({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        image: images[currentIndex]?.url || null,
-        quantity: 1,
-      });
-    }
+    addToCart(product, 1, images[currentIndex]?.url || null);
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isAuthenticated) {
-      addToWishlistApi.mutate();
-    } else {
-      wishlistStore.toggleItem({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
-        image: images[currentIndex]?.url || null,
-      });
-    }
+    toggleWishlist(product, images[currentIndex]?.url || null);
   };
 
   const discount =
@@ -97,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
       : 0;
 
-  const totalStock = (product as any).inventory?.reduce((sum: number, inv: any) => sum + inv.quantity, 0) ?? 1;
+  const totalStock = product.inventory?.reduce((sum, inv) => sum + inv.quantity, 0) ?? 1;
   const inStock = totalStock > 0;
 
   return (
@@ -157,7 +103,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     setCurrentIndex(i);
                   }}
                   className={`h-1.5 rounded-full transition-all ${
-                    i === currentIndex ? 'bg-[#10B982] w-4' : 'bg-gray-300 w-1.5'
+                    i === currentIndex ? 'bg-accent w-4' : 'bg-gray-300 w-1.5'
                   }`}
                   aria-label={`View image ${i + 1}`}
                 />
@@ -195,26 +141,21 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h3>
 
-        {/* Rating — falls back to a placeholder until the product has real reviews */}
-        {(() => {
-          const displayRating = product.avgRating ?? 4;
-          return (
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <div className="flex items-center gap-0.5 text-yellow-400">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <FiStar
-                    key={i}
-                    size={10}
-                    className={i <= Math.round(displayRating) ? 'fill-yellow-400' : 'text-gray-300'}
-                  />
-                ))}
-              </div>
-              {product.reviewCount > 0 && (
-                <span className="text-[9px] text-gray-500">({product.reviewCount})</span>
-              )}
+        {/* Rating — only shown once the product has at least one real review */}
+        {product.avgRating != null && product.reviewCount > 0 && (
+          <div className="flex items-center justify-center gap-1 mb-0.5">
+            <div className="flex items-center gap-0.5 text-yellow-400">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <FiStar
+                  key={i}
+                  size={10}
+                  className={i <= Math.round(product.avgRating!) ? 'fill-yellow-400' : 'text-gray-300'}
+                />
+              ))}
             </div>
-          );
-        })()}
+            <span className="text-[9px] text-gray-500">({product.reviewCount})</span>
+          </div>
+        )}
 
         {/* Price */}
         <div className="mb-0.5">
@@ -224,7 +165,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
           {product.compareAtPrice && (
-            <span className="text-[9px] text-gray-400 line-through">
+            <span className="text-[9px] text-gray-500 line-through">
               KES {product.compareAtPrice.toLocaleString()}
             </span>
           )}
@@ -242,21 +183,24 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="flex gap-1">
           <button
             onClick={handleAddToCart}
-            disabled={!inStock}
+            disabled={!inStock || isAddingToCart}
             className="flex-1 btn-accent text-[11px] py-1.5 rounded-lg font-medium disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1"
           >
             <FiShoppingCart size={11} />
-            Add to Cart
+            {isAddingToCart ? 'Adding...' : 'Add to Cart'}
           </button>
           <button
             onClick={handleToggleWishlist}
-            className={`p-1.5 rounded-lg border-2 transition flex items-center justify-center ${
-              wishlistStore.isInWishlist(product.id)
+            disabled={isTogglingWishlist}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-pressed={isWishlisted}
+            className={`p-1.5 rounded-lg border-2 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed ${
+              isWishlisted
                 ? 'border-red-500 bg-red-50 text-red-500'
-                : 'border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500'
+                : 'border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500'
             }`}
           >
-            <FiHeart size={12} fill={wishlistStore.isInWishlist(product.id) ? 'currentColor' : 'none'} />
+            <FiHeart size={12} fill={isWishlisted ? 'currentColor' : 'none'} />
           </button>
         </div>
       </div>

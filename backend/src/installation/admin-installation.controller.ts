@@ -1,6 +1,16 @@
-import { Controller, Get, Patch, Post, Param, Query, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { InstallationService } from './installation.service';
 import { UpdateInstallationRequestDto } from './dto/update-installation-request.dto';
+import { QueryInstallationRequestDto } from './dto/query-installation-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -13,12 +23,15 @@ export class AdminInstallationController {
   constructor(private readonly installationService: InstallationService) {}
 
   @Get('requests')
-  getAllRequests(@Query('status') status?: string) {
-    return this.installationService.getAllRequests(status);
+  getAllRequests(@Query() query: QueryInstallationRequestDto) {
+    return this.installationService.getAllRequests(query);
   }
 
   @Patch('requests/:id')
-  updateRequest(@Param('id') id: string, @Body() dto: UpdateInstallationRequestDto) {
+  updateRequest(
+    @Param('id') id: string,
+    @Body() dto: UpdateInstallationRequestDto,
+  ) {
     return this.installationService.updateRequest(id, dto);
   }
 
@@ -29,6 +42,9 @@ export class AdminInstallationController {
 
   @Post('technicians')
   createTechnician(@Body() body: { userId: string; specialization?: string }) {
-    return this.installationService.createTechnician(body.userId, body.specialization);
+    return this.installationService.createTechnician(
+      body.userId,
+      body.specialization,
+    );
   }
 }

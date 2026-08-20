@@ -4,134 +4,40 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { Prisma } from '@prisma/client';
+import { buildPagination } from '../common/pagination';
+
+const SORTABLE_FIELDS = ['createdAt', 'price', 'name'] as const;
 
 @Injectable()
 export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private cloudinary: CloudinaryService,
-    @Inject(CACHE_MANAGER) private cacheManager: any,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private async generateSKU(brandId?: string): Promise<string> {
-    const prefix = brandId && brandId.trim()
-      ? ((await this.prisma.brand.findUnique({ where: { id: brandId } }))?.slug?.substring(0, 3).toUpperCase() ?? 'PRD')
-      : 'PRD';
+    const prefix =
+      brandId && brandId.trim()
+        ? ((
+            await this.prisma.brand.findUnique({ where: { id: brandId } })
+          )?.slug
+            ?.substring(0, 3)
+            .toUpperCase() ?? 'PRD')
+        : 'PRD';
     const random = Math.floor(1000 + Math.random() * 9000);
     return `${prefix}-${random}`;
   }
 
-  async findAll(query: QueryProductDto) {
-    const page = parseInt(query.page || '1', 10);
-    const limit = parseInt(query.limit || '20', 10);
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ProductWhereInput = { isActive: true };
-
-    if (query.search) {
-      where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-        { sku: { contains: query.search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (query.category) {
-      where.categories = { some: { category: { slug: query.category } } };
-    }
-
-    if (query.module) {
-      where.module = { slug: query.module };
-    }
-
-    if (query.brand) {
-      where.brand = { slug: query.brand };
-    }
-
-    if (query.minPrice || query.maxPrice) {
-      where.price = {};
-      if (query.minPrice) where.price.gte = parseFloat(query.minPrice);
-      if (query.maxPrice) where.price.lte = parseFloat(query.maxPrice);
-    }
-
-    if (query.featured === 'true') {
-      where.isFeatured = true;
-    }
-
-    if (query.bestSeller === 'true') {
-      where.isBestSeller = true;
-    }
-
-    const orderBy: any = {};
-    const sortBy = query.sortBy || 'createdAt';
-    const order = query.order === 'asc' ? 'asc' : 'desc';
-    orderBy[sortBy] = order;
-
-    const [products, total] = await Promise.all([
-      this.prisma.product.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy,
-        include: {
-          images: { orderBy: { sortOrder: 'asc' } },
-          brand: true,
-          categories: {
-            include: { category: true },
-          },
-          inventory: true,
-        },
-      }),
-      this.prisma.product.count({ where }),
-    ]);
-
-    const ratings = await this.getRatingsByProductIds(products.map((p) => p.id));
-
-    return {
-      data: products.map((p) => ({
-        ...p,
-        price: p.price.toNumber(),
-        compareAtPrice: p.compareAtPrice?.toNumber(),
-        categories: p.categories.map((pc) => pc.category),
-        ...(ratings.get(p.id) ?? { avgRating: null, reviewCount: 0 }),
-      })),
-      meta: { page, limit, total },
-    };
-  }
-
-  /** Aggregate approved review ratings for a batch of product IDs in a single query. */
-  private async getRatingsByProductIds(productIds: string[]) {
-    const map = new Map<string, { avgRating: number | null; reviewCount: number }>();
-    if (productIds.length === 0) return map;
-
-    const aggregates = await this.prisma.review.groupBy({
-      by: ['productId'],
-      where: { productId: { in: productIds }, isApproved: true },
-      _avg: { rating: true },
-      _count: { rating: true },
-    });
-
-    for (const agg of aggregates) {
-      map.set(agg.productId, {
-        avgRating: agg._avg.rating,
-        reviewCount: agg._count.rating,
-      });
-    }
-    return map;
-  }
-
-  async findAllAdmin(query: QueryProductDto) {
-    const page = parseInt(query.page || '1', 10);
-    const limit = parseInt(query.limit || '20', 10);
-    const skip = (page - 1) * limit;
-
+  /** Shared by findAll/findAllAdmin so the two filter sets can't silently drift apart. */
+  private buildBaseWhere(query: QueryProductDto): Prisma.ProductWhereInput {
     const where: Prisma.ProductWhereInput = {};
 
     if (query.search) {
@@ -168,6 +74,89 @@ export class ProductsService {
       where.isBestSeller = true;
     }
 
+    return where;
+  }
+
+  private buildOrderBy(
+    query: QueryProductDto,
+  ): Prisma.ProductOrderByWithRelationInput {
+    const sortBy = (SORTABLE_FIELDS as readonly string[]).includes(
+      query.sortBy || '',
+    )
+      ? (query.sortBy as (typeof SORTABLE_FIELDS)[number])
+      : 'createdAt';
+    const order = query.order === 'asc' ? 'asc' : 'desc';
+    return { [sortBy]: order };
+  }
+
+  async findAll(query: QueryProductDto) {
+    const { page, limit, skip } = buildPagination(query);
+    const where = { ...this.buildBaseWhere(query), isActive: true };
+    const orderBy = this.buildOrderBy(query);
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          images: { orderBy: { sortOrder: 'asc' } },
+          brand: true,
+          categories: {
+            include: { category: true },
+          },
+          inventory: true,
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    const ratings = await this.getRatingsByProductIds(
+      products.map((p) => p.id),
+    );
+
+    return {
+      data: products.map((p) => ({
+        ...p,
+        price: p.price.toNumber(),
+        compareAtPrice: p.compareAtPrice?.toNumber(),
+        categories: p.categories.map((pc) => pc.category),
+        ...(ratings.get(p.id) ?? { avgRating: null, reviewCount: 0 }),
+      })),
+      meta: { page, limit, total },
+    };
+  }
+
+  /** Aggregate approved review ratings for a batch of product IDs in a single query. */
+  private async getRatingsByProductIds(productIds: string[]) {
+    const map = new Map<
+      string,
+      { avgRating: number | null; reviewCount: number }
+    >();
+    if (productIds.length === 0) return map;
+
+    const aggregates = await this.prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds }, isApproved: true },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    for (const agg of aggregates) {
+      map.set(agg.productId, {
+        avgRating: agg._avg.rating,
+        reviewCount: agg._count.rating,
+      });
+    }
+    return map;
+  }
+
+  async findAllAdmin(query: QueryProductDto) {
+    const { page, limit, skip } = buildPagination(query);
+    const where = this.buildBaseWhere(query);
+    const orderBy = this.buildOrderBy(query);
+
     if (query.isActive === 'true') {
       where.isActive = true;
     } else if (query.isActive === 'false') {
@@ -177,11 +166,6 @@ export class ProductsService {
     if (query.inStock === 'true') {
       where.inventory = { some: { quantity: { gt: 0 } } };
     }
-
-    const orderBy: any = {};
-    const sortBy = query.sortBy || 'createdAt';
-    const order = query.order === 'asc' ? 'asc' : 'desc';
-    orderBy[sortBy] = order;
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -222,13 +206,12 @@ export class ProductsService {
     }
   }
 
-  async findBySlug(slug: string) {
-    const cacheKey = this.getProductCacheKey(slug);
-    const cached = await this.cacheManager.get(cacheKey);
-    if (cached) return cached;
-
-    const product = await this.prisma.product.findUnique({
-      where: { slug },
+  private async fetchProductDetail(slug: string) {
+    // Only reachable via the public GET /products/:slug route — must respect
+    // isActive the same way findAll() does, or a product an admin has hidden
+    // (discontinued, recalled, mispriced) stays viewable by anyone with the link.
+    const product = await this.prisma.product.findFirst({
+      where: { slug, isActive: true },
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
         brand: true,
@@ -237,7 +220,9 @@ export class ProductsService {
         inventory: { include: { warehouse: true } },
         reviews: {
           where: { isApproved: true },
-          include: { user: { select: { id: true, firstName: true, lastName: true } } },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
         },
       },
     });
@@ -250,7 +235,7 @@ export class ProductsService {
       ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount
       : null;
 
-    const result = {
+    return {
       ...product,
       price: product.price.toNumber(),
       compareAtPrice: product.compareAtPrice?.toNumber(),
@@ -258,7 +243,17 @@ export class ProductsService {
       avgRating,
       reviewCount,
     };
+  }
 
+  async findBySlug(slug: string) {
+    const cacheKey = this.getProductCacheKey(slug);
+    const cached =
+      await this.cacheManager.get<
+        Awaited<ReturnType<typeof this.fetchProductDetail>>
+      >(cacheKey);
+    if (cached) return cached;
+
+    const result = await this.fetchProductDetail(slug);
     await this.cacheManager.set(cacheKey, result, 10 * 60 * 1000);
     return result;
   }
@@ -279,7 +274,9 @@ export class ProductsService {
     }
 
     // Check for duplicate slug
-    const existingBySlug = await this.prisma.product.findUnique({ where: { slug: dto.slug } });
+    const existingBySlug = await this.prisma.product.findUnique({
+      where: { slug: dto.slug },
+    });
     if (existingBySlug) {
       throw new BadRequestException('A product with this slug already exists');
     }
@@ -288,7 +285,9 @@ export class ProductsService {
       dto.sku = await this.generateSKU(dto.brandId);
     }
 
-    const existing = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+    const existing = await this.prisma.product.findUnique({
+      where: { sku: dto.sku },
+    });
     if (existing) throw new BadRequestException('SKU already exists');
 
     const product = await this.prisma.product.create({
@@ -336,48 +335,66 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found');
 
     if (dto.sku && dto.sku !== product.sku) {
-      const dup = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+      const dup = await this.prisma.product.findUnique({
+        where: { sku: dto.sku },
+      });
       if (dup) throw new BadRequestException('SKU already exists');
     }
 
-    const data: any = { ...dto };
-    delete data.categoryIds;
-    delete data.warehouseId;
-    delete data.initialQuantity;
-    delete data.lowStockThreshold;
+    // categoryIds/warehouseId/initialQuantity/lowStockThreshold are DTO-only
+    // helper fields with no matching Product column — pulled out here so the
+    // rest can go straight into the Prisma update without an `any` cast.
+    const {
+      categoryIds,
+      warehouseId,
+      initialQuantity,
+      lowStockThreshold,
+      brandId,
+      moduleId,
+      ...rest
+    } = dto;
 
-    // Handle optional fields - convert empty strings to null
-    if (data.brandId !== undefined) {
-      data.brandId = data.brandId && data.brandId.trim() ? data.brandId : null;
-    }
-    if (data.moduleId !== undefined) {
-      data.moduleId = data.moduleId && data.moduleId.trim() ? data.moduleId : null;
-    }
+    const data: Prisma.ProductUpdateInput = {
+      ...rest,
+      ...(brandId !== undefined && {
+        brandId: brandId && brandId.trim() ? brandId : null,
+      }),
+      ...(moduleId !== undefined && {
+        moduleId: moduleId && moduleId.trim() ? moduleId : null,
+      }),
+    };
 
     await this.prisma.product.update({ where: { id }, data });
 
-    if (dto.categoryIds) {
-      await this.prisma.productCategory.deleteMany({ where: { productId: id } });
+    if (categoryIds) {
+      await this.prisma.productCategory.deleteMany({
+        where: { productId: id },
+      });
       await this.prisma.productCategory.createMany({
-        data: dto.categoryIds.map((catId) => ({
+        data: categoryIds.map((catId) => ({
           productId: id,
           categoryId: catId,
         })),
       });
     }
 
-    if (dto.warehouseId && dto.initialQuantity !== undefined) {
+    if (warehouseId && initialQuantity !== undefined) {
       await this.prisma.inventory.upsert({
-        where: { productId_warehouseId: { productId: id, warehouseId: dto.warehouseId } },
+        where: {
+          productId_warehouseId: {
+            productId: id,
+            warehouseId,
+          },
+        },
         create: {
           productId: id,
-          warehouseId: dto.warehouseId,
-          quantity: dto.initialQuantity,
-          lowStockThreshold: dto.lowStockThreshold ?? 5,
+          warehouseId,
+          quantity: initialQuantity,
+          lowStockThreshold: lowStockThreshold ?? 5,
         },
         update: {
-          quantity: dto.initialQuantity,
-          lowStockThreshold: dto.lowStockThreshold ?? 5,
+          quantity: initialQuantity,
+          lowStockThreshold: lowStockThreshold ?? 5,
         },
       });
     }
@@ -387,7 +404,9 @@ export class ProductsService {
       await this.clearProductCache(dto.slug);
     }
 
-    const updatedProduct = await this.prisma.product.findUnique({ where: { id } });
+    const updatedProduct = await this.prisma.product.findUnique({
+      where: { id },
+    });
     return this.findBySlug(updatedProduct!.slug);
   }
 
@@ -399,8 +418,10 @@ export class ProductsService {
     return { message: 'Product deleted' };
   }
 
-  async uploadImages(productId: string, files: any[]) {
-    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+  async uploadImages(productId: string, files: Express.Multer.File[]) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) throw new NotFoundException('Product not found');
 
     if (!files || files.length === 0) {
@@ -411,9 +432,11 @@ export class ProductsService {
     for (const file of files) {
       try {
         if (!file.buffer) {
-          throw new BadRequestException(`File ${file.originalname} has no buffer`);
+          throw new BadRequestException(
+            `File ${file.originalname} has no buffer`,
+          );
         }
-        
+
         const result = await this.cloudinary.uploadImage(file);
         const image = await this.prisma.productImage.create({
           data: {
@@ -427,8 +450,10 @@ export class ProductsService {
         uploaded.push(image);
       } catch (error) {
         console.error(`Error uploading file ${file.originalname}:`, error);
+        const message =
+          error instanceof Error ? error.message : 'unknown error';
         throw new BadRequestException(
-          `Failed to upload ${file.originalname}: ${error.message}`,
+          `Failed to upload ${file.originalname}: ${message}`,
         );
       }
     }
@@ -437,7 +462,7 @@ export class ProductsService {
   }
 
   async deleteImage(imageId: string) {
-    const image = await this.prisma.productImage.findUnique({ 
+    const image = await this.prisma.productImage.findUnique({
       where: { id: imageId },
       include: { product: true },
     });

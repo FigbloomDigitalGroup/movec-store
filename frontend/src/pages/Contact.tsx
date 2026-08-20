@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiCheckCircle } from 'react-icons/fi';
 import api from '../lib/api';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
+import Input from '../components/ui/Input';
+import Alert from '../components/ui/Alert';
 import AnimatedContent from '../components/AnimatedContent';
 
 export default function ContactPage() {
@@ -40,7 +42,7 @@ export default function ContactPage() {
       <div className="w-full px-4">
         <AnimatedContent distance={30} direction="vertical" duration={0.6}>
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
+          <h1 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-4">Contact Us</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Have questions about Starlink or CCTV installations? We're here to help. Reach out to our team.
           </p>
@@ -56,7 +58,7 @@ export default function ContactPage() {
                 <h3 className="text-xl font-semibold mb-4">Business Information</h3>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-[#10B982]/10 p-3 rounded-full text-[#10B982]">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiMapPin size={24} />
                   </div>
                   <div>
@@ -66,20 +68,20 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-green-100 p-3 rounded-full text-green-600">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiPhone size={24} />
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">Phone & WhatsApp</h4>
                     <p className="text-gray-600">+254 796285718</p>
-                    <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm font-medium hover:underline mt-1 inline-block">
+                    <a href="https://wa.me/254796285718" target="_blank" rel="noopener noreferrer" className="text-primary-500 text-sm font-medium hover:underline mt-1 inline-block">
                       Chat on WhatsApp
                     </a>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 p-3 rounded-full text-purple-600">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiMail size={24} />
                   </div>
                   <div>
@@ -89,7 +91,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="bg-orange-100 p-3 rounded-full text-orange-600">
+                  <div className="bg-primary-100 p-3 rounded-full text-primary-500">
                     <FiClock size={24} />
                   </div>
                   <div>
@@ -137,74 +139,66 @@ export default function ContactPage() {
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {status === 'error' && (
-                      <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
-                        <FiAlertCircle size={20} />
-                        <span>Failed to send message. Please try again or contact us via WhatsApp.</span>
-                      </div>
+                      <Alert variant="danger">
+                        Failed to send message. Please try again or contact us via WhatsApp.
+                      </Alert>
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                        <input
-                          type="text"
-                          name="name"
-                          required
-                          value={formData.name}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                          placeholder="John Doe"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                        <input
-                          type="email"
-                          name="email"
-                          required
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                          placeholder="john@example.com"
-                        />
-                      </div>
+                      <Input
+                        id="contact-name"
+                        type="text"
+                        name="name"
+                        label="Full Name"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="John Doe"
+                      />
+                      <Input
+                        id="contact-email"
+                        type="email"
+                        name="email"
+                        label="Email Address"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="john@example.com"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                          placeholder="+254 796285718"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
-                        <input
-                          type="text"
-                          name="subject"
-                          required
-                          value={formData.subject}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                          placeholder="How can we help?"
-                        />
-                      </div>
+                      <Input
+                        id="contact-phone"
+                        type="tel"
+                        name="phone"
+                        label="Phone Number"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="+254 796285718"
+                      />
+                      <Input
+                        id="contact-subject"
+                        type="text"
+                        name="subject"
+                        label="Subject"
+                        required
+                        value={formData.subject}
+                        onChange={handleChange}
+                        placeholder="How can we help?"
+                      />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                      <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
                       <textarea
+                        id="contact-message"
                         name="message"
                         required
                         rows={6}
                         value={formData.message}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
                         placeholder="Please describe your inquiry in detail..."
                       ></textarea>
                     </div>

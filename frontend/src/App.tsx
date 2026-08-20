@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { Toaster } from 'react-hot-toast';
+import { queryClient } from './lib/queryClient';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 import RequireAdmin from './components/RequireAdmin';
@@ -51,21 +51,16 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+function RedirectToModule() {
+  const { moduleSlug } = useParams();
+  return <Navigate to={moduleSlug ? `/solutions/${moduleSlug}` : '/'} replace />;
+}
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
   key: 'MOVEC_QUERY_CACHE',
-});
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 24 * 60 * 60 * 1000, // 24 hours
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
 });
 
 export default function App() {
@@ -76,23 +71,26 @@ export default function App() {
         persister,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         dehydrateOptions: {
+          // Allowlist, not a blocklist: a query is only ever written to localStorage if its
+          // key is explicitly listed here as public catalog data. Anything else (admin-*,
+          // orders, addresses, profile, cart, wishlist, etc.) stays private by default, even
+          // if a new query key is added later and nobody remembers to update this list.
           shouldDehydrateQuery: (query) => {
             const key = Array.isArray(query.queryKey) ? query.queryKey[0] : query.queryKey;
-            if (typeof key === 'string') {
-              const sensitiveKeys = [
-                'cart',
-                'orders',
-                'profile',
-                'notifications',
-                'auth',
-                'user',
-                'wishlist',
-                'checkout',
-                'admin',
-              ];
-              return !sensitiveKeys.includes(key);
-            }
-            return true;
+            if (typeof key !== 'string') return false;
+            const publicKeys = [
+              'products',
+              'products-infinite',
+              'product',
+              'categories',
+              'brands',
+              'modules',
+              'featured-products',
+              'best-sellers',
+              'faqs',
+              'promo-banners',
+            ];
+            return publicKeys.includes(key);
           },
         },
       }}
@@ -103,7 +101,27 @@ export default function App() {
         <BackToTop />
         <CookieConsentBanner />
 
-        <Toaster position="top-right" toastOptions={{ duration: 1800 }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 1800,
+            style: {
+              background: '#ffffff',
+              color: '#1a1f1b',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              fontSize: '14px',
+              boxShadow: '0 8px 24px -6px rgba(16, 24, 20, 0.18)',
+              border: '1px solid #eef0ee',
+            },
+            success: {
+              iconTheme: { primary: '#10B982', secondary: '#ffffff' },
+            },
+            error: {
+              iconTheme: { primary: '#ef4444', secondary: '#ffffff' },
+            },
+          }}
+        />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<Layout />}>
@@ -118,10 +136,10 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/solutions/:moduleSlug" element={<ModuleLanding />} />
-              <Route path="/solutions/:moduleSlug/products" element={<Navigate to="/solutions/:moduleSlug" replace />} />
+              <Route path="/solutions/:moduleSlug/products" element={<RedirectToModule />} />
               {/* Legacy redirects */}
               <Route path="/modules" element={<Navigate to="/" replace />} />
-              <Route path="/modules/:moduleSlug" element={<Navigate to="/solutions/:moduleSlug" replace />} />
+              <Route path="/modules/:moduleSlug" element={<RedirectToModule />} />
               <Route path="/cctv" element={<Navigate to="/solutions/cctv" replace />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
@@ -137,6 +155,7 @@ export default function App() {
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/refund" element={<RefundPolicy />} />
               <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
             <Route element={<RequireAdmin />}>
               <Route element={<AdminLayout />}>

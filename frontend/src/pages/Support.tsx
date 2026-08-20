@@ -155,10 +155,11 @@ export default function SupportPage() {
           </p>
 
           <div className="relative max-w-xl mx-auto">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
             <input
               type="text"
               placeholder="Search questions (e.g. Starlink, CCTV night vision, delivery...)"
+              aria-label="Search FAQs"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-white text-gray-900 placeholder-gray-500 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-accent text-sm"
@@ -177,7 +178,7 @@ export default function SupportPage() {
               onClick={() => setActiveCategory(cat.id)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                 activeCategory === cat.id
-                  ? 'bg-[#10b982] text-white shadow-md'
+                  ? 'bg-accent text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
@@ -197,7 +198,7 @@ export default function SupportPage() {
               </p>
               <button
                 onClick={() => { setSearch(''); setActiveCategory('all'); }}
-                className="text-[#10b982] font-semibold hover:underline text-sm"
+                className="text-accent font-semibold hover:underline text-sm"
               >
                 Reset Filters
               </button>
@@ -208,20 +209,20 @@ export default function SupportPage() {
               return (
                 <div
                   key={faq.id}
-                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:border-[#10b982]/50 transition"
+                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:border-accent/50 transition"
                 >
                   <button
                     onClick={() => toggleItem(faq.id)}
-                    className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 font-semibold text-gray-900 hover:text-[#10b982] transition"
+                    className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 font-semibold text-gray-900 hover:text-accent transition"
                   >
                     <span className="flex items-center gap-3 text-base">
-                      <FiHelpCircle className="text-[#10b982] flex-shrink-0" size={20} />
+                      <FiHelpCircle className="text-accent flex-shrink-0" size={20} />
                       {faq.question}
                     </span>
                     {isOpen ? (
-                      <FiChevronUp size={20} className="text-[#10b982] flex-shrink-0" />
+                      <FiChevronUp size={20} className="text-accent flex-shrink-0" />
                     ) : (
-                      <FiChevronDown size={20} className="text-gray-400 flex-shrink-0" />
+                      <FiChevronDown size={20} className="text-gray-500 flex-shrink-0" />
                     )}
                   </button>
                   {isOpen && (
@@ -238,7 +239,7 @@ export default function SupportPage() {
         {/* Still Have Questions? Banner */}
         <div className="mt-14 bg-gradient-to-r from-slate-900 to-gray-900 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
-            <span className="text-[#10b982] text-xs font-bold uppercase tracking-wider mb-1 block">
+            <span className="text-accent text-xs font-bold uppercase tracking-wider mb-1 block">
               Direct Assistance
             </span>
             <h3 className="text-2xl font-bold mb-2">Still have questions?</h3>

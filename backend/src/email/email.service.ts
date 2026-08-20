@@ -14,9 +14,18 @@ export class EmailService {
   private frontendUrl: string;
 
   constructor(private configService: ConfigService) {
-    this.fromEmail = this.configService.get<string>('BREVO_FROM_EMAIL', 'noreply@starlinkcctv.co.ke');
-    this.fromName = this.configService.get<string>('BREVO_FROM_NAME', 'Movec Store');
-    this.frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+    this.fromEmail = this.configService.get<string>(
+      'BREVO_FROM_EMAIL',
+      'noreply@starlinkcctv.co.ke',
+    );
+    this.fromName = this.configService.get<string>(
+      'BREVO_FROM_NAME',
+      'Movec Store',
+    );
+    this.frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:5173',
+    );
 
     // 1. Try to initialize Brevo transactional email client
     const apiKey = this.configService.get<string>('BREVO_API_KEY');
@@ -33,7 +42,10 @@ export class EmailService {
     const smtpSecure = this.configService.get<string>('SMTP_SECURE') === 'true';
     const smtpUser = this.configService.get<string>('SMTP_USER');
     const smtpPass = this.configService.get<string>('SMTP_PASS');
-    this.smtpFrom = this.configService.get<string>('SMTP_FROM', `"${this.fromName}" <${this.fromEmail}>`);
+    this.smtpFrom = this.configService.get<string>(
+      'SMTP_FROM',
+      `"${this.fromName}" <${this.fromEmail}>`,
+    );
 
     if (smtpHost && smtpUser && smtpPass) {
       this.transporter = nodemailer.createTransport({
@@ -45,7 +57,9 @@ export class EmailService {
           pass: smtpPass,
         },
       });
-      this.logger.log(`SMTP Transporter initialized for host ${smtpHost} using user ${smtpUser}`);
+      this.logger.log(
+        `SMTP Transporter initialized for host ${smtpHost} using user ${smtpUser}`,
+      );
     }
   }
 
@@ -85,7 +99,10 @@ export class EmailService {
 
     // Fallback to Brevo
     if (!this.apiInstance) {
-      this.logger.warn('Neither SMTP nor Brevo is configured. Verification token:', token);
+      this.logger.warn(
+        'Neither SMTP nor Brevo is configured. Verification token:',
+        token,
+      );
       return;
     }
 
@@ -134,13 +151,19 @@ export class EmailService {
         this.logger.log(`Password reset email sent to ${toEmail} via SMTP`);
         return;
       } catch (error) {
-        this.logger.error('Failed to send password reset email via SMTP:', error);
+        this.logger.error(
+          'Failed to send password reset email via SMTP:',
+          error,
+        );
       }
     }
 
     // Fallback to Brevo
     if (!this.apiInstance) {
-      this.logger.warn('Neither SMTP nor Brevo is configured. Reset token:', token);
+      this.logger.warn(
+        'Neither SMTP nor Brevo is configured. Reset token:',
+        token,
+      );
       return;
     }
 
@@ -154,11 +177,19 @@ export class EmailService {
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
       this.logger.log(`Password reset email sent to ${toEmail} via Brevo`);
     } catch (error) {
-      this.logger.error('Failed to send password reset email via Brevo:', error);
+      this.logger.error(
+        'Failed to send password reset email via Brevo:',
+        error,
+      );
     }
   }
 
-  async sendOrderConfirmation(toEmail: string, toName: string, orderNumber: string, total: number) {
+  async sendOrderConfirmation(
+    toEmail: string,
+    toName: string,
+    orderNumber: string,
+    total: number,
+  ) {
     const subject = `Order Confirmed - ${orderNumber}`;
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -191,7 +222,9 @@ export class EmailService {
 
     // Fallback to Brevo
     if (!this.apiInstance) {
-      this.logger.warn('Neither SMTP nor Brevo is configured for order confirmation.');
+      this.logger.warn(
+        'Neither SMTP nor Brevo is configured for order confirmation.',
+      );
       return;
     }
 
@@ -209,8 +242,17 @@ export class EmailService {
     }
   }
 
-  async sendContactFormEmail(contactData: { name: string; email: string; phone?: string; subject: string; message: string }) {
-    const businessEmail = this.configService.get<string>('CONTACT_EMAIL', 'info@starlinkcctv.co.ke');
+  async sendContactFormEmail(contactData: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject: string;
+    message: string;
+  }) {
+    const businessEmail = this.configService.get<string>(
+      'CONTACT_EMAIL',
+      'info@starlinkcctv.co.ke',
+    );
     const subject = `New Contact Form Submission: ${contactData.subject}`;
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -248,7 +290,7 @@ export class EmailService {
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.to = [{ email: businessEmail }];
     sendSmtpEmail.sender = { email: this.fromEmail, name: contactData.name };
-    (sendSmtpEmail as any).replyTo = { email: contactData.email };
+    sendSmtpEmail.replyTo = { email: contactData.email };
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = htmlContent;
 
@@ -283,7 +325,10 @@ export class EmailService {
         });
         return;
       } catch (error) {
-        this.logger.error('Failed to send contact confirmation via SMTP:', error);
+        this.logger.error(
+          'Failed to send contact confirmation via SMTP:',
+          error,
+        );
       }
     }
 
@@ -298,7 +343,10 @@ export class EmailService {
     try {
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
     } catch (error) {
-      this.logger.error('Failed to send contact confirmation via Brevo:', error);
+      this.logger.error(
+        'Failed to send contact confirmation via Brevo:',
+        error,
+      );
     }
   }
 }
