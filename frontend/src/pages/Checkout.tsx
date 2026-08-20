@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useCart } from '../hooks/useCart';
 import type { Address, CartDisplayItem } from '../types';
-import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock } from 'react-icons/fi';
+import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock, FiCrosshair } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -29,6 +29,55 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Kenya');
+  const [isLocating, setIsLocating] = useState(false);
+
+  // Reverse-geocodes the browser's current position into address fields via
+  // OpenStreetMap's Nominatim (free, no API key) — the user still reviews and
+  // confirms before saving, since reverse geocoding is approximate.
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' } },
+          );
+          if (!res.ok) throw new Error('Reverse geocoding failed');
+          const data = await res.json();
+          const addr = data.address || {};
+
+          const street = [addr.house_number, addr.road].filter(Boolean).join(' ');
+          setLine1(street || addr.suburb || addr.neighbourhood || '');
+          setCity(addr.city || addr.town || addr.village || addr.county || '');
+          setPostalCode(addr.postcode || '');
+          setCountry(addr.country || 'Kenya');
+          toast.success('Address detected — please review before saving');
+        } catch {
+          toast.error("Couldn't determine your address. Please enter it manually.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location permission denied. Please allow location access or enter your address manually.');
+        } else if (error.code === error.TIMEOUT) {
+          toast.error('Location request timed out. Please try again or enter your address manually.');
+        } else {
+          toast.error('Could not access your location. Please enter your address manually.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
 
   const { data: cart, isLoading: cartLoading, error: cartError } = useCart();
 
@@ -219,6 +268,17 @@ export default function CheckoutPage() {
                       </Button>
                     </div>
                     <div className="space-y-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleUseCurrentLocation}
+                        disabled={isLocating}
+                        className="w-full"
+                      >
+                        <FiCrosshair className="mr-2" size={16} />
+                        {isLocating ? 'Detecting your location...' : 'Use my current location'}
+                      </Button>
                       <Input
                         label="Street Address"
                         value={line1}
