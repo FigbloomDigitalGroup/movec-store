@@ -261,8 +261,8 @@ async function main() {
 
   // ─── Products — Starlink ────────────────────────────────────────
   const prod1 = await prisma.product.upsert({
-    where: { slug: 'starlink-standard-kit' },
-    update: {},
+    where: { sku: 'STAR-STD-001' },
+    update: { slug: 'starlink-standard-kit' },
     create: {
       name: 'Starlink Standard Kit',
       slug: 'starlink-standard-kit',
@@ -286,8 +286,8 @@ async function main() {
   });
 
   const prod2 = await prisma.product.upsert({
-    where: { slug: 'starlink-roam-kit' },
-    update: {},
+    where: { sku: 'STAR-ROAM-002' },
+    update: { slug: 'starlink-roam-kit' },
     create: {
       name: 'Starlink Roam Kit',
       slug: 'starlink-roam-kit',
@@ -311,8 +311,8 @@ async function main() {
   });
 
   const prod3 = await prisma.product.upsert({
-    where: { slug: 'starlink-ethernet-adapter' },
-    update: {},
+    where: { sku: 'STAR-ETH-003' },
+    update: { slug: 'starlink-ethernet-adapter' },
     create: {
       name: 'Starlink Ethernet Adapter',
       slug: 'starlink-ethernet-adapter',
@@ -341,8 +341,8 @@ async function main() {
   });
 
   const prod4 = await prisma.product.upsert({
-    where: { slug: 'starlink-pipe-adapter' },
-    update: {},
+    where: { sku: 'STAR-MNT-004' },
+    update: { slug: 'starlink-pipe-adapter' },
     create: {
       name: 'Starlink Pole Mount Adapter',
       slug: 'starlink-pipe-adapter',
@@ -372,8 +372,8 @@ async function main() {
 
   // ─── Products — CCTV ───────────────────────────────────────────
   const prod5 = await prisma.product.upsert({
-    where: { slug: 'hikvision-4mp-dome' },
-    update: {},
+    where: { sku: 'HIK-DOM-001' },
+    update: { slug: 'hikvision-4mp-dome' },
     create: {
       name: 'Hikvision 4MP ColorVu Dome Camera',
       slug: 'hikvision-4mp-dome',
@@ -397,8 +397,8 @@ async function main() {
   });
 
   const prod6 = await prisma.product.upsert({
-    where: { slug: 'hikvision-8ch-nvr' },
-    update: {},
+    where: { sku: 'HIK-NVR-002' },
+    update: { slug: 'hikvision-8ch-nvr' },
     create: {
       name: 'Hikvision 8-Channel NVR',
       slug: 'hikvision-8ch-nvr',
@@ -422,8 +422,8 @@ async function main() {
   });
 
   const prod7 = await prisma.product.upsert({
-    where: { slug: 'dahua-4k-bullet-camera' },
-    update: {},
+    where: { sku: 'DAH-BUL-003' },
+    update: { slug: 'dahua-4k-bullet-camera' },
     create: {
       name: 'Dahua 4K WDR Bullet Camera',
       slug: 'dahua-4k-bullet-camera',
@@ -445,8 +445,8 @@ async function main() {
   });
 
   const prod8 = await prisma.product.upsert({
-    where: { slug: 'seagate-skyhawk-2tb' },
-    update: {},
+    where: { sku: 'SEA-HDD-001' },
+    update: { slug: 'seagate-skyhawk-2tb' },
     create: {
       name: 'Seagate SkyHawk 2TB Surveillance HDD',
       slug: 'seagate-skyhawk-2tb',

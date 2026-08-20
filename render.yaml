@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install --include=dev && npx prisma generate && npm run build
-    startCommand: npx prisma migrate resolve --rolled-back 20260805000000_stripe_to_paystack ; npx prisma migrate deploy && npx prisma db seed && node dist/src/main.js
+    startCommand: npx prisma migrate resolve --rolled-back 20260805000000_stripe_to_paystack ; npx prisma migrate deploy && (npx prisma db seed || true) && node dist/src/main.js
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
