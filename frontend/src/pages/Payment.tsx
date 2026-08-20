@@ -6,6 +6,7 @@ import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock } from 'react-icons/fi';
 import CheckoutSteps from '../components/CheckoutSteps';
+import PageLoader from '../components/PageLoader';
 import type { OrderItem } from '../types';
 
 const VERIFY_MAX_ATTEMPTS = 3;
@@ -19,7 +20,7 @@ export default function PaymentPage() {
     const [verifyFailed, setVerifyFailed] = useState(false);
     const [paystackReference, setPaystackReference] = useState<string | null>(null);
 
-    const { data: order } = useQuery({
+    const { data: order, isLoading: orderLoading } = useQuery({
         queryKey: ['order', orderNumber],
         queryFn: () => api.get(`/orders/${orderNumber}`).then(r => r.data),
     });
@@ -73,6 +74,10 @@ export default function PaymentPage() {
             setProcessing(false);
         }
     });
+
+    if (orderLoading) {
+        return <PageLoader />;
+    }
 
     if (verifying) {
         return (
@@ -313,7 +318,7 @@ export default function PaymentPage() {
                     )}
                     <div className="flex justify-between font-bold text-lg mt-4 pt-4 border-t border-gray-300/40">
                         <span>Total</span>
-                        <span>KES {order?.total?.toLocaleString()}</span>
+                        <span>KES {order?.total?.toLocaleString() ?? '0'}</span>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200/30">
                         <p className="text-sm text-gray-500">Status: <span className="font-semibold text-primary-500">{order?.status}</span></p>

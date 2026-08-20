@@ -139,7 +139,13 @@ export default function AdminModules() {
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <button onClick={() => { setIsCreating(false); setIsEditing(null); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
-            <button onClick={handleSave} className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600">Save</button>
+            <button
+              onClick={handleSave}
+              disabled={createApi.isPending || updateApi.isPending}
+              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {createApi.isPending || updateApi.isPending ? 'Saving...' : 'Save'}
+            </button>
           </div>
         </div>
       )}

@@ -23,7 +23,7 @@ export default function InstallationPage() {
   const dateInputRef = useRef<HTMLDivElement>(null);
   const notesInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: services } = useQuery<InstallationServiceOption[]>({ queryKey: ['installation-services'], queryFn: () => api.get('/installation/services').then(r => r.data) });
+  const { data: services, isLoading: servicesLoading } = useQuery<InstallationServiceOption[]>({ queryKey: ['installation-services'], queryFn: () => api.get('/installation/services').then(r => r.data) });
   const { data: addresses } = useQuery({ queryKey: ['addresses'], queryFn: () => api.get('/users/me/addresses').then(r => r.data) });
 
   const submit = useMutation({
@@ -82,7 +82,7 @@ export default function InstallationPage() {
               })) || []}
               value={serviceId}
               onChange={setServiceId}
-              placeholder="Choose installation service"
+              placeholder={servicesLoading ? 'Loading services...' : 'Choose installation service'}
               onComplete={handleServiceComplete}
             />
           </div>

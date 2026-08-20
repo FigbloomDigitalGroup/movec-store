@@ -201,7 +201,8 @@ export default function AdminBanners() {
                   <div className="md:col-span-1 flex md:flex-col gap-2 justify-end">
                     <button
                       onClick={() => handleToggleActive(banner.id, banner.isActive)}
-                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition font-medium text-sm ${
+                      disabled={toggleActiveMutation.isPending && toggleActiveMutation.variables?.id === banner.id}
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                         banner.isActive
                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -209,7 +210,9 @@ export default function AdminBanners() {
                       title={banner.isActive ? 'Deactivate' : 'Activate'}
                     >
                       {banner.isActive ? <FiEye size={16} /> : <FiEyeOff size={16} />}
-                      {banner.isActive ? 'Active' : 'Inactive'}
+                      {toggleActiveMutation.isPending && toggleActiveMutation.variables?.id === banner.id
+                        ? 'Updating...'
+                        : banner.isActive ? 'Active' : 'Inactive'}
                     </button>
                     
                     <button

@@ -127,8 +127,17 @@ export default function ModuleLanding() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-secondary-700">Module summary</p>
-                <p className="text-sm text-gray-700">{mod?._count?.products ?? 0} products available</p>
-                <p className="text-sm text-gray-700">{mod?.categories?.length ?? 0} categories</p>
+                {isModuleLoading ? (
+                  <>
+                    <Skeleton className="h-4 w-32 mb-1" />
+                    <Skeleton className="h-4 w-24" />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-700">{mod?._count?.products ?? 0} products available</p>
+                    <p className="text-sm text-gray-700">{mod?.categories?.length ?? 0} categories</p>
+                  </>
+                )}
               </div>
             </div>
 

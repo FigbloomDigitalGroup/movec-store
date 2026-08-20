@@ -19,6 +19,7 @@ import Card, { CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Alert from '../components/ui/Alert';
 import ProductCarousel from '../components/ProductCarousel';
+import ProductCarouselSkeleton from '../components/ProductCarouselSkeleton';
 import type { Product } from '../types';
 
 interface PromoBanner {
@@ -196,7 +197,7 @@ export default function Landing() {
     }
   );
 
-  const { data: bestSellers } = useQuery({
+  const { data: bestSellers, isLoading: bestSellersLoading } = useQuery({
     queryKey: ['best-sellers'],
     queryFn: async () => {
       const { data } = await api.get('/products?bestSeller=true&limit=100');
@@ -204,7 +205,7 @@ export default function Landing() {
     },
   });
 
-  const { data: featured } = useQuery({
+  const { data: featured, isLoading: featuredLoading } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
       const { data } = await api.get('/products?featured=true&limit=100');
@@ -341,18 +342,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {bestSellers && bestSellers.length > 0 && (
+      {(bestSellersLoading || (bestSellers && bestSellers.length > 0)) && (
         <section className="py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <ProductCarousel products={bestSellers} title="Best Sellers" viewAllLink="/products?bestSeller=true" />
+            {bestSellersLoading ? (
+              <ProductCarouselSkeleton title="Best Sellers" />
+            ) : (
+              <ProductCarousel products={bestSellers ?? []} title="Best Sellers" viewAllLink="/products?bestSeller=true" />
+            )}
           </div>
         </section>
       )}
 
-      {featured && featured.length > 0 && (
+      {(featuredLoading || (featured && featured.length > 0)) && (
         <section className="py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <ProductCarousel products={featured} title="Featured Products" viewAllLink="/products?featured=true" />
+            {featuredLoading ? (
+              <ProductCarouselSkeleton title="Featured Products" />
+            ) : (
+              <ProductCarousel products={featured ?? []} title="Featured Products" viewAllLink="/products?featured=true" />
+            )}
           </div>
         </section>
       )}

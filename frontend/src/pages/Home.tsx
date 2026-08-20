@@ -11,6 +11,7 @@ import {
   FiSearch,
 } from 'react-icons/fi';
 import ProductCarousel from '../components/ProductCarousel';
+import ProductCarouselSkeleton from '../components/ProductCarouselSkeleton';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function Home() {
     }
   };
 
-  const { data: featured } = useQuery({
+  const { data: featured, isLoading: featuredLoading } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
       const { data } = await api.get('/products?featured=true&limit=100');
@@ -31,7 +32,7 @@ export default function Home() {
     },
   });
 
-  const { data: bestSellers } = useQuery({
+  const { data: bestSellers, isLoading: bestSellersLoading } = useQuery({
     queryKey: ['best-sellers'],
     queryFn: async () => {
       const { data } = await api.get('/products?bestSeller=true&limit=100');
@@ -118,7 +119,11 @@ export default function Home() {
             </Link>
           </div>
 
-          <ProductCarousel products={bestSellers ?? []} viewAllLink="/products?bestSeller=true" />
+          {bestSellersLoading ? (
+            <ProductCarouselSkeleton />
+          ) : (
+            <ProductCarousel products={bestSellers ?? []} viewAllLink="/products?bestSeller=true" />
+          )}
         </div>
       </section>
 
@@ -172,7 +177,7 @@ export default function Home() {
       {/* ══════════════════════════════════════
           APPLE-STYLE PRODUCT ROW: FEATURED
       ══════════════════════════════════════ */}
-      {featured && featured.length > 0 && (
+      {(featuredLoading || (featured && featured.length > 0)) && (
         <section className="py-12">
           <div className="w-full px-4 md:px-8">
             <div className="flex items-center justify-between mb-8">
@@ -185,7 +190,11 @@ export default function Home() {
               </Link>
             </div>
 
-            <ProductCarousel products={featured} viewAllLink="/products?featured=true" />
+            {featuredLoading ? (
+              <ProductCarouselSkeleton />
+            ) : (
+              <ProductCarousel products={featured ?? []} viewAllLink="/products?featured=true" />
+            )}
           </div>
         </section>
       )}

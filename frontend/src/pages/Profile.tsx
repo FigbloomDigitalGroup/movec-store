@@ -27,7 +27,7 @@ export default function ProfilePage() {
   // Address form
   const [addressForm, setAddressForm] = useState({ type: 'SHIPPING', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Kenya', isDefault: false });
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: () => api.get('/users/me').then(r => r.data),
   });
@@ -133,40 +133,62 @@ export default function ProfilePage() {
       {/* Profile Tab */}
       {activeTab === 'profile' && (
         <div role="tabpanel" id="account-panel-profile" aria-labelledby="account-tab-profile" className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-primary-500/10 rounded-full flex items-center justify-center text-2xl font-bold text-primary-500">
-              {profile?.firstName?.[0]}{profile?.lastName?.[0]}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{profile?.firstName} {profile?.lastName}</h2>
-              <p className="text-gray-500">{profile?.email}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="profile-firstName" className="block text-sm font-medium mb-1">First Name</label>
-              <input id="profile-firstName" value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
-            </div>
-            <div>
-              <label htmlFor="profile-lastName" className="block text-sm font-medium mb-1">Last Name</label>
-              <input id="profile-lastName" value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
-            </div>
-            <div>
-              <label htmlFor="profile-phone" className="block text-sm font-medium mb-1">Phone</label>
-              <input id="profile-phone" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
-            </div>
-            <div>
-              <label htmlFor="profile-email" className="block text-sm font-medium mb-1">Email</label>
-              <input id="profile-email" value={profile?.email || ''} disabled className="border rounded-lg px-4 py-2 w-full bg-gray-100" />
-            </div>
-          </div>
-          <button
-            onClick={() => updateProfile.mutate(profileForm)}
-            disabled={updateProfile.isPending}
-            className="mt-6 bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FiSave size={16} /> {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
-          </button>
+          {profileLoading ? (
+            <>
+              <div className="flex items-center gap-4 mb-6">
+                <Skeleton className="w-16 h-16 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-56" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-primary-500/10 rounded-full flex items-center justify-center text-2xl font-bold text-primary-500">
+                  {profile?.firstName?.[0]}{profile?.lastName?.[0]}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{profile?.firstName} {profile?.lastName}</h2>
+                  <p className="text-gray-500">{profile?.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="profile-firstName" className="block text-sm font-medium mb-1">First Name</label>
+                  <input id="profile-firstName" value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="profile-lastName" className="block text-sm font-medium mb-1">Last Name</label>
+                  <input id="profile-lastName" value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="profile-phone" className="block text-sm font-medium mb-1">Phone</label>
+                  <input id="profile-phone" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} className="border rounded-lg px-4 py-2 w-full" />
+                </div>
+                <div>
+                  <label htmlFor="profile-email" className="block text-sm font-medium mb-1">Email</label>
+                  <input id="profile-email" value={profile?.email || ''} disabled className="border rounded-lg px-4 py-2 w-full bg-gray-100" />
+                </div>
+              </div>
+              <button
+                onClick={() => updateProfile.mutate(profileForm)}
+                disabled={updateProfile.isPending}
+                className="mt-6 bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiSave size={16} /> {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
+              </button>
+            </>
+          )}
         </div>
       )}
 
