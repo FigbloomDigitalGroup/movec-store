@@ -126,74 +126,78 @@ export default function CartPage() {
               {items.map((item) => (
                 <Card key={item.productId || item.id}>
                   <CardBody>
-                    <div className="flex items-center gap-4">
-                      <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                        {item.image ? (
-                          <img src={item.image} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <FiShoppingBag className="text-gray-500" size={32} />
-                        )}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                          {item.image ? (
+                            <img src={item.image} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <FiShoppingBag className="text-gray-500" size={32} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Link to={`/products/${item.slug}`} className="font-product-name text-gray-900 hover:text-primary-500 transition truncate block">
+                            {item.name}
+                          </Link>
+                          <p className="text-primary-500 font-price mt-1">KES {item.price.toLocaleString()}</p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <Link to={`/products/${item.slug}`} className="font-product-name text-gray-900 hover:text-primary-500 transition">
-                          {item.name}
-                        </Link>
-                        <p className="text-primary-500 font-price mt-1">KES {item.price.toLocaleString()}</p>
+                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:flex-shrink-0">
+                        <div className="flex items-center gap-2">
+                          {isAuthenticated ? (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => item.id && updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
+                                disabled={item.quantity <= 1 || updateQuantity.isPending}
+                              >
+                                <FiMinus size={16} />
+                              </Button>
+                              <span className="w-10 text-center font-medium">{item.quantity}</span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => item.id && updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
+                                disabled={updateQuantity.isPending}
+                              >
+                                <FiPlus size={16} />
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => guestCart.updateQuantity(item.productId, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
+                              >
+                                <FiMinus size={16} />
+                              </Button>
+                              <span className="w-10 text-center font-medium">{item.quantity}</span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => guestCart.updateQuantity(item.productId, item.quantity + 1)}
+                              >
+                                <FiPlus size={16} />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-price text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => isAuthenticated && item.id ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
+                          disabled={isAuthenticated && removeItem.isPending}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <FiTrash2 size={18} />
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {isAuthenticated ? (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => item.id && updateQuantity.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
-                              disabled={item.quantity <= 1 || updateQuantity.isPending}
-                            >
-                              <FiMinus size={16} />
-                            </Button>
-                            <span className="w-10 text-center font-medium">{item.quantity}</span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => item.id && updateQuantity.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
-                              disabled={updateQuantity.isPending}
-                            >
-                              <FiPlus size={16} />
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => guestCart.updateQuantity(item.productId, item.quantity - 1)}
-                              disabled={item.quantity <= 1}
-                            >
-                              <FiMinus size={16} />
-                            </Button>
-                            <span className="w-10 text-center font-medium">{item.quantity}</span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => guestCart.updateQuantity(item.productId, item.quantity + 1)}
-                            >
-                              <FiPlus size={16} />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-price text-gray-900">KES {(item.price * item.quantity).toLocaleString()}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => isAuthenticated && item.id ? removeItem.mutate(item.id) : guestCart.removeItem(item.productId)}
-                        disabled={isAuthenticated && removeItem.isPending}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <FiTrash2 size={18} />
-                      </Button>
                     </div>
                   </CardBody>
                 </Card>
