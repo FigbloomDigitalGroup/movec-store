@@ -120,13 +120,13 @@ export default function ModuleLanding() {
 
       <SectionHero title={title} subtitle={subtitle}>
         <div className="mt-8 grid gap-4 lg:grid-cols-[auto_1fr] items-center">
-          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-secondary-200 bg-secondary-50 p-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-500 text-2xl">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary-500/10 text-secondary-500 text-2xl">
                 {theme.icon}
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Module summary</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-secondary-700">Module summary</p>
                 <p className="text-sm text-gray-700">{mod?._count?.products ?? 0} products available</p>
                 <p className="text-sm text-gray-700">{mod?.categories?.length ?? 0} categories</p>
               </div>
@@ -136,7 +136,7 @@ export default function ModuleLanding() {
               <p>Focused product collection for {title} buyers.</p>
               <Link
                 to="/products"
-                className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600"
+                className="inline-flex items-center gap-2 text-secondary-600 hover:text-secondary-700"
               >
                 View all products <FiArrowRight size={14} />
               </Link>

@@ -75,14 +75,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: var(--color-brand-green);
-  text-decoration: none;
-  transition: color 0.2s ease, opacity 0.2s ease;
-}
+/* @layer base (not a bare rule) so Tailwind text-color utilities on <a> tags — e.g.
+   text-white on a filled button — win in the cascade instead of losing to this
+   default regardless of specificity, since unlayered CSS always beats layered CSS. */
+@layer base {
+  a {
+    color: var(--color-brand-green);
+    text-decoration: none;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
 
-a:hover {
-  color: var(--color-brand-orange-deep);
+  a:hover {
+    color: var(--color-brand-orange-deep);
+  }
 }
 
 ::-webkit-scrollbar {

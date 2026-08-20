@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { Product } from '../types';
@@ -7,10 +8,21 @@ import {
   FiCamera,
   FiZap,
   FiPackage,
+  FiSearch,
 } from 'react-icons/fi';
 import ProductCarousel from '../components/ProductCarousel';
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      navigate(`/products?search=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
   const { data: featured } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
@@ -50,23 +62,40 @@ export default function Home() {
               <p className="text-lg text-gray-600 max-w-md ml-auto">
                 The latest Starlink kits, CCTV systems, and networking gear — all in one place.
               </p>
-              <div className="flex items-center justify-end gap-6">
+              <div className="flex items-center justify-end gap-3 flex-wrap">
                 <Link
                   to="/products"
-                  className="text-primary-500 hover:text-primary-600 text-base font-medium flex items-center gap-1 transition"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-600 hover:shadow-md"
                 >
-                  Browse All Products <span className="text-secondary-500">›</span>
+                  Browse All Products <span>›</span>
                 </Link>
-                  <Link
-                    to="/categories"
-                    className="text-primary-500 hover:text-primary-600 text-base font-medium flex items-center gap-1 transition"
-                  >
-                    Browse categories <span className="text-secondary-500">›</span>
-                  </Link>
+                <Link
+                  to="/categories"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-white px-5 py-2.5 text-sm font-semibold text-primary-600 transition hover:border-primary-500 hover:bg-primary-50"
+                >
+                  Browse categories <span>›</span>
+                </Link>
               </div>
             </div>
 
           </div>
+
+          <form onSubmit={handleSearch} className="relative mx-auto mt-10 max-w-2xl">
+            <FiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search Starlink kits, CCTV, networking gear..."
+              aria-label="Search products"
+              className="w-full rounded-full border border-gray-200 bg-white py-4 pl-14 pr-32 text-base text-gray-900 shadow-sm outline-none transition focus:border-primary-500"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-600"
+            >
+              Search
+            </button>
+          </form>
         </div>
       </section>
 
