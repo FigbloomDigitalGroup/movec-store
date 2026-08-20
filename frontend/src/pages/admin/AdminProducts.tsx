@@ -47,6 +47,7 @@ export default function AdminProducts() {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -206,6 +207,9 @@ export default function AdminProducts() {
     setForm({ name: p.name, slug: p.slug, description: p.description, price: p.price, sku: p.sku, brandId: p.brand?.id || '', categoryIds: p.categories?.map(c => c.id) || [], isFeatured: p.isFeatured || false, isBestSeller: p.isBestSeller || false });
     setInvForm({ warehouseId: '', quantity: 0, lowStockThreshold: 5 });
     setSelectedFiles([]); setPreviews([]); setShowForm(true);
+    // Product rows sit far below the form, so jump the admin back up to it
+    // instead of leaving it open off-screen above their scroll position.
+    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   const handleFiles = useCallback((files: FileList | File[]) => {
@@ -291,7 +295,7 @@ export default function AdminProducts() {
 
       {/* Product Form */}
       {showForm && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 mb-6">
+        <div ref={formRef} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">{editing ? 'Edit' : 'New'} Product</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
