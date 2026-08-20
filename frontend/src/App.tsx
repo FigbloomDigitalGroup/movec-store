@@ -55,7 +55,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 function RedirectToModule() {
   const { moduleSlug } = useParams();
-  return <Navigate to={moduleSlug ? `/solutions/${moduleSlug}` : '/'} replace />;
+  return <Navigate to={moduleSlug ? `/${moduleSlug}` : '/'} replace />;
 }
 
 const persister = createSyncStoragePersister({
@@ -135,12 +135,12 @@ export default function App() {
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/solutions/:moduleSlug" element={<ModuleLanding />} />
+              {/* Legacy redirects — module pages used to live under /solutions/ */}
+              <Route path="/solutions" element={<Navigate to="/" replace />} />
+              <Route path="/solutions/:moduleSlug" element={<RedirectToModule />} />
               <Route path="/solutions/:moduleSlug/products" element={<RedirectToModule />} />
-              {/* Legacy redirects */}
               <Route path="/modules" element={<Navigate to="/" replace />} />
               <Route path="/modules/:moduleSlug" element={<RedirectToModule />} />
-              <Route path="/cctv" element={<Navigate to="/solutions/cctv" replace />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
@@ -155,6 +155,10 @@ export default function App() {
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/refund" element={<RefundPolicy />} />
               <Route path="/cookies" element={<CookiePolicy />} />
+              {/* Module landing pages (e.g. /cctv, /starlink) — kept last since it's a
+                  catch-all single segment; RRv6 ranks static routes above this regardless
+                  of declaration order, so it can never shadow the routes above. */}
+              <Route path="/:moduleSlug" element={<ModuleLanding />} />
               <Route path="*" element={<NotFound />} />
             </Route>
             <Route element={<RequireAdmin />}>

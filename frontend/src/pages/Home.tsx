@@ -143,14 +143,14 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            <Link to="/solutions/starlink" className="group block text-center">
+            <Link to="/starlink" className="group block text-center">
               <div className="mb-3">
                 <FiWifi className="mx-auto text-gray-500 group-hover:text-primary-500 transition-colors" size={32} />
               </div>
               <p className="text-sm text-gray-900 font-medium group-hover:text-primary-500 transition-colors">Starlink</p>
             </Link>
 
-            <Link to="/solutions/cctv" className="group block text-center">
+            <Link to="/cctv" className="group block text-center">
               <div className="mb-3">
                 <FiCamera className="mx-auto text-gray-500 group-hover:text-primary-500 transition-colors" size={32} />
               </div>

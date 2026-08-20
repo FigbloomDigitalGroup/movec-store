@@ -58,8 +58,8 @@ export default function Footer() {
             <h4 className="text-[#1A1F1B] font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li><Link to="/products" className="text-[#3A423E] hover:text-[#10B982] transition">Products</Link></li>
-              <li><Link to="/solutions/starlink" className="text-[#3A423E] hover:text-[#10B982] transition">Starlink Kits</Link></li>
-              <li><Link to="/solutions/cctv" className="text-[#3A423E] hover:text-[#10B982] transition">CCTV Systems</Link></li>
+              <li><Link to="/starlink" className="text-[#3A423E] hover:text-[#10B982] transition">Starlink Kits</Link></li>
+              <li><Link to="/cctv" className="text-[#3A423E] hover:text-[#10B982] transition">CCTV Systems</Link></li>
               <li><Link to="/installation" className="text-[#3A423E] hover:text-[#10B982] transition">Installation</Link></li>
               <li><Link to="/support/faqs" className="text-[#3A423E] hover:text-[#10B982] transition">FAQs</Link></li>
             </ul>

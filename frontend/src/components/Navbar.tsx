@@ -18,8 +18,8 @@ import type { WishlistItem } from '../types';
 
 const NAV_LINKS = [
   { to: '/shop', label: 'Shop' },
-  { to: '/solutions/starlink', label: 'Starlink' },
-  { to: '/solutions/cctv', label: 'CCTV' },
+  { to: '/starlink', label: 'Starlink' },
+  { to: '/cctv', label: 'CCTV' },
   { to: '/products?category=networking', label: 'Networking' },
   { to: '/products?category=accessories', label: 'Accessories' },
   { to: '/installation', label: 'Installation' },

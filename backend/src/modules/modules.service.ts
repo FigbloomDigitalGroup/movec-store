@@ -13,6 +13,17 @@ import { buildPagination } from '../common/pagination';
 
 const SORTABLE_FIELDS = ['createdAt', 'price', 'name'] as const;
 
+// Module slugs are served at the storefront root (e.g. /cctv), so a slug that
+// collides with one of the frontend's static top-level routes would make that
+// route (or the module) unreachable. Mirrors the path segments registered in
+// frontend/src/App.tsx.
+const RESERVED_SLUGS = new Set([
+  'shop', 'products', 'categories', 'login', 'register', 'verify-email',
+  'forgot-password', 'reset-password', 'cart', 'checkout', 'wishlist',
+  'profile', 'orders', 'payment', 'installation', 'support', 'contact',
+  'privacy', 'terms', 'refund', 'cookies', 'admin', 'modules', 'solutions',
+]);
+
 export interface ModuleProductsQuery {
   page?: string;
   limit?: string;
@@ -196,6 +207,11 @@ export class ModulesService {
   // ─── Admin CRUD ──────────────────────────────────────────────────
 
   async create(dto: CreateModuleDto) {
+    if (RESERVED_SLUGS.has(dto.slug)) {
+      throw new ConflictException(
+        `"${dto.slug}" is a reserved URL and can't be used as a module slug`,
+      );
+    }
     const existing = await this.prisma.storeModule.findUnique({
       where: { slug: dto.slug },
     });
@@ -208,6 +224,11 @@ export class ModulesService {
   async update(id: string, dto: UpdateModuleDto) {
     const mod = await this.prisma.storeModule.findUnique({ where: { id } });
     if (!mod) throw new NotFoundException('Module not found');
+    if (dto.slug && RESERVED_SLUGS.has(dto.slug)) {
+      throw new ConflictException(
+        `"${dto.slug}" is a reserved URL and can't be used as a module slug`,
+      );
+    }
     const updated = await this.prisma.storeModule.update({
       where: { id },
       data: dto,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
+import toast from 'react-hot-toast';
+import api, { getErrorMessage } from '../../lib/api';
 import { FiEdit2, FiTrash2, FiPlus, FiX, FiLayers } from 'react-icons/fi';
 import PageHeader from '../../components/ui/PageHeader';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -37,6 +38,7 @@ export default function AdminModules() {
       setIsCreating(false);
       setFormData({ name: '', slug: '', description: '', isActive: true, sortOrder: 0 });
     },
+    onError: (err) => toast.error(getErrorMessage(err) || 'Failed to create module'),
   });
 
   const updateApi = useMutation({
@@ -45,6 +47,7 @@ export default function AdminModules() {
       queryClient.invalidateQueries({ queryKey: ['admin-modules'] });
       setIsEditing(null);
     },
+    onError: (err) => toast.error(getErrorMessage(err) || 'Failed to update module'),
   });
 
   const deleteApi = useMutation({

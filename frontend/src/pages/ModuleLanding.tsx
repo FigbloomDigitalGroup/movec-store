@@ -8,6 +8,7 @@ import ProductCard from '../components/ProductCard';
 import Skeleton from '../components/ui/Skeleton';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
+import NotFound from './NotFound';
 import type { Product } from '../types';
 
 interface StoreModule {
@@ -54,10 +55,11 @@ export default function ModuleLanding() {
 
   const selectedCategory = searchParams.get('category') || '';
 
-  const { data: mod, isLoading: isModuleLoading } = useQuery<StoreModule>({
+  const { data: mod, isLoading: isModuleLoading, isError: isModuleError } = useQuery<StoreModule>({
     queryKey: ['module', moduleSlug],
     queryFn: () => getModule(moduleSlug!),
     enabled: !!moduleSlug,
+    retry: false,
   });
 
   const paramsWithoutPage = Object.fromEntries(searchParams);
@@ -109,6 +111,14 @@ export default function ModuleLanding() {
     params.delete('page');
     setSearchParams(params);
   };
+
+  // A bare single-segment URL (e.g. /whatever-typo) falls through to this page
+  // rather than the router's own NotFound, since module slugs are dynamic. Once
+  // the lookup genuinely fails, show the same NotFound the router uses elsewhere
+  // instead of rendering an empty "Solutions" shell.
+  if (isModuleError) {
+    return <NotFound />;
+  }
 
   return (
     <div className="min-h-screen">

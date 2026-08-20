@@ -106,7 +106,7 @@ function ModuleCard({ mod }: { mod: StoreModule }) {
   const categories = mod.categories ?? [];
 
   return (
-    <Link to={`/solutions/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-xl">
+    <Link to={`/${mod.slug}`} className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-xl">
       <Card hover className="h-full transition-shadow group-hover:border-primary-500/30 group-hover:shadow-[0_20px_40px_rgba(16,185,130,0.12)]">
         <CardBody className="flex h-full flex-col">
           <div className="relative mb-6 overflow-hidden rounded-2xl p-8 text-white shadow-lg">
