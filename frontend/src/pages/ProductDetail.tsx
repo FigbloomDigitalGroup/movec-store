@@ -5,6 +5,7 @@ import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useProductActions } from '../hooks/useProductActions';
+import { useSeo } from '../hooks/useSeo';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -355,6 +356,11 @@ export default function ProductDetail() {
       const { data } = await api.get(`/products/${slug}`);
       return data;
     },
+  });
+
+  useSeo({
+    title: product?.name || 'Product',
+    description: product?.shortDescription || product?.description,
   });
 
   const {

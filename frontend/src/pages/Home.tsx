@@ -12,8 +12,14 @@ import {
 } from 'react-icons/fi';
 import ProductCarousel from '../components/ProductCarousel';
 import ProductCarouselSkeleton from '../components/ProductCarouselSkeleton';
+import { useSeo } from '../hooks/useSeo';
 
 export default function Home() {
+  useSeo({
+    title: 'Shop All Products',
+    description: 'Browse the full Movec Store catalog: Starlink kits, CCTV cameras, NVRs, hard drives, and networking accessories.',
+  });
+
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 

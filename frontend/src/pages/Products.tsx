@@ -9,6 +9,7 @@ import Skeleton from '../components/ui/Skeleton';
 import ProductCard from '../components/ProductCard';
 import SectionHero from '../components/ui/SectionHero';
 import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
+import { useSeo } from '../hooks/useSeo';
 
 const PRICE_RANGES = [
   { value: '', label: 'All Prices' },
@@ -28,6 +29,13 @@ export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [filterOpen, setFilterOpen] = useState(false);
+
+  const searchQuery = searchParams.get('search');
+  useSeo({
+    title: searchQuery ? `Search results for "${searchQuery}"` : 'All Products',
+    description: 'Shop Starlink kits, CCTV cameras, NVRs, hard drives, and networking accessories with nationwide delivery in Kenya.',
+    canonicalPath: '/products',
+  });
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ['categories'],

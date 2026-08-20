@@ -9,6 +9,7 @@ import Skeleton from '../components/ui/Skeleton';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { useInfiniteScrollTrigger } from '../hooks/useInfiniteScrollTrigger';
 import NotFound from './NotFound';
+import { useSeo } from '../hooks/useSeo';
 import type { Product } from '../types';
 
 interface StoreModule {
@@ -95,6 +96,8 @@ export default function ModuleLanding() {
 
   const title = mod?.name || theme.title;
   const subtitle = mod?.description || theme.description;
+
+  useSeo({ title, description: subtitle });
 
   const handleSearch = () => {
     const params = new URLSearchParams(searchParams);

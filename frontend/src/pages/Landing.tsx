@@ -20,6 +20,7 @@ import Badge from '../components/ui/Badge';
 import Alert from '../components/ui/Alert';
 import ProductCarousel from '../components/ProductCarousel';
 import ProductCarouselSkeleton from '../components/ProductCarouselSkeleton';
+import { useSeo } from '../hooks/useSeo';
 import type { Product } from '../types';
 
 interface PromoBanner {
@@ -180,6 +181,12 @@ function getSlideBackgroundImage(slide: PromoBanner): string | undefined {
 }
 
 export default function Landing() {
+  useSeo({
+    title: 'Movec Store — Starlink Internet, CCTV & Security Systems in Kenya',
+    description: 'Shop genuine Starlink internet kits and professional CCTV security systems in Kenya, with nationwide delivery and installation.',
+    appendSiteName: false,
+  });
+
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: banners = [] } = useQuery<PromoBanner[]>({
     queryKey: ['promo-banners'],

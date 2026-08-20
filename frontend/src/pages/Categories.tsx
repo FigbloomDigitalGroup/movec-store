@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import SectionHero from '../components/ui/SectionHero';
 import PageLoader from '../components/PageLoader';
+import { useSeo } from '../hooks/useSeo';
 import { FiWifi, FiCamera, FiHardDrive, FiServer, FiCpu, FiTool } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import type { Category } from '../types';
@@ -29,6 +30,11 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function Categories() {
+  useSeo({
+    title: 'Shop by Category',
+    description: 'Browse Starlink kits, CCTV cameras, DVR/NVR systems, hard drives, and networking accessories by category.',
+  });
+
   const { data: categories, isLoading } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/categories').then(r => r.data),
