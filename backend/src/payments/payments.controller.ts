@@ -1,9 +1,10 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { InitiateMpesaDto } from './dto/initiate-mpesa.dto';
 import { InitiatePaystackDto } from './dto/initiate-paystack.dto';
 import { InitiatePaypalDto } from './dto/initiate-paypal.dto';
 import { ConfirmBankTransferDto } from './dto/confirm-bank-transfer.dto';
+import { InitiateCashOnDeliveryDto } from './dto/initiate-cash-on-delivery.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   CurrentUser,
@@ -36,6 +37,7 @@ export class PaymentsController {
       dto.orderNumber,
       dto.email,
       user.id,
+      dto.codDeposit,
     );
   }
 
@@ -70,5 +72,24 @@ export class PaymentsController {
     @Body() dto: ConfirmBankTransferDto,
   ) {
     return this.paymentsService.initiateBankTransfer(dto.orderNumber, user.id);
+  }
+
+  @Get('cash-on-delivery/terms/:orderNumber')
+  getCodTerms(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('orderNumber') orderNumber: string,
+  ) {
+    return this.paymentsService.getCodTerms(orderNumber, user.id);
+  }
+
+  @Post('cash-on-delivery/initiate')
+  initiateCashOnDelivery(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: InitiateCashOnDeliveryDto,
+  ) {
+    return this.paymentsService.initiateCashOnDelivery(
+      dto.orderNumber,
+      user.id,
+    );
   }
 }

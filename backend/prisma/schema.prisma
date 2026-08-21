@@ -35,6 +35,7 @@ enum PaymentMethod {
   PAYSTACK
   PAYPAL
   BANK_TRANSFER
+  CASH_ON_DELIVERY
 }
 
 enum PaymentStatus {
@@ -400,6 +401,10 @@ model Payment {
   status               PaymentStatus @default(PENDING)
   amount               Decimal       @db.Decimal(10, 2)
   currency             String        @default("KES")
+  // True only for the online payment that covers a cash-on-delivery deposit —
+  // completing it triggers creation of the matching CASH_ON_DELIVERY balance
+  // payment for the rest of the order (see PaymentsService.recordCodBalanceIfDeposit).
+  isDeposit            Boolean       @default(false)
   transactionReference String?
   paidAt               DateTime?
   createdAt            DateTime      @default(now())
@@ -408,6 +413,17 @@ model Payment {
   transactions Transaction[]
 
   @@index([orderId])
+}
+
+// Singleton row (fixed id) holding admin-editable cash-on-delivery terms: whether
+// COD is offered at all, and the order-total threshold above which a deposit is
+// required upfront (as a percentage of the order total) before delivery is arranged.
+model PaymentSettings {
+  id                   String   @id @default("singleton")
+  codEnabled           Boolean  @default(true)
+  codDepositThreshold  Decimal  @db.Decimal(10, 2) @default(0)
+  codDepositPercentage Decimal  @db.Decimal(5, 2) @default(0)
+  updatedAt            DateTime @updatedAt
 }
 
 model Transaction {

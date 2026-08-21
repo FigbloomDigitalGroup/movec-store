@@ -4,13 +4,22 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock } from 'react-icons/fi';
+import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock, FiDollarSign } from 'react-icons/fi';
 import CheckoutSteps from '../components/CheckoutSteps';
 import PageLoader from '../components/PageLoader';
 import type { OrderItem } from '../types';
 
 const VERIFY_MAX_ATTEMPTS = 3;
 const VERIFY_RETRY_DELAY_MS = 2000;
+
+interface CodTerms {
+    codEnabled: boolean;
+    depositThreshold: number;
+    requiresDeposit: boolean;
+    depositAmount: number;
+    balanceDue: number;
+    total: number;
+}
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
@@ -19,10 +28,18 @@ export default function PaymentPage() {
     const [verifying, setVerifying] = useState(false);
     const [verifyFailed, setVerifyFailed] = useState(false);
     const [paystackReference, setPaystackReference] = useState<string | null>(null);
+    const [codConfirmed, setCodConfirmed] = useState(false);
+    const [payingCodDeposit, setPayingCodDeposit] = useState(false);
 
     const { data: order, isLoading: orderLoading } = useQuery({
         queryKey: ['order', orderNumber],
         queryFn: () => api.get(`/orders/${orderNumber}`).then(r => r.data),
+    });
+
+    const { data: codTerms } = useQuery<CodTerms>({
+        queryKey: ['cod-terms', orderNumber],
+        queryFn: () => api.get(`/payments/cash-on-delivery/terms/${orderNumber}`).then(r => r.data),
+        enabled: !!orderNumber,
     });
 
     // Paystack's own verify endpoint is a thin check on top of the payment — the
@@ -52,16 +69,18 @@ export default function PaymentPage() {
     };
 
     const initiatePaystack = useMutation({
-        mutationFn: () => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com' }).then(r => r.data),
-        onSuccess: (data) => {
+        mutationFn: (codDeposit: boolean) => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com', codDeposit }).then(r => ({ data: r.data, codDeposit })),
+        onSuccess: ({ data, codDeposit }) => {
+            const amount = codDeposit ? Number(codTerms?.depositAmount) : Number(order?.total);
             const paystack = new window.PaystackPop();
             paystack.newTransaction({
                 key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
                 email: order?.user?.email || 'customer@example.com',
-                amount: Math.round(Number(order?.total) * 100),
+                amount: Math.round(amount * 100),
                 ref: data.reference,
                 onSuccess: (transaction) => {
                     setPaystackReference(transaction.reference);
+                    setPayingCodDeposit(codDeposit);
                     verifyPayment(transaction.reference);
                 },
                 onCancel: () => {
@@ -72,6 +91,16 @@ export default function PaymentPage() {
         onError: (err) => {
             toast.error(getErrorMessage(err));
             setProcessing(false);
+        }
+    });
+
+    const confirmCod = useMutation({
+        mutationFn: () => api.post('/payments/cash-on-delivery/initiate', { orderNumber }).then(r => r.data),
+        onSuccess: () => {
+            setCodConfirmed(true);
+        },
+        onError: (err) => {
+            toast.error(getErrorMessage(err));
         }
     });
 
@@ -159,16 +188,18 @@ export default function PaymentPage() {
                             transition={{ delay: 0.3 }}
                             className="text-3xl md:text-4xl font-section-title text-center mb-2 text-gray-900"
                         >
-                            Paystack Payment Initiated!
+                            {payingCodDeposit ? 'Deposit Paid!' : 'Paystack Payment Initiated!'}
                         </motion.h1>
-                        
+
                         <motion.p
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
                             className="text-gray-600 text-center mb-8"
                         >
-                            Your Paystack payment is being processed. You will receive confirmation shortly.
+                            {payingCodDeposit
+                                ? `Your deposit is being processed. The remaining KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} is due in cash when your order is delivered.`
+                                : 'Your Paystack payment is being processed. You will receive confirmation shortly.'}
                         </motion.p>
 
                         {/* What Happens Next */}
@@ -194,8 +225,12 @@ export default function PaymentPage() {
                                         <FiTruck className="text-primary-500" size={16} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">Order Processing</p>
-                                        <p className="text-sm text-gray-600">Your order will be processed within 1-2 business days.</p>
+                                        <p className="font-medium text-gray-900">{payingCodDeposit ? 'Balance on Delivery' : 'Order Processing'}</p>
+                                        <p className="text-sm text-gray-600">
+                                            {payingCodDeposit
+                                                ? `Have KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} ready in cash for the courier when your order arrives.`
+                                                : 'Your order will be processed within 1-2 business days.'}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
@@ -230,6 +265,44 @@ export default function PaymentPage() {
                                 Continue Shopping
                             </Link>
                         </motion.div>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
+    if (codConfirmed) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+                <div className="max-w-3xl mx-auto px-4 py-16">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center"
+                    >
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiCheckCircle className="text-green-500" size={40} />
+                        </div>
+                        <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Order Confirmed!</h1>
+                        <p className="text-gray-600 mb-8 max-w-lg mx-auto">
+                            Pay KES {order?.total?.toLocaleString() ?? ''} in cash when your order is delivered. We'll email you as it's processed and shipped.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link
+                                to={`/orders/${orderNumber}`}
+                                className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition font-medium text-center flex items-center justify-center gap-2"
+                            >
+                                View Order
+                                <FiArrowRight size={18} />
+                            </Link>
+                            <Link
+                                to="/products"
+                                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-medium text-center"
+                            >
+                                Continue Shopping
+                            </Link>
+                        </div>
                     </motion.div>
                 </div>
             </div>
@@ -278,13 +351,61 @@ export default function PaymentPage() {
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mt-4">
                         <p className="text-gray-700 mb-4">Continue to the secure checkout to complete payment using your preferred method.</p>
                         <button
-                            onClick={() => { setProcessing(true); initiatePaystack.mutate(); }}
-                            disabled={initiatePaystack.isPending || processing}
+                            onClick={() => { setProcessing(true); initiatePaystack.mutate(false); }}
+                            disabled={initiatePaystack.isPending || processing || confirmCod.isPending}
                             className="w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition font-semibold disabled:opacity-50"
                         >
                             {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : 'Continue to Secure Payment'}
                         </button>
                     </div>
+
+                    {codTerms?.codEnabled && (
+                        <div className="w-full rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6 mt-4">
+                            <div className="flex items-start gap-3 mb-4">
+                                <div className="p-2 rounded-full bg-primary-50 text-primary-500">
+                                    <FiDollarSign size={18} />
+                                </div>
+                                <div>
+                                    <p className="text-lg font-semibold text-gray-900">Pay on Delivery</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {codTerms.requiresDeposit
+                                            ? `Orders over KES ${codTerms.depositThreshold.toLocaleString()} need a deposit upfront — the rest is paid in cash when it arrives.`
+                                            : 'Pay the full amount in cash when your order arrives.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {codTerms.requiresDeposit ? (
+                                <>
+                                    <div className="bg-gray-50 rounded-xl p-4 mb-4 text-sm space-y-1">
+                                        <div className="flex justify-between text-gray-700">
+                                            <span>Deposit due now</span>
+                                            <span className="font-semibold text-gray-900">KES {codTerms.depositAmount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-700">
+                                            <span>Balance on delivery</span>
+                                            <span className="font-semibold text-gray-900">KES {codTerms.balanceDue.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => { setProcessing(true); initiatePaystack.mutate(true); }}
+                                        disabled={initiatePaystack.isPending || processing || confirmCod.isPending}
+                                        className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50"
+                                    >
+                                        {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : `Pay Deposit (KES ${codTerms.depositAmount.toLocaleString()})`}
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => confirmCod.mutate()}
+                                    disabled={confirmCod.isPending || initiatePaystack.isPending || processing}
+                                    className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50"
+                                >
+                                    {confirmCod.isPending ? 'Confirming order...' : 'Confirm Cash on Delivery'}
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Order Summary */}

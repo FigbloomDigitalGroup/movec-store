@@ -194,6 +194,7 @@ export class PaymentsWebhookController {
           },
         });
 
+        await this.paymentsService.recordCodBalanceIfDeposit(payment);
         await this.inventoryService.fulfillOrder(payment.orderId);
         await this.paymentsService.sendOrderConfirmationEmail(payment.orderId);
 

@@ -275,6 +275,14 @@ export class OrdersService {
         },
         update: { deliveredAt: new Date() },
       });
+
+      // Cash collected in person on delivery has no online confirmation of its
+      // own — marking the order DELIVERED is what tells us the driver got paid,
+      // so it doubles as confirming any cash-on-delivery balance for this order.
+      await this.prisma.payment.updateMany({
+        where: { orderId, method: 'CASH_ON_DELIVERY', status: 'PENDING' },
+        data: { status: 'COMPLETED', paidAt: new Date() },
+      });
     }
 
     await this.prisma.order.update({ where: { id: orderId }, data });

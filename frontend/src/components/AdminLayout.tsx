@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import {
   FiGrid, FiBox, FiShoppingCart, FiUsers, FiPackage,
   FiTool, FiMessageSquare, FiBarChart2, FiStar,
-  FiBell, FiMenu, FiX, FiLogOut, FiExternalLink, FiLayers, FiHome
+  FiBell, FiMenu, FiX, FiLogOut, FiExternalLink, FiLayers, FiHome, FiCreditCard
 } from 'react-icons/fi';
 
 const sidebarLinks = [
@@ -20,6 +20,7 @@ const sidebarLinks = [
   { to: '/admin/reports', icon: FiBarChart2, label: 'Reports' },
   { to: '/admin/reviews', icon: FiStar, label: 'Reviews' },
   { to: '/admin/notifications', icon: FiBell, label: 'Notifications' },
+  { to: '/admin/payment-settings', icon: FiCreditCard, label: 'Payment Settings' },
 ];
 
 function useClock() {

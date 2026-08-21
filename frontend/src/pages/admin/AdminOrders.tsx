@@ -44,9 +44,19 @@ interface AdminOrderListItem {
   status: string;
   total: number;
   itemsCount: number;
+  paymentMethod: string | null;
   paymentStatus: string | null;
   createdAt: string;
 }
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  CASH_ON_DELIVERY: 'Cash on Delivery',
+  BANK_TRANSFER: 'Bank Transfer',
+  MPESA: 'M-Pesa',
+  PAYSTACK: 'Paystack',
+  PAYPAL: 'PayPal',
+  STRIPE: 'Stripe',
+};
 
 interface AdminOrdersResponse {
   data: AdminOrderListItem[];
@@ -386,9 +396,16 @@ export default function AdminOrders() {
 
                     <td className="px-5 py-4">
                       {order.paymentStatus ? (
-                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${PAYMENT_CONFIG[order.paymentStatus] || 'bg-gray-100 text-gray-700'}`}>
-                          {order.paymentStatus}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full w-fit ${PAYMENT_CONFIG[order.paymentStatus] || 'bg-gray-100 text-gray-700'}`}>
+                            {order.paymentStatus}
+                          </span>
+                          {order.paymentMethod && (
+                            <span className="text-[10px] text-gray-500">
+                              {PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod}
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-[11px] text-gray-500">—</span>
                       )}

@@ -57,13 +57,17 @@ export class PaymentsService {
   async sendOrderConfirmationEmail(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: true, user: true, payments: true, shippingAddress: true },
+      include: {
+        items: true,
+        user: true,
+        payments: true,
+        shippingAddress: true,
+      },
     });
     if (!order) return;
 
     const payment =
-      order.payments.find((p) => p.status === 'COMPLETED') ??
-      order.payments[0];
+      order.payments.find((p) => p.status === 'COMPLETED') ?? order.payments[0];
 
     try {
       await this.emailService.sendOrderConfirmation({
@@ -231,7 +235,12 @@ export class PaymentsService {
 
   // ─── Paystack ────────────────────────────────────────────────────────────────
 
-  async initiatePaystack(orderNumber: string, email: string, userId: string) {
+  async initiatePaystack(
+    orderNumber: string,
+    email: string,
+    userId: string,
+    codDeposit = false,
+  ) {
     const order = await this.findOrder(orderNumber, userId);
 
     if (order.status !== 'PENDING') {
@@ -243,12 +252,27 @@ export class PaymentsService {
       throw new BadRequestException('Paystack is not configured');
     }
 
+    let amount = order.total.toNumber();
+    if (codDeposit) {
+      const settings = await this.getPaymentSettings();
+      const { requiresDeposit, depositAmount } = this.computeCodDeposit(
+        amount,
+        settings,
+      );
+      if (!requiresDeposit) {
+        throw new BadRequestException(
+          'This order does not require a cash-on-delivery deposit',
+        );
+      }
+      amount = depositAmount;
+    }
+
     try {
       const { data } = await axios.post<PaystackInitializeResponse>(
         `${this.paystackBaseUrl}/transaction/initialize`,
         {
           email,
-          amount: Math.round(Number(order.total) * 100), // Paystack uses kobo (1 KES = 100 kobo)
+          amount: Math.round(amount * 100), // Paystack uses kobo (1 KES = 100 kobo)
           currency: 'KES',
           reference: `${orderNumber}-${Date.now()}`,
           metadata: { orderNumber },
@@ -268,8 +292,9 @@ export class PaymentsService {
           orderId: order.id,
           method: 'PAYSTACK',
           status: 'PENDING',
-          amount: order.total,
+          amount,
           currency: 'KES',
+          isDeposit: codDeposit,
           transactionReference: reference,
           transactions: {
             create: {
@@ -577,6 +602,158 @@ export class PaymentsService {
     await this.sendOrderConfirmationEmail(order.id);
 
     return { message: 'Payment confirmed. Order is now confirmed.' };
+  }
+
+  // ─── Cash on Delivery ────────────────────────────────────────────────────────
+
+  private readonly paymentSettingsId = 'singleton';
+
+  async getPaymentSettings() {
+    return this.prisma.paymentSettings.upsert({
+      where: { id: this.paymentSettingsId },
+      create: { id: this.paymentSettingsId },
+      update: {},
+    });
+  }
+
+  async updatePaymentSettings(dto: {
+    codEnabled?: boolean;
+    codDepositThreshold?: number;
+    codDepositPercentage?: number;
+  }) {
+    return this.prisma.paymentSettings.upsert({
+      where: { id: this.paymentSettingsId },
+      create: { id: this.paymentSettingsId, ...dto },
+      update: dto,
+    });
+  }
+
+  // A deposit only kicks in once the order total clears the admin-configured
+  // threshold — a threshold of 0 (the default) means COD never requires one.
+  private computeCodDeposit(
+    total: number,
+    settings: {
+      codDepositThreshold: Prisma.Decimal;
+      codDepositPercentage: Prisma.Decimal;
+    },
+  ) {
+    const threshold = settings.codDepositThreshold.toNumber();
+    const percentage = settings.codDepositPercentage.toNumber();
+    const requiresDeposit =
+      threshold > 0 && percentage > 0 && total > threshold;
+    const depositAmount = requiresDeposit
+      ? Math.round(total * (percentage / 100) * 100) / 100
+      : 0;
+    return { requiresDeposit, depositAmount };
+  }
+
+  async getCodTerms(orderNumber: string, userId: string) {
+    const order = await this.findOrder(orderNumber, userId);
+    const settings = await this.getPaymentSettings();
+    const total = order.total.toNumber();
+    const { requiresDeposit, depositAmount } = this.computeCodDeposit(
+      total,
+      settings,
+    );
+
+    return {
+      codEnabled: settings.codEnabled,
+      depositThreshold: settings.codDepositThreshold.toNumber(),
+      depositPercentage: settings.codDepositPercentage.toNumber(),
+      requiresDeposit,
+      depositAmount,
+      balanceDue: total - depositAmount,
+      total,
+    };
+  }
+
+  // Full cash-on-delivery with no deposit due: confirms the order immediately,
+  // same as any other successful payment, with the entire total collected at
+  // delivery. If a deposit is required the caller must pay it online first (see
+  // initiatePaystack's codDeposit option) — this endpoint refuses in that case.
+  async initiateCashOnDelivery(orderNumber: string, userId: string) {
+    const order = await this.findOrder(orderNumber, userId);
+
+    if (order.status !== 'PENDING') {
+      throw new BadRequestException('Order is not pending payment');
+    }
+
+    const settings = await this.getPaymentSettings();
+    if (!settings.codEnabled) {
+      throw new BadRequestException(
+        'Cash on delivery is not available right now',
+      );
+    }
+
+    const total = order.total.toNumber();
+    const { requiresDeposit, depositAmount } = this.computeCodDeposit(
+      total,
+      settings,
+    );
+    if (requiresDeposit) {
+      throw new BadRequestException(
+        `A deposit of ${depositAmount} is required before this order can be confirmed for cash on delivery`,
+      );
+    }
+
+    await this.prisma.payment.create({
+      data: {
+        orderId: order.id,
+        method: 'CASH_ON_DELIVERY',
+        status: 'PENDING',
+        amount: order.total,
+        currency: 'KES',
+      },
+    });
+
+    await this.prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: 'CONFIRMED',
+        statusHistory: {
+          create: { status: 'CONFIRMED', changedBy: 'system' },
+        },
+      },
+    });
+
+    await this.inventoryService.fulfillOrder(order.id);
+    await this.sendOrderConfirmationEmail(order.id);
+
+    return {
+      message: 'Order confirmed. Pay the full amount in cash on delivery.',
+    };
+  }
+
+  // Called right after any online payment (M-Pesa, Paystack, PayPal) that was
+  // flagged isDeposit completes — it books the remainder of the order total as a
+  // CASH_ON_DELIVERY payment due at delivery, so the deposit + this balance always
+  // add up to the order total.
+  async recordCodBalanceIfDeposit(payment: {
+    id: string;
+    orderId: string;
+    amount: Prisma.Decimal;
+    currency: string;
+    isDeposit: boolean;
+  }) {
+    if (!payment.isDeposit) return;
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: payment.orderId },
+    });
+    if (!order) return;
+
+    const balance = order.total.toNumber() - payment.amount.toNumber();
+    if (balance <= 0) return;
+
+    await this.prisma.payment.create({
+      data: {
+        orderId: payment.orderId,
+        method: 'CASH_ON_DELIVERY',
+        status: 'PENDING',
+        amount: balance,
+        currency: payment.currency,
+      },
+    });
   }
 
   // ─── Admin ───────────────────────────────────────────────────────────────────
