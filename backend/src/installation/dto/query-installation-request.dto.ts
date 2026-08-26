@@ -6,6 +6,10 @@ export class QueryInstallationRequestDto {
   status?: string;
 
   @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
   @IsNumberString()
   page?: string;
 

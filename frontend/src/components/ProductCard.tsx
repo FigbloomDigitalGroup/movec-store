@@ -49,7 +49,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       to={`/products/${product.slug}`}
-      className="group block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-200 relative overflow-hidden"
+      className="group flex h-full flex-col bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-200 relative overflow-hidden"
     >
       {/* Discount Badge */}
       {discount > 0 && (
@@ -60,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Image Container — white bg, object-contain, padded to match home page */}
       <div
-        className="relative bg-gray-50 overflow-hidden flex items-center justify-center"
+        className="relative bg-gray-50 overflow-hidden flex items-center justify-center shrink-0"
         style={{ height: '120px' }}
       >
         <div className="w-full h-full flex items-center justify-center">
@@ -121,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Product info */}
-      <div className="px-2 pb-2 pt-1.5">
+      <div className="flex flex-1 flex-col px-2 pb-2 pt-1.5">
         {/* Brand */}
         {product.brand && (
           <p className="text-[9px] text-gray-500 mb-0.5 truncate">{product.brand.name}</p>
@@ -180,7 +180,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-1">
+        <div className="mt-auto flex gap-1">
           <button
             onClick={handleAddToCart}
             disabled={!inStock || isAddingToCart}

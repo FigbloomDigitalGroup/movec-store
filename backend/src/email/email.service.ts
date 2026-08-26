@@ -484,4 +484,268 @@ export class EmailService {
       );
     }
   }
+
+  async sendInstallationRequestConfirmation(params: {
+    toEmail: string;
+    toName: string;
+    serviceName: string;
+    preferredDate: Date;
+    timeSlotLabel?: string;
+    address: {
+      line1: string;
+      line2?: string | null;
+      city: string;
+      state?: string | null;
+      postalCode: string;
+      country: string;
+    };
+    notes?: string | null;
+    price: number;
+    currency?: string;
+  }) {
+    const {
+      toEmail,
+      toName,
+      serviceName,
+      preferredDate,
+      timeSlotLabel,
+      address,
+      notes,
+      price,
+      currency = 'KES',
+    } = params;
+
+    const logoUrl = `${this.frontendUrl}/logo.png`;
+    const formatMoney = (amount: number) =>
+      `${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formattedDate = preferredDate.toLocaleDateString('en-KE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const subject = 'Your installation request has been received - Movec Store';
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background-color: #ffffff; padding: 24px 32px; text-align: center; border-bottom: 3px solid #10b982;">
+          <img src="${logoUrl}" alt="Movec Store" height="48" style="height: 48px; display: inline-block;" />
+        </div>
+
+        <div style="padding: 32px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background-color: #ecfdf5; line-height: 56px; font-size: 28px; color: #10b982;">&#10003;</div>
+            <h1 style="font-size: 20px; color: #1a1f1b; margin: 16px 0 4px;">Installation request received</h1>
+            <p style="color: #717a73; margin: 0;">Hi ${toName}, we've received your request for <strong>${serviceName}</strong>. Our team will reach out shortly to confirm scheduling.</p>
+          </div>
+
+          <table width="100%" style="border-collapse: collapse; margin-bottom: 24px; background-color: #f7f7f5; border-radius: 8px;" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding: 16px 20px; font-size: 13px; color: #717a73;">Service</td>
+              <td style="padding: 16px 20px; font-size: 13px; color: #1a1f1b; text-align: right; font-weight: 600;">${serviceName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 0 20px 16px; font-size: 13px; color: #717a73;">Preferred date</td>
+              <td style="padding: 0 20px 16px; font-size: 13px; color: #1a1f1b; text-align: right; font-weight: 600;">${formattedDate}</td>
+            </tr>
+            ${
+              timeSlotLabel
+                ? `<tr>
+                    <td style="padding: 0 20px 16px; font-size: 13px; color: #717a73;">Preferred time</td>
+                    <td style="padding: 0 20px 16px; font-size: 13px; color: #1a1f1b; text-align: right; font-weight: 600;">${timeSlotLabel}</td>
+                  </tr>`
+                : ''
+            }
+            <tr>
+              <td style="padding: 0 20px 16px; font-size: 13px; color: #717a73;">Estimated price</td>
+              <td style="padding: 0 20px 16px; font-size: 13px; color: #1a1f1b; text-align: right; font-weight: 600;">${formatMoney(price)}</td>
+            </tr>
+          </table>
+
+          <div style="background-color: #f7f7f5; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #4b534d; margin-bottom: 8px;">Installation address</div>
+            <div style="font-size: 13px; color: #1a1f1b; line-height: 1.5;">
+              ${address.line1}${address.line2 ? `, ${address.line2}` : ''}<br />
+              ${address.city}${address.state ? `, ${address.state}` : ''} ${address.postalCode}<br />
+              ${address.country}
+            </div>
+          </div>
+
+          ${
+            notes
+              ? `<div style="margin-bottom: 8px;">
+                  <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #4b534d; margin-bottom: 8px;">Your notes</div>
+                  <p style="font-size: 13px; color: #1a1f1b; white-space: pre-wrap; margin: 0;">${notes}</p>
+                </div>`
+              : ''
+          }
+        </div>
+
+        <div style="background-color: #f7f7f5; padding: 20px 32px; text-align: center;">
+          <p style="color: #717a73; font-size: 12px; margin: 0 0 4px;">Questions about your request? Contact us anytime.</p>
+          <p style="color: #9ba39c; font-size: 12px; margin: 0;">Movec Store, Nairobi, Kenya</p>
+        </div>
+      </div>
+    `;
+
+    // Try sending via SMTP first
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: `"${toName}" <${toEmail}>`,
+          subject,
+          html: htmlContent,
+        });
+        this.logger.log(
+          `Installation request confirmation sent to ${toEmail} via SMTP`,
+        );
+        return;
+      } catch (error) {
+        this.logger.error(
+          'Failed to send installation request confirmation via SMTP:',
+          error,
+        );
+      }
+    }
+
+    // Fallback to Brevo
+    if (!this.apiInstance) {
+      this.logger.warn(
+        'Neither SMTP nor Brevo is configured for installation request confirmations.',
+      );
+      return;
+    }
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: toEmail, name: toName }];
+    sendSmtpEmail.sender = { email: this.fromEmail, name: this.fromName };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      this.logger.log(
+        `Installation request confirmation sent to ${toEmail} via Brevo`,
+      );
+    } catch (error) {
+      this.logger.error(
+        'Failed to send installation request confirmation via Brevo:',
+        error,
+      );
+    }
+  }
+
+  async sendInstallationRequestNotification(params: {
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string | null;
+    serviceName: string;
+    preferredDate: Date;
+    timeSlotLabel?: string;
+    address: {
+      line1: string;
+      line2?: string | null;
+      city: string;
+      state?: string | null;
+      postalCode: string;
+      country: string;
+    };
+    notes?: string | null;
+    price: number;
+    currency?: string;
+  }) {
+    const {
+      customerName,
+      customerEmail,
+      customerPhone,
+      serviceName,
+      preferredDate,
+      timeSlotLabel,
+      address,
+      notes,
+      price,
+      currency = 'KES',
+    } = params;
+
+    const businessEmail = this.configService.get<string>(
+      'CONTACT_EMAIL',
+      'info@starlinkcctv.co.ke',
+    );
+    const formatMoney = (amount: number) =>
+      `${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formattedDate = preferredDate.toLocaleDateString('en-KE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    const dashboardUrl = `${this.frontendUrl}/admin/installations`;
+
+    const subject = `New Installation Request: ${serviceName}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1e40af;">New Installation Request</h2>
+        <p><strong>Customer:</strong> ${customerName}</p>
+        <p><strong>Email:</strong> ${customerEmail}</p>
+        <p><strong>Phone:</strong> ${customerPhone || 'N/A'}</p>
+        <p><strong>Service:</strong> ${serviceName}</p>
+        <p><strong>Preferred date:</strong> ${formattedDate}${timeSlotLabel ? ` &mdash; ${timeSlotLabel}` : ''}</p>
+        <p><strong>Estimated price:</strong> ${formatMoney(price)}</p>
+        <p><strong>Address:</strong> ${address.line1}${address.line2 ? `, ${address.line2}` : ''}, ${address.city}${address.state ? `, ${address.state}` : ''} ${address.postalCode}, ${address.country}</p>
+        ${
+          notes
+            ? `<div style="margin-top: 16px; padding: 16px; background-color: #f3f4f6; border-radius: 8px;">
+                <p style="white-space: pre-wrap; margin: 0;">${notes}</p>
+              </div>`
+            : ''
+        }
+        <a href="${dashboardUrl}" style="display: inline-block; margin-top: 20px; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">
+          View in Admin Panel
+        </a>
+      </div>
+    `;
+
+    // Try sending via SMTP first
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.smtpFrom,
+          to: businessEmail,
+          replyTo: customerEmail,
+          subject,
+          html: htmlContent,
+        });
+        this.logger.log(
+          'Installation request notification sent to business via SMTP',
+        );
+        return;
+      } catch (error) {
+        this.logger.error(
+          'Failed to send installation request notification via SMTP:',
+          error,
+        );
+      }
+    }
+
+    // Fallback to Brevo
+    if (!this.apiInstance) return;
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: businessEmail }];
+    sendSmtpEmail.sender = { email: this.fromEmail, name: customerName };
+    sendSmtpEmail.replyTo = { email: customerEmail };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
+
+    try {
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      this.logger.log(
+        'Installation request notification sent to business via Brevo',
+      );
+    } catch (error) {
+      this.logger.error(
+        'Failed to send installation request notification via Brevo:',
+        error,
+      );
+    }
+  }
 }

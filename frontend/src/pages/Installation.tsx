@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import CustomCalendar from '../components/CustomCalendar';
 import CustomDropdown from '../components/CustomDropdown';
 import Alert from '../components/ui/Alert';
+import { TIME_SLOTS } from '../lib/installationTimeSlots';
 
 // Shape returned by GET /installation/services (InstallationService.getServices).
 interface InstallationServiceOption {
@@ -17,22 +18,25 @@ interface InstallationServiceOption {
 export default function InstallationPage() {
   const [serviceId, setServiceId] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
+  const [timeSlot, setTimeSlot] = useState('');
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const dateInputRef = useRef<HTMLDivElement>(null);
+  const timeSlotRef = useRef<HTMLDivElement>(null);
   const notesInputRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: services, isLoading: servicesLoading } = useQuery<InstallationServiceOption[]>({ queryKey: ['installation-services'], queryFn: () => api.get('/installation/services').then(r => r.data) });
   const { data: addresses } = useQuery({ queryKey: ['addresses'], queryFn: () => api.get('/users/me/addresses').then(r => r.data) });
 
   const submit = useMutation({
-    mutationFn: () => api.post('/installation/requests', { serviceId, preferredDate: new Date(preferredDate).toISOString(), addressId: addresses?.[0]?.id, notes }),
+    mutationFn: () => api.post('/installation/requests', { serviceId, preferredDate: new Date(preferredDate).toISOString(), timeSlot, addressId: addresses?.[0]?.id, notes }),
     onSuccess: () => {
       toast.success('Installation request submitted!');
       setSubmitted(true);
       setServiceId('');
       setPreferredDate('');
+      setTimeSlot('');
       setNotes('');
     },
     onError: (err) => toast.error(getErrorMessage(err)),
@@ -47,8 +51,13 @@ export default function InstallationPage() {
   };
 
   const handleDateComplete = () => {
-    // Focus on notes field after date selection
-    notesInputRef.current?.focus();
+    // Scroll to time slot selection after date selection
+    timeSlotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  const handleTimeSlotSelect = (slotId: string) => {
+    setTimeSlot(slotId);
+    setTimeout(() => notesInputRef.current?.focus(), 200);
   };
 
   return (
@@ -99,6 +108,34 @@ export default function InstallationPage() {
             />
           </div>
 
+          {/* Time Slot Selection */}
+          <div ref={timeSlotRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Preferred Time
+            </label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {TIME_SLOTS.map((slot) => (
+                <button
+                  key={slot.id}
+                  type="button"
+                  onClick={() => handleTimeSlotSelect(slot.id)}
+                  className={`
+                    rounded-lg border px-3 py-2.5 text-center transition-all duration-200
+                    ${timeSlot === slot.id
+                      ? 'border-transparent bg-primary-500 text-white shadow-sm'
+                      : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    }
+                  `}
+                >
+                  <span className="block text-sm font-medium">{slot.label}</span>
+                  <span className={`block text-xs ${timeSlot === slot.id ? 'text-white/80' : 'text-gray-500'}`}>
+                    {slot.window}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Notes Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -117,10 +154,10 @@ export default function InstallationPage() {
           {/* Submit Button */}
           <button
             onClick={() => submit.mutate()}
-            disabled={submit.isPending || !serviceId || !preferredDate || hasNoAddress}
+            disabled={submit.isPending || !serviceId || !preferredDate || !timeSlot || hasNoAddress}
             className={`
               w-full py-3 rounded-lg font-medium transition-all duration-200
-              ${submit.isPending || !serviceId || !preferredDate || hasNoAddress
+              ${submit.isPending || !serviceId || !preferredDate || !timeSlot || hasNoAddress
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm hover:shadow-md'
               }

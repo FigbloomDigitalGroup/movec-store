@@ -29,8 +29,9 @@ export class AdminOrdersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @Query('status') status?: OrderStatus,
+    @Query('search') search?: string,
   ) {
-    return this.ordersService.findAll(+page, +limit, status);
+    return this.ordersService.findAll(+page, +limit, status, search);
   }
 
   @Get(':orderNumber')

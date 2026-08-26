@@ -28,16 +28,27 @@ export class UsersService {
     private auditService: AuditService,
   ) {}
 
-  async findAll(query: PaginationQuery) {
+  async findAll(query: PaginationQuery, search?: string) {
     const { page, limit, skip } = buildPagination(query);
+    const where: Prisma.UserWhereInput = search
+      ? {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
+        where,
         skip,
         take: limit,
         include: { userRoles: { include: { role: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
     ]);
 
     return paginated(
