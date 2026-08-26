@@ -179,10 +179,23 @@ export class OrdersService {
     return { message: 'Order cancelled successfully' };
   }
 
-  async findAll(page = 1, limit = 20, status?: OrderStatus) {
+  async findAll(
+    page = 1,
+    limit = 20,
+    status?: OrderStatus,
+    search?: string,
+  ) {
     const skip = (page - 1) * limit;
     const where: Prisma.OrderWhereInput = {};
     if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { orderNumber: { contains: search, mode: 'insensitive' } },
+        { user: { firstName: { contains: search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: search, mode: 'insensitive' } } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({

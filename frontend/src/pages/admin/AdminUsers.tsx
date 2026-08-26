@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { getErrorMessage } from '../../lib/api';
 import toast from 'react-hot-toast';
-import { FiShield, FiCheck, FiX } from 'react-icons/fi';
+import { FiShield, FiCheck, FiX, FiSearch } from 'react-icons/fi';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Pagination from '../../components/ui/Pagination';
 import PageHeader from '../../components/ui/PageHeader';
@@ -41,10 +41,27 @@ export default function AdminUsers() {
   const [pendingRoles, setPendingRoles] = useState<RoleName[]>([]);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; isActive: boolean; name: string } | null>(null);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce the search box so every keystroke doesn't fire its own request.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
 
   const { data, isLoading } = useQuery<AdminUsersResponse>({
-    queryKey: ['admin-users', page],
-    queryFn: () => api.get(`/admin/users?limit=${PAGE_SIZE}&page=${page}`).then((r) => r.data),
+    queryKey: ['admin-users', page, debouncedSearch],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set('limit', String(PAGE_SIZE));
+      params.set('page', String(page));
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      return api.get(`/admin/users?${params.toString()}`).then((r) => r.data);
+    },
   });
 
   const toggleUser = useMutation({
@@ -92,6 +109,19 @@ export default function AdminUsers() {
           icon={FiShield}
           title="Users & Roles"
           subtitle={`${data?.meta?.total ?? 0} users total`}
+          action={
+            <div className="relative w-full md:w-72">
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+              <input
+                type="text"
+                placeholder="Search name or email..."
+                aria-label="Search users"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
+              />
+            </div>
+          }
         />
       </div>
 
@@ -102,7 +132,7 @@ export default function AdminUsers() {
             {isLoading ? (
               <TableSkeletonRows rows={5} columns={5} />
             ) : !data?.data?.length ? (
-              <TableEmptyState columns={5} icon={FiShield} title="No users found" />
+              <TableEmptyState columns={5} icon={FiShield} title="No users found" description={debouncedSearch ? 'Try adjusting your search.' : undefined} />
             ) : (
               data.data.map((user: AdminUser) => (
               <tr key={user.id} className="border-t hover:bg-gray-50 transition">

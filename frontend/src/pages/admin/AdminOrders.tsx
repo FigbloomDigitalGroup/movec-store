@@ -254,29 +254,33 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
 export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrderListItem | null>(null);
 
+  // Debounce the search box so every keystroke doesn't fire its own request.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [search]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-orders', statusFilter, page],
-    queryFn: () =>
-      api
-        .get<AdminOrdersResponse>(`/admin/orders?limit=${PAGE_SIZE}&page=${page}${statusFilter ? `&status=${statusFilter}` : ''}`)
-        .then((r) => r.data),
+    queryKey: ['admin-orders', statusFilter, debouncedSearch, page],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set('limit', String(PAGE_SIZE));
+      params.set('page', String(page));
+      if (statusFilter) params.set('status', statusFilter);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      return api.get<AdminOrdersResponse>(`/admin/orders?${params.toString()}`).then((r) => r.data);
+    },
   });
 
   const orders: AdminOrderListItem[] = data?.data || [];
   const total: number = data?.meta?.total || 0;
-
-  const filtered = orders.filter((o) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      o.orderNumber.toLowerCase().includes(q) ||
-      `${o.customer?.firstName} ${o.customer?.lastName}`.toLowerCase().includes(q) ||
-      o.customer?.email?.toLowerCase().includes(q)
-    );
-  });
 
   // Real per-status counts across the WHOLE table, not just the current page — a
   // limit=1 request per status is enough since only meta.total is read from it.
@@ -354,10 +358,10 @@ export default function AdminOrders() {
           <tbody className="divide-y divide-gray-50">
             {isLoading ? (
               <TableSkeletonRows rows={5} columns={8} />
-            ) : filtered.length === 0 ? (
+            ) : orders.length === 0 ? (
               <TableEmptyState columns={8} icon={FiPackage} title="No orders found" description="Try adjusting your search or filter." />
             ) : (
-              filtered.map((order) => (
+              orders.map((order) => (
                   <motion.tr
                     key={order.id}
                     initial={{ opacity: 0 }}

@@ -1,4 +1,5 @@
-import { IsString, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsDateString, IsOptional, IsEnum } from 'class-validator';
+import { InstallationTimeSlot } from '@prisma/client';
 
 export class CreateInstallationRequestDto {
   @IsString()
@@ -6,6 +7,10 @@ export class CreateInstallationRequestDto {
 
   @IsDateString()
   preferredDate: string;
+
+  @IsOptional()
+  @IsEnum(InstallationTimeSlot)
+  timeSlot?: InstallationTimeSlot;
 
   @IsString()
   addressId: string;

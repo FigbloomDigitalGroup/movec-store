@@ -249,7 +249,7 @@ export default function Landing() {
             key={slideBackgroundImage}
             src={slideBackgroundImage}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-[0.22] transition-opacity duration-700"
+            className="absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.22] blur-sm transition-opacity duration-700"
             style={{
               maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)',
               WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)',

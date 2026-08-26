@@ -36,8 +36,8 @@ export class AdminUsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(@Query() query: PaginationQuery) {
-    return this.usersService.findAll(query);
+  findAll(@Query() query: PaginationQuery, @Query('search') search?: string) {
+    return this.usersService.findAll(query, search);
   }
 
   @Get(':id')
