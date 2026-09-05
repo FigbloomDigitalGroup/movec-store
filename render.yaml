@@ -6,18 +6,20 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install --include=dev && npx prisma generate && npm run build
-    startCommand: npx prisma migrate resolve --rolled-back 20260805000000_stripe_to_paystack ; npx prisma migrate deploy && npx prisma db seed && node dist/src/main.js
+    startCommand: npx prisma migrate deploy && npx prisma db seed && node dist/src/main.js
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: movec-db
-          property: connectionString
+        sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: PORT
         value: 4000
       # ── Set these manually in the Render dashboard ──────────────────
+      # DATABASE_URL             (Supabase pooled connection, port 6543, ?pgbouncer=true)
+      # DIRECT_URL               (Supabase direct connection, port 5432, used for prisma migrate)
       # JWT_SECRET
       # JWT_REFRESH_SECRET
       # JWT_EXPIRATION          (e.g. 15m)
@@ -37,8 +39,3 @@ services:
       # BREVO_FROM_NAME
       # AUTO_VERIFY_EMAIL       (false)
       # FRONTEND_URL            (https://your-app.vercel.app)
-
-databases:
-  - name: movec-db
-    plan: free
-    region: oregon
