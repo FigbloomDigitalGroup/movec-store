@@ -44,25 +44,17 @@ async function main() {
   ];
   const actions = ['create', 'read', 'update', 'delete'];
 
-  for (const resource of resources) {
-    for (const action of actions) {
-      await prisma.permission.upsert({
-        where: { resource_action: { resource, action } },
-        update: {},
-        create: { resource, action },
-      });
-    }
-  }
+  await prisma.permission.createMany({
+    data: resources.flatMap((resource) => actions.map((action) => ({ resource, action }))),
+    skipDuplicates: true,
+  });
 
   // Assign all permissions to ADMIN
   const allPermissions = await prisma.permission.findMany();
-  for (const perm of allPermissions) {
-    await prisma.rolePermission.upsert({
-      where: { roleId_permissionId: { roleId: adminRole.id, permissionId: perm.id } },
-      update: {},
-      create: { roleId: adminRole.id, permissionId: perm.id },
-    });
-  }
+  await prisma.rolePermission.createMany({
+    data: allPermissions.map((perm) => ({ roleId: adminRole.id, permissionId: perm.id })),
+    skipDuplicates: true,
+  });
 
   // ─── Users ─────────────────────────────────────────────────────
   const adminUser = await prisma.user.upsert({
