@@ -40,5 +40,5 @@ services:
 
 databases:
   - name: movec-db
-    plan: free
+    plan: starter
     region: oregon
