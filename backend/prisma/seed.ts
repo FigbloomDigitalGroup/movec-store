@@ -183,6 +183,18 @@ async function main() {
     },
   });
 
+  // Cross-module catch-all — the homepage's "Accessories" tile links here.
+  // Not scoped to a moduleId since it spans both Starlink and CCTV gear.
+  const catAccessories = await prisma.category.upsert({
+    where: { slug: 'accessories' },
+    update: {},
+    create: {
+      name: 'Accessories',
+      slug: 'accessories',
+      description: 'Mounts, cables, adapters, and other add-ons across all product lines',
+    },
+  });
+
   // CCTV categories
   const catIPCameras = await prisma.category.upsert({
     where: { slug: 'ip-cameras' },
@@ -249,8 +261,8 @@ async function main() {
 
   // ─── Products — Starlink ────────────────────────────────────────
   const prod1 = await prisma.product.upsert({
-    where: { slug: 'starlink-standard-kit' },
-    update: {},
+    where: { sku: 'STAR-STD-001' },
+    update: { slug: 'starlink-standard-kit' },
     create: {
       name: 'Starlink Standard Kit',
       slug: 'starlink-standard-kit',
@@ -274,8 +286,8 @@ async function main() {
   });
 
   const prod2 = await prisma.product.upsert({
-    where: { slug: 'starlink-roam-kit' },
-    update: {},
+    where: { sku: 'STAR-ROAM-002' },
+    update: { slug: 'starlink-roam-kit' },
     create: {
       name: 'Starlink Roam Kit',
       slug: 'starlink-roam-kit',
@@ -299,8 +311,8 @@ async function main() {
   });
 
   const prod3 = await prisma.product.upsert({
-    where: { slug: 'starlink-ethernet-adapter' },
-    update: {},
+    where: { sku: 'STAR-ETH-003' },
+    update: { slug: 'starlink-ethernet-adapter' },
     create: {
       name: 'Starlink Ethernet Adapter',
       slug: 'starlink-ethernet-adapter',
@@ -320,10 +332,17 @@ async function main() {
     update: {},
     create: { productId: prod3.id, warehouseId: mainWarehouse.id, quantity: 100, lowStockThreshold: 10 },
   });
+  // Also surface it under the cross-module Accessories category, alongside its
+  // original starlink-accessories tag.
+  await prisma.productCategory.upsert({
+    where: { productId_categoryId: { productId: prod3.id, categoryId: catAccessories.id } },
+    update: {},
+    create: { productId: prod3.id, categoryId: catAccessories.id },
+  });
 
   const prod4 = await prisma.product.upsert({
-    where: { slug: 'starlink-pipe-adapter' },
-    update: {},
+    where: { sku: 'STAR-MNT-004' },
+    update: { slug: 'starlink-pipe-adapter' },
     create: {
       name: 'Starlink Pole Mount Adapter',
       slug: 'starlink-pipe-adapter',
@@ -343,11 +362,18 @@ async function main() {
     update: {},
     create: { productId: prod4.id, warehouseId: mainWarehouse.id, quantity: 60, lowStockThreshold: 10 },
   });
+  // Also surface it under the cross-module Accessories category, alongside its
+  // original starlink-mounts tag.
+  await prisma.productCategory.upsert({
+    where: { productId_categoryId: { productId: prod4.id, categoryId: catAccessories.id } },
+    update: {},
+    create: { productId: prod4.id, categoryId: catAccessories.id },
+  });
 
   // ─── Products — CCTV ───────────────────────────────────────────
   const prod5 = await prisma.product.upsert({
-    where: { slug: 'hikvision-4mp-dome' },
-    update: {},
+    where: { sku: 'HIK-DOM-001' },
+    update: { slug: 'hikvision-4mp-dome' },
     create: {
       name: 'Hikvision 4MP ColorVu Dome Camera',
       slug: 'hikvision-4mp-dome',
@@ -371,8 +397,8 @@ async function main() {
   });
 
   const prod6 = await prisma.product.upsert({
-    where: { slug: 'hikvision-8ch-nvr' },
-    update: {},
+    where: { sku: 'HIK-NVR-002' },
+    update: { slug: 'hikvision-8ch-nvr' },
     create: {
       name: 'Hikvision 8-Channel NVR',
       slug: 'hikvision-8ch-nvr',
@@ -396,8 +422,8 @@ async function main() {
   });
 
   const prod7 = await prisma.product.upsert({
-    where: { slug: 'dahua-4k-bullet-camera' },
-    update: {},
+    where: { sku: 'DAH-BUL-003' },
+    update: { slug: 'dahua-4k-bullet-camera' },
     create: {
       name: 'Dahua 4K WDR Bullet Camera',
       slug: 'dahua-4k-bullet-camera',
@@ -419,8 +445,8 @@ async function main() {
   });
 
   const prod8 = await prisma.product.upsert({
-    where: { slug: 'seagate-skyhawk-2tb' },
-    update: {},
+    where: { sku: 'SEA-HDD-001' },
+    update: { slug: 'seagate-skyhawk-2tb' },
     create: {
       name: 'Seagate SkyHawk 2TB Surveillance HDD',
       slug: 'seagate-skyhawk-2tb',
@@ -485,6 +511,212 @@ async function main() {
       isActive: true,
     },
   });
+
+  // ─── Promo Banners ─────────────────────────────────────────────
+  console.log('🎨 Seeding promo banners...');
+  
+  await prisma.promoBanner.upsert({
+    where: { id: 'banner-starlink-gen3' },
+    update: {},
+    create: {
+      id: 'banner-starlink-gen3',
+      title: 'STARLINK GEN 3 KIT',
+      subtitle: 'Ultra-fast satellite internet anywhere\nfor homes, businesses & remote locations.',
+      badge: 'OFFICIAL STARLINK PARTNER',
+      badgeColor: '#10b982',
+      ctaText: 'SHOP STARLINK',
+      ctaLink: '/solutions/starlink',
+      bgColor: '#1a2332',
+      textColor: '#ffffff',
+      imageUrl: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=800&q=80',
+      productId: prod1.id,
+      isActive: true,
+      sortOrder: 0,
+    },
+  });
+
+  await prisma.promoBanner.upsert({
+    where: { id: 'banner-cctv-ai' },
+    update: {},
+    create: {
+      id: 'banner-cctv-ai',
+      title: 'AI CCTV SURVEILLANCE',
+      subtitle: 'Professional HD and 4K security camera systems\nwith remote monitoring, night vision & smart detection.',
+      badge: 'AI POWERED SECURITY',
+      badgeColor: '#fc6501',
+      ctaText: 'SHOP CCTV',
+      ctaLink: '/solutions/cctv',
+      bgColor: '#1a1f28',
+      textColor: '#ffffff',
+      imageUrl: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&q=80',
+      isActive: true,
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.promoBanner.upsert({
+    where: { id: 'banner-installation' },
+    update: {},
+    create: {
+      id: 'banner-installation',
+      title: 'PROFESSIONAL INSTALLATION',
+      subtitle: 'Expert Starlink and CCTV installation with\nnationwide coverage, clean cabling & after-sales support.',
+      badge: 'CERTIFIED INSTALLERS',
+      badgeColor: '#10b982',
+      ctaText: 'BOOK INSTALLATION',
+      ctaLink: '/installation',
+      bgColor: '#1a2230',
+      textColor: '#ffffff',
+      imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80',
+      isActive: true,
+      sortOrder: 2,
+    },
+  });
+
+  console.log('✅ Promo banners seeded successfully!');
+
+  // ─── FAQs ──────────────────────────────────────────────────────
+  console.log('❓ Seeding FAQs...');
+
+  const catFaqGeneral = await prisma.fAQCategory.upsert({
+    where: { slug: 'general' },
+    update: { name: 'General & Products' },
+    create: { id: 'faq-cat-general', name: 'General & Products', slug: 'general' },
+  });
+
+  const catFaqStarlink = await prisma.fAQCategory.upsert({
+    where: { slug: 'starlink' },
+    update: { name: 'Starlink Internet' },
+    create: { id: 'faq-cat-starlink', name: 'Starlink Internet', slug: 'starlink' },
+  });
+
+  const catFaqCCTV = await prisma.fAQCategory.upsert({
+    where: { slug: 'cctv' },
+    update: { name: 'CCTV & Security' },
+    create: { id: 'faq-cat-cctv', name: 'CCTV & Security', slug: 'cctv' },
+  });
+
+  const catFaqSupport = await prisma.fAQCategory.upsert({
+    where: { slug: 'support' },
+    update: { name: 'Installation & Support' },
+    create: { id: 'faq-cat-support', name: 'Installation & Support', slug: 'support' },
+  });
+
+  const faqsToSeed = [
+    {
+      id: 'faq-1',
+      question: 'What products do you sell?',
+      answer: 'We supply Starlink internet kits, accessories, mounting solutions, and intelligent CCTV systems including cameras, NVRs, storage devices, and installation accessories.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 1,
+    },
+    {
+      id: 'faq-2',
+      question: 'Do you sell genuine Starlink equipment?',
+      answer: 'Yes. We provide genuine Starlink hardware and compatible accessories. Product availability may vary by location.',
+      categoryId: catFaqStarlink.id,
+      sortOrder: 2,
+    },
+    {
+      id: 'faq-3',
+      question: 'Does Starlink work in my area?',
+      answer: 'Starlink coverage depends on your service address. Contact us with your location and we will help you confirm availability before purchase.',
+      categoryId: catFaqStarlink.id,
+      sortOrder: 3,
+    },
+    {
+      id: 'faq-4',
+      question: 'Is installation included with Starlink purchases?',
+      answer: 'Installation can be arranged as an additional service. We can assist with setup, mounting, cable routing, and network configuration.',
+      categoryId: catFaqStarlink.id,
+      sortOrder: 4,
+    },
+    {
+      id: 'faq-5',
+      question: 'What is an intelligent CCTV system?',
+      answer: 'An intelligent CCTV system uses features such as motion detection, person and vehicle recognition, intrusion alerts, remote viewing, and recording to improve security monitoring.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 5,
+    },
+    {
+      id: 'faq-6',
+      question: 'Can I view my CCTV cameras remotely?',
+      answer: 'Yes. Most of our CCTV systems support secure remote viewing through a mobile app or computer, provided the system has an internet connection.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 6,
+    },
+    {
+      id: 'faq-7',
+      question: 'Do CCTV cameras record at night?',
+      answer: 'Yes. Many models include infrared night vision, while selected models offer full-colour night vision for clearer low-light footage.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 7,
+    },
+    {
+      id: 'faq-8',
+      question: 'How long is CCTV footage stored?',
+      answer: 'Storage time depends on the number of cameras, video quality, recording schedule, and hard-drive capacity. We can recommend the right storage size for your needs.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 8,
+    },
+    {
+      id: 'faq-9',
+      question: 'Do you provide CCTV installation?',
+      answer: 'Yes. We offer professional installation, configuration, testing, and user guidance for homes, shops, offices, schools, and other premises.',
+      categoryId: catFaqCCTV.id,
+      sortOrder: 9,
+    },
+    {
+      id: 'faq-10',
+      question: 'What payment methods do you accept?',
+      answer: 'We accept the payment options displayed at checkout. For large installations or business orders, please contact us for a quotation.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 10,
+    },
+    {
+      id: 'faq-11',
+      question: 'How long does delivery take?',
+      answer: 'Delivery times depend on product availability and your location. Estimated delivery details are provided during checkout or upon confirmation of your order.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 11,
+    },
+    {
+      id: 'faq-12',
+      question: 'What is your return and warranty policy?',
+      answer: 'Eligible products may be returned according to our return policy. Products are covered by applicable manufacturer warranties; please retain your receipt and original packaging.',
+      categoryId: catFaqGeneral.id,
+      sortOrder: 12,
+    },
+    {
+      id: 'faq-13',
+      question: 'Can I get a quotation for multiple items or a full installation?',
+      answer: 'Yes. Send us your requirements, location, and preferred products, and we will prepare a tailored quotation.',
+      categoryId: catFaqSupport.id,
+      sortOrder: 13,
+    },
+    {
+      id: 'faq-14',
+      question: 'How can I get technical support?',
+      answer: 'Contact our support team with your order number, product model, and a brief description of the issue. We will guide you through troubleshooting or arrange further assistance.',
+      categoryId: catFaqSupport.id,
+      sortOrder: 14,
+    },
+  ];
+
+  for (const faq of faqsToSeed) {
+    await prisma.fAQ.upsert({
+      where: { id: faq.id },
+      update: {
+        question: faq.question,
+        answer: faq.answer,
+        categoryId: faq.categoryId,
+        sortOrder: faq.sortOrder,
+      },
+      create: faq,
+    });
+  }
+
+  console.log('✅ 14 FAQs seeded successfully!');
 }
 
 main()

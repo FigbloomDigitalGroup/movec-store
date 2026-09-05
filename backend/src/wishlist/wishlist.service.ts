@@ -11,7 +11,7 @@ export class WishlistService {
       include: {
         product: {
           include: {
-            images: { where: { isPrimary: true }, take: 1 },
+            images: { orderBy: { sortOrder: 'asc' }, take: 1 },
           },
         },
       },
@@ -30,7 +30,9 @@ export class WishlistService {
   }
 
   async addItem(userId: string, productId: string) {
-    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) throw new NotFoundException('Product not found');
 
     const existing = await this.prisma.wishlistItem.findUnique({

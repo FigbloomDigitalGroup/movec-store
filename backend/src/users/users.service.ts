@@ -5,31 +5,54 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { AuditService } from '../audit/audit.service';
+import { Prisma } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import * as bcrypt from 'bcrypt';
+import {
+  buildPagination,
+  paginated,
+  type PaginationQuery,
+} from '../common/pagination';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinaryService: CloudinaryService,
+    private auditService: AuditService,
+  ) {}
 
-  async findAll(page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async findAll(query: PaginationQuery, search?: string) {
+    const { page, limit, skip } = buildPagination(query);
+    const where: Prisma.UserWhereInput = search
+      ? {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
+        where,
         skip,
         take: limit,
         include: { userRoles: { include: { role: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
     ]);
 
-    return {
-      data: users.map((u) => ({
+    return paginated(
+      users.map((u) => ({
         id: u.id,
         email: u.email,
         firstName: u.firstName,
@@ -40,8 +63,10 @@ export class UsersService {
         roles: u.userRoles.map((r) => r.role.name),
         createdAt: u.createdAt,
       })),
-      meta: { page, limit, total },
-    };
+      total,
+      page,
+      limit,
+    );
   }
 
   async findById(id: string) {
@@ -64,7 +89,9 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (existing) throw new ConflictException('Email already taken');
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -94,14 +121,17 @@ export class UsersService {
     };
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, actorId?: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
-    const data: any = {};
+    const data: Prisma.UserUpdateInput = {};
     if (dto.email) {
-      const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-      if (existing && existing.id !== id) throw new ConflictException('Email already taken');
+      const existing = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (existing && existing.id !== id)
+        throw new ConflictException('Email already taken');
       data.email = dto.email;
     }
     if (dto.firstName) data.firstName = dto.firstName;
@@ -122,16 +152,48 @@ export class UsersService {
       });
     }
 
+    // Role and active/suspended changes are exactly the kind of admin action that
+    // needs a "who did this and when" trail — everything else on this DTO is
+    // routine profile editing, not worth logging.
+    if (
+      dto.roles ||
+      dto.isActive !== undefined ||
+      dto.isSuspended !== undefined
+    ) {
+      await this.auditService.log({
+        userId: actorId,
+        action: 'UPDATE',
+        entityType: 'User',
+        entityId: id,
+        oldValues: {
+          isActive: user.isActive,
+          isSuspended: user.isSuspended,
+        },
+        newValues: {
+          roles: dto.roles,
+          isActive: dto.isActive,
+          isSuspended: dto.isSuspended,
+        },
+      });
+    }
 
     return this.findById(id);
   }
 
-  async softDelete(id: string) {
+  async softDelete(id: string, actorId?: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     await this.prisma.user.update({
       where: { id },
       data: { isActive: false, isSuspended: false },
+    });
+    await this.auditService.log({
+      userId: actorId,
+      action: 'DEACTIVATE',
+      entityType: 'User',
+      entityId: id,
+      oldValues: { isActive: user.isActive },
+      newValues: { isActive: false },
     });
     return { message: 'User deactivated' };
   }
@@ -165,14 +227,16 @@ export class UsersService {
     return this.getProfile(userId);
   }
 
- async uploadAvatar(userId: string, file: any) {
-    // Placeholder for Cloudinary upload; for now store a local path
-    const url = `/uploads/avatars/${file.filename}`;
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    const result = await this.cloudinaryService.uploadImage(file, 'avatars');
     await this.prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: url },
+      data: { avatarUrl: result.secure_url },
     });
-    return { avatarUrl: url };
+    return { avatarUrl: result.secure_url };
   }
 
   async getAddresses(userId: string) {
@@ -198,7 +262,11 @@ export class UsersService {
     });
   }
 
-  async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    dto: UpdateAddressDto,
+  ) {
     const address = await this.prisma.address.findFirst({
       where: { id: addressId, userId },
     });

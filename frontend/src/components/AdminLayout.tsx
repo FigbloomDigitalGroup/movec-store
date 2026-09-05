@@ -4,11 +4,12 @@ import { useAuthStore } from '../store/authStore';
 import {
   FiGrid, FiBox, FiShoppingCart, FiUsers, FiPackage,
   FiTool, FiMessageSquare, FiBarChart2, FiStar,
-  FiBell, FiMenu, FiX, FiLogOut, FiExternalLink, FiLayers
+  FiBell, FiMenu, FiX, FiLogOut, FiExternalLink, FiLayers, FiHome, FiCreditCard
 } from 'react-icons/fi';
 
 const sidebarLinks = [
   { to: '/admin', icon: FiGrid, label: 'Dashboard' },
+  { to: '/admin/homepage', icon: FiHome, label: 'Edit Homepage' },
   { to: '/admin/modules', icon: FiLayers, label: 'Modules' },
   { to: '/admin/products', icon: FiBox, label: 'Products' },
   { to: '/admin/orders', icon: FiShoppingCart, label: 'Orders' },
@@ -19,6 +20,7 @@ const sidebarLinks = [
   { to: '/admin/reports', icon: FiBarChart2, label: 'Reports' },
   { to: '/admin/reviews', icon: FiStar, label: 'Reviews' },
   { to: '/admin/notifications', icon: FiBell, label: 'Notifications' },
+  { to: '/admin/payment-settings', icon: FiCreditCard, label: 'Payment Settings' },
 ];
 
 function useClock() {
@@ -55,46 +57,51 @@ export default function AdminLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-full bg-gray-900 text-white flex flex-col flex-shrink-0 transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-full bg-slate-950 flex flex-col flex-shrink-0 transform transition-transform border-r border-slate-800 shadow-xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+        style={{ color: '#cbd5e1' }}
+      >
         {/* Logo */}
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
-          <Link to="/admin" className="text-xl font-bold text-blue-400">Admin Panel</Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-400 hover:text-white">
+        <div className="px-5 py-5 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
+          <Link to="/admin" className="text-xl font-semibold tracking-tight text-primary-200">
+            Admin Panel
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-100">
             <FiX size={20} />
           </button>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+        <nav aria-label="Admin sidebar" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {sidebarLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+              className={`group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
                 location.pathname === link.to
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-primary-500/15 text-primary-200 shadow-sm shadow-primary-500/20'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <link.icon size={18} />
+              <link.icon size={18} className="flex-shrink-0" />
               <span className="text-sm font-medium">{link.label}</span>
             </Link>
           ))}
         </nav>
 
         {/* Bottom user + sign out */}
-        <div className="p-4 border-t border-gray-800 flex-shrink-0">
+        <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex-shrink-0">
           {/* User info */}
           <div className="flex items-center gap-3 mb-4 px-1">
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-slate-950 font-semibold text-sm shadow-lg shadow-primary-500/20 flex-shrink-0">
               {user?.firstName?.[0]?.toUpperCase() ?? 'A'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
+              <p className="text-sm font-semibold text-slate-100 truncate">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs text-gray-400">Administrator</p>
+              <p className="text-xs text-slate-400">Administrator</p>
             </div>
           </div>
 
@@ -120,7 +127,7 @@ export default function AdminLayout() {
 
             {/* Right: clock + View Site */}
             <div className="flex items-center gap-3 ml-auto">
-              <span className="text-sm text-gray-400 font-medium hidden sm:block">{time}</span>
+              <span className="text-sm text-gray-500 font-medium hidden sm:block">{time}</span>
               <Link
                 to="/"
                 target="_blank"

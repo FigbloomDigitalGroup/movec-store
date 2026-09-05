@@ -25,3 +25,6 @@ dist-ssr
 
 .vercel
 .env*
+
+# Regenerated at build time by scripts/generate-sitemap.mjs
+public/sitemap.xml

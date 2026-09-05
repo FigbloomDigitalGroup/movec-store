@@ -1,5 +1,11 @@
-import { IsEnum, IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
-import { InstallationStatus } from '@prisma/client';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsDateString,
+} from 'class-validator';
+import { InstallationStatus, InstallationTimeSlot } from '@prisma/client';
 
 export class UpdateInstallationRequestDto {
   @IsOptional()
@@ -11,10 +17,14 @@ export class UpdateInstallationRequestDto {
   technicianId?: string;
 
   @IsOptional()
-  @IsDateString()
-  scheduledDate?: string;
-
-  @IsOptional()
   @IsNumber()
   finalPrice?: number;
+
+  @IsOptional()
+  @IsDateString()
+  preferredDate?: string;
+
+  @IsOptional()
+  @IsEnum(InstallationTimeSlot)
+  timeSlot?: InstallationTimeSlot;
 }

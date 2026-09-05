@@ -1,228 +1,274 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-:root {
-  --color-primary-50: #e6faf4;
-  --color-primary-100: #c3f2e4;
-  --color-primary-200: #9aeada;
-  --color-primary-300: #6edecc;
-  --color-primary-400: #43cebd;
+/* Registers `primary` as a real Tailwind color scale (mapped to the brand green)
+   so utilities like bg-primary-100 / text-primary-700 / focus:ring-primary-500
+   actually generate instead of silently compiling to nothing. Also registers our
+   own brand-tinted `neutral` scale here (not in :root) so bg-neutral-200 etc.
+   resolve to it instead of silently colliding with Tailwind's built-in gray scale
+   — confirmed nothing in this codebase already depends on Tailwind's default. */
+@theme {
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1f5e8;
+  --color-primary-200: #a7e9cf;
   --color-primary-500: #10b982;
-  /* Corporate Greenish */
-  --color-primary-600: #0ca072;
-  --color-primary-700: #09825d;
-  --color-primary-800: #076449;
-  --color-primary-900: #054b38;
+  --color-primary-600: #0d9b6f;
+  --color-primary-700: #0b7d59;
 
-  --color-secondary-50: #fff6f0;
-  --color-secondary-100: #ffe5d4;
-  --color-secondary-200: #ffcca6;
-  --color-secondary-300: #ffaa73;
-  --color-secondary-400: #ff863b;
+  /* Second brand color (the orange used across marketing/storefront pages
+     alongside the green primary) — same reasoning as `primary` above: without
+     this, bg-secondary-500 etc. would silently compile to nothing. */
+  --color-secondary-50: #fff4ee;
+  --color-secondary-100: #ffe4d4;
+  --color-secondary-200: #ffc7a8;
   --color-secondary-500: #fc6501;
-  /* Corporate Orange */
-  --color-secondary-600: #db5300;
-  --color-secondary-700: #b34100;
-  --color-secondary-800: #8a3100;
-  --color-secondary-900: #662400;
+  --color-secondary-600: #e65500;
+  --color-secondary-700: #c04600;
 
-  --color-accent-50: #fef2f2;
-  --color-accent-100: #fee2e2;
-  --color-accent-200: #fecaca;
-  --color-accent-300: #fca5a5;
-  --color-accent-400: #f87171;
-  --color-accent-500: #ef4444;
-  --color-accent-600: #dc2626;
-  --color-accent-700: #b91c1c;
-  --color-accent-800: #991b1b;
-  --color-accent-900: #7f1d1d;
+  /* A single-value theme color (not a full scale) so bg-accent/text-accent/
+     border-accent — and, crucially, hover:/group-hover:-prefixed variants of
+     them like group-hover:text-accent — become real Tailwind utilities. The
+     hand-written .text-accent/.bg-accent classes further down stay in place
+     for the bare (non-variant) case; both resolve to the same color. */
+  --color-accent: #10b982;
+  --color-accent-dark: #0d9b6f;
+
+  --color-neutral-50: #f7f7f5;
+  --color-neutral-100: #eef0ee;
+  --color-neutral-200: #dfe3df;
+  --color-neutral-300: #c5c9c4;
+  --color-neutral-400: #9ba39c;
+  --color-neutral-500: #717a73;
+  --color-neutral-600: #4b534d;
+  --color-neutral-700: #2d342f;
+  --color-neutral-800: #1a1f1b;
+  --color-neutral-900: #101412;
+}
+
+:root {
+  /* Brand palette */
+  --color-brand-green: #10b982;
+  --color-brand-green-dark: #0d9b6f;
+  --color-brand-orange: #fc6501;
+  --color-brand-orange-deep: #e65500;
+  --color-brand-orange-soft: #fff4ee;
+
+  --color-accent: var(--color-brand-green);
+  --color-accent-hover: var(--color-brand-green-dark);
+  --color-orange: var(--color-brand-orange);
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-display: 'Manrope', sans-serif;
 }
 
 * {
   font-family: var(--font-sans);
 }
 
-/* Typography System */
-.font-hero {
-  font-family: var(--font-display);
-  font-weight: 700;
-}
-
-.font-hero-bold {
-  font-family: var(--font-display);
-  font-weight: 800;
-}
-
-.font-section-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-}
-
-.font-product-name {
-  font-family: var(--font-sans);
-  font-weight: 600;
-}
-
-.font-product-description {
-  font-family: var(--font-sans);
-  font-weight: 400;
-}
-
-.font-button {
-  font-family: var(--font-sans);
-  font-weight: 600;
-}
-
-.font-navigation {
-  font-family: var(--font-sans);
-  font-weight: 500;
-}
-
-.font-price {
-  font-family: var(--font-sans);
-  font-weight: 700;
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: #ffffff;
-  color: #1f2937;
+  background: linear-gradient(180deg, #c9f2e0 0%, #e3f7ed 20%, #f2f4f0 45%, #fbe9d9 75%, #f8d9bd 100%);
+  color: var(--color-neutral-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* @layer base (not a bare rule) so Tailwind text-color utilities on <a> tags — e.g.
+   text-white on a filled button — win in the cascade instead of losing to this
+   default regardless of specificity, since unlayered CSS always beats layered CSS. */
+@layer base {
+  a {
+    color: var(--color-brand-green);
+    text-decoration: none;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  a:hover {
+    color: var(--color-brand-orange-deep);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: var(--color-neutral-300);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-neutral-400);
 }
 
-/* Smooth transitions */
 * {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, transform, opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-duration: 200ms;
 }
 
-/* Card hover effects */
+.text-accent {
+  color: var(--color-brand-green) !important;
+}
+
+.text-accent-hover:hover {
+  color: var(--color-brand-green-dark) !important;
+}
+
+.bg-accent {
+  background-color: var(--color-brand-green) !important;
+}
+
+.bg-accent-soft {
+  background-color: rgba(16, 185, 130, 0.1) !important;
+}
+
+.border-accent {
+  border-color: var(--color-brand-green) !important;
+}
+
+.text-orange {
+  color: var(--color-brand-orange) !important;
+}
+
+.bg-orange {
+  background-color: var(--color-brand-orange) !important;
+}
+
+.section-hero {
+  background: linear-gradient(180deg, rgba(16, 185, 130, 0.08), rgba(247, 247, 245, 0.9));
+  border-bottom: 1px solid rgba(16, 185, 130, 0.08);
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.section-hero h1 {
+  font-size: 2.75rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.row-scroller-arrow {
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.06);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(16, 185, 130, 0.12);
 }
 
-/* Button animations */
-.btn-primary {
-  background-color: var(--color-primary-500);
+.btn-apple {
+  background-color: var(--color-brand-green);
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 999px;
   font-weight: 600;
+  font-size: 0.875rem;
   transition: all 0.2s ease;
+  border: none;
 }
 
-.btn-primary:hover {
-  background-color: var(--color-primary-600);
-  transform: translateY(-1px);
+.btn-apple:hover {
+  background-color: var(--color-brand-green-dark);
 }
 
-.btn-secondary {
+.btn-apple-secondary {
   background-color: white;
-  color: var(--color-secondary-500);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  color: var(--color-brand-green);
+  padding: 0.625rem 1.25rem;
+  border-radius: 999px;
   font-weight: 600;
-  border: 2px solid var(--color-secondary-500);
+  font-size: 0.875rem;
   transition: all 0.2s ease;
+  border: 1px solid var(--color-neutral-300);
 }
 
-.btn-secondary:hover {
-  background-color: var(--color-secondary-50);
-  transform: translateY(-1px);
+.btn-apple-secondary:hover {
+  background-color: var(--color-neutral-50);
 }
 
-/* Badge styles */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+.btn-accent {
+  background-color: var(--color-brand-green);
+  color: white;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-accent:hover {
+  background-color: var(--color-brand-green-dark);
+}
+
+/* Embla drives this element's transform on every animation frame during scroll/drag.
+   The global transition rule above fights that, producing laggy, stuttery scrolling. */
+.embla__container {
+  transition: none;
+}
+
+/* Framer Motion drives this element's transform/opacity every frame during the hero
+   slide transition. The global transition rule above fights that — it makes the CSS
+   engine try to interpolate its own 200ms transition on top of Framer's animation,
+   which cuts the motion short and makes it snap instead of gliding smoothly. */
+.hero-slide {
+  transition: none;
+}
+
+.bg-accent-100 {
+  background-color: rgba(16, 185, 130, 0.1) !important;
+}
+
+.bg-orange-soft {
+  background-color: rgba(252, 101, 1, 0.1) !important;
+}
+
+.orange-ring {
+  box-shadow: 0 0 0 4px rgba(252, 101, 1, 0.14);
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* These four classes were used across 57 call sites (product names, prices, section
+   titles, buttons) but never actually defined anywhere — they silently resolved to
+   no-ops, relying on whatever explicit Tailwind classes happened to sit next to them. */
+@utility font-section-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+@utility font-button {
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-.badge-primary {
-  background-color: #e0f2fe;
-  color: #0369a1;
+@utility font-product-name {
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.badge-success {
-  background-color: #dcfce7;
-  color: #15803d;
-}
-
-.badge-warning {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.badge-danger {
-  background-color: #fee2e2;
-  color: #b91c1c;
-}
-
-@theme {
-  /* Override Tailwind blue with corporate green */
-  --color-blue-50: #e6faf4;
-  --color-blue-100: #c3f2e4;
-  --color-blue-200: #9aeada;
-  --color-blue-300: #6edecc;
-  --color-blue-400: #43cebd;
-  --color-blue-50: #e6faf4;
-  --color-blue-500: #10b982;
-  --color-blue-600: #0ca072;
-  --color-blue-700: #09825d;
-  --color-blue-800: #076449;
-  --color-blue-900: #054b38;
-
-  /* Override Tailwind cyan and orange with corporate orange */
-  --color-cyan-50: #fff6f0;
-  --color-cyan-100: #ffe5d4;
-  --color-cyan-200: #ffcca6;
-  --color-cyan-300: #ffaa73;
-  --color-cyan-400: #ff863b;
-  --color-cyan-500: #fc6501;
-  --color-cyan-600: #db5300;
-  --color-cyan-700: #b34100;
-  --color-cyan-800: #8a3100;
-  --color-cyan-900: #662400;
-
-  --color-orange-50: #fff6f0;
-  --color-orange-100: #ffe5d4;
-  --color-orange-200: #ffcca6;
-  --color-orange-300: #ffaa73;
-  --color-orange-400: #ff863b;
-  --color-orange-500: #fc6501;
-  --color-orange-600: #db5300;
-  --color-orange-700: #b34100;
-  --color-orange-800: #8a3100;
-  --color-orange-900: #662400;
+@utility font-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }

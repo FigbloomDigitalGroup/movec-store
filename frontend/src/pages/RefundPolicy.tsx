@@ -1,5 +1,4 @@
 import { FiMapPin, FiPhone, FiMail, FiRefreshCw } from 'react-icons/fi';
-import AnimatedContent from '../components/AnimatedContent';
 
 export default function RefundPolicy() {
   return (
@@ -8,10 +7,10 @@ export default function RefundPolicy() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <FiRefreshCw className="text-blue-600" size={24} />
+            <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center">
+              <FiRefreshCw className="text-primary-500" size={24} />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Refund Policy</h1>
+            <h1 className="text-3xl md:text-4xl font-section-title text-gray-900">Refund Policy</h1>
           </div>
           <p className="text-gray-600">Last updated: July 21, 2026</p>
         </div>
@@ -25,7 +24,6 @@ export default function RefundPolicy() {
           </p>
 
           <div className="space-y-8">
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">1. Order Cancellations</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -34,9 +32,7 @@ export default function RefundPolicy() {
                 <li>Once an order moves to PROCESSING or SHIPPED, it can no longer be cancelled directly — please contact support and we will assist where possible.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">2. Returns & Refund Eligibility</h2>
               <p className="text-gray-700 mb-4">You may request a return and refund within 7 days of delivery if:</p>
@@ -47,9 +43,7 @@ export default function RefundPolicy() {
               </ul>
               <p className="text-gray-700 mt-4">To be eligible, please contact us with your order number, photos of the item, and a description of the issue before sending anything back.</p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">3. Non-Returnable Items</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -59,9 +53,7 @@ export default function RefundPolicy() {
                 <li>Change-of-mind requests made after the 7-day window.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Return Process</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -71,9 +63,7 @@ export default function RefundPolicy() {
                 <li>Approved refunds are processed within 7–14 business days.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">5. Refund Method</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -84,9 +74,7 @@ export default function RefundPolicy() {
               </ul>
               <p className="text-gray-700 mt-4">Shipping fees are non-refundable unless the return is due to our error (wrong or defective item).</p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">6. Installation Service Refunds</h2>
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
@@ -96,46 +84,39 @@ export default function RefundPolicy() {
                 <li>If installation is completed and you are unsatisfied with the work due to a service defect, contact us within 7 days so we can arrange a fix or partial refund.</li>
               </ul>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">7. Damaged or Incorrect Items on Delivery</h2>
               <p className="text-gray-700">
                 Please inspect your order upon delivery. If an item arrives damaged or incorrect, notify us within 48 hours with photos of the item and packaging so we can arrange a free replacement or full refund, including any shipping costs.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">8. Late or Missing Refunds</h2>
               <p className="text-gray-700">
                 If you haven't received a refund within the timeframe above, please first check with your bank or payment provider, as processing times vary. If it still hasn't appeared, contact us and we will investigate.
               </p>
             </section>
-            </AnimatedContent>
 
-            <AnimatedContent distance={20} direction="vertical" duration={0.5} delay={0.1}>
             <section>
               <h2 className="text-2xl font-section-title text-gray-900 mb-4">9. Contact Us</h2>
               <p className="text-gray-700 mb-4">To request a cancellation, return, or refund, reach out to us:</p>
               <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-3">
                 <div className="flex items-center gap-3">
-                  <FiMapPin className="text-gray-400 flex-shrink-0" size={18} />
+                  <FiMapPin className="text-gray-500 flex-shrink-0" size={18} />
                   <span className="text-gray-700">Nairobi, Kenya</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiPhone className="text-gray-400 flex-shrink-0" size={18} />
+                  <FiPhone className="text-gray-500 flex-shrink-0" size={18} />
                   <span className="text-gray-700">+254 796285718</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiMail className="text-gray-400 flex-shrink-0" size={18} />
+                  <FiMail className="text-gray-500 flex-shrink-0" size={18} />
                   <span className="text-gray-700">sales@movec.com</span>
                 </div>
               </div>
             </section>
-            </AnimatedContent>
           </div>
         </div>
       </div>

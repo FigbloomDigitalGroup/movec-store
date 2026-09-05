@@ -48,18 +48,28 @@ export class ReportsController {
     @Query('format') format: string,
     @Query('from') from: string,
     @Query('to') to: string,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
-    const { title, rows } = await this.reportsService.getExportData(type, from, to);
+    const { title, rows } = await this.reportsService.getExportData(
+      type,
+      from,
+      to,
+    );
 
     if (format === 'csv') {
       const csv = this.reportsService.buildCsv(rows);
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=${type}-report.csv`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=${type}-report.csv`,
+      );
       return res.send(csv);
     } else if (format === 'pdf') {
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=${type}-report.pdf`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=${type}-report.pdf`,
+      );
       this.reportsService.buildPdf(title, rows, res);
     } else {
       res.status(400).send('Invalid format');

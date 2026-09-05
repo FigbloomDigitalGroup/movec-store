@@ -1,115 +1,171 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import api from '../lib/api';
-import { FiDollarSign, FiCheckCircle, FiCopy, FiTruck, FiCalendar, FiMail, FiArrowRight } from 'react-icons/fi';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
+import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock, FiDollarSign } from 'react-icons/fi';
+import CheckoutSteps from '../components/CheckoutSteps';
+import PageLoader from '../components/PageLoader';
+import type { OrderItem } from '../types';
+
+const VERIFY_MAX_ATTEMPTS = 3;
+const VERIFY_RETRY_DELAY_MS = 2000;
+
+interface CodTerms {
+    codEnabled: boolean;
+    depositThreshold: number;
+    requiresDeposit: boolean;
+    depositAmount: number;
+    balanceDue: number;
+    total: number;
+}
 
 export default function PaymentPage() {
     const { orderNumber } = useParams();
-    const [method, setMethod] = useState<string | null>(null);
-    const [phoneNumber, setPhoneNumber] = useState('+254');
     const [processing, setProcessing] = useState(false);
     const [completed, setCompleted] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const [verifying, setVerifying] = useState(false);
+    const [verifyFailed, setVerifyFailed] = useState(false);
+    const [paystackReference, setPaystackReference] = useState<string | null>(null);
+    const [codConfirmed, setCodConfirmed] = useState(false);
+    const [payingCodDeposit, setPayingCodDeposit] = useState(false);
 
-    const { data: order } = useQuery({
+    const { data: order, isLoading: orderLoading } = useQuery({
         queryKey: ['order', orderNumber],
         queryFn: () => api.get(`/orders/${orderNumber}`).then(r => r.data),
     });
 
-    const initiateBankTransfer = useMutation({
-        mutationFn: () => api.post('/payments/bank-transfer/initiate', { orderNumber }),
-        onSuccess: () => {
-            setCompleted(true);
-        },
+    const { data: codTerms } = useQuery<CodTerms>({
+        queryKey: ['cod-terms', orderNumber],
+        queryFn: () => api.get(`/payments/cash-on-delivery/terms/${orderNumber}`).then(r => r.data),
+        enabled: !!orderNumber,
     });
 
-    const initiateMpesa = useMutation({
-        mutationFn: () => api.post('/payments/mpesa/initiate', { orderNumber, phoneNumber }),
-        onSuccess: () => {
-            setCompleted(true);
-        },
-        onError: (err: any) => {
-            alert(err.response?.data?.error?.message || 'M-Pesa payment failed. Please try again.');
-        },
-    });
+    // Paystack's own verify endpoint is a thin check on top of the payment — the
+    // order is only ever actually confirmed by Paystack's webhook hitting our
+    // backend directly (HMAC-verified, server-to-server). A single failed verify
+    // call here is far more likely to be a transient network hiccup than a real
+    // failed payment, so we retry a few times before telling the user anything
+    // is wrong — and even then we say "still confirming," not "failed," since
+    // the webhook may complete independently moments later.
+    const verifyPayment = (reference: string, attempt = 1) => {
+        setVerifying(true);
+        setVerifyFailed(false);
+        api.post('/payments/paystack/verify', { reference })
+            .then(() => {
+                setVerifying(false);
+                setCompleted(true);
+            })
+            .catch(() => {
+                if (attempt < VERIFY_MAX_ATTEMPTS) {
+                    setTimeout(() => verifyPayment(reference, attempt + 1), VERIFY_RETRY_DELAY_MS);
+                } else {
+                    setVerifying(false);
+                    setVerifyFailed(true);
+                    setProcessing(false);
+                }
+            });
+    };
 
     const initiatePaystack = useMutation({
-        mutationFn: () => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com' }).then(r => r.data),
-        onSuccess: (data) => {
-            const paystack = new (window as any).PaystackPop();
+        mutationFn: (codDeposit: boolean) => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com', codDeposit }).then(r => ({ data: r.data, codDeposit })),
+        onSuccess: ({ data, codDeposit }) => {
+            const amount = codDeposit ? Number(codTerms?.depositAmount) : Number(order?.total);
+            const paystack = new window.PaystackPop();
             paystack.newTransaction({
                 key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
                 email: order?.user?.email || 'customer@example.com',
-                amount: Math.round(Number(order?.total) * 100),
+                amount: Math.round(amount * 100),
                 ref: data.reference,
-                onSuccess: (transaction: any) => {
-                    api.post('/payments/paystack/verify', { reference: transaction.reference }).then(() => {
-                        setCompleted(true);
-                    }).catch(() => {
-                        // Even if verification call fails client side, webhook handles it
-                        setCompleted(true);
-                    });
+                onSuccess: (transaction) => {
+                    setPaystackReference(transaction.reference);
+                    setPayingCodDeposit(codDeposit);
+                    verifyPayment(transaction.reference);
                 },
                 onCancel: () => {
                     setProcessing(false);
                 }
             });
         },
-        onError: (err: any) => {
-            alert(err.response?.data?.message || 'Failed to initialize Paystack');
+        onError: (err) => {
+            toast.error(getErrorMessage(err));
             setProcessing(false);
         }
     });
 
-    const initiatePaypal = useMutation({
-        mutationFn: () => api.post('/payments/paypal/create-order', { orderNumber }).then(r => r.data),
-        onSuccess: (data) => {
-            if (data.approvalUrl) {
-                window.location.href = data.approvalUrl;
-            }
-        },
-        onError: (err: any) => {
-            alert(err.response?.data?.message || 'Failed to initialize PayPal');
-            setProcessing(false);
-        }
-    });
-
-    const capturePaypal = useMutation({
-        mutationFn: (token: string) => api.post('/payments/paypal/capture', { orderNumber, token }).then(r => r.data),
+    const confirmCod = useMutation({
+        mutationFn: () => api.post('/payments/cash-on-delivery/initiate', { orderNumber }).then(r => r.data),
         onSuccess: () => {
-            setProcessing(false);
-            setCompleted(true);
+            setCodConfirmed(true);
         },
-        onError: (err: any) => {
-            alert(err.response?.data?.message || 'Failed to capture PayPal payment');
-            setProcessing(false);
+        onError: (err) => {
+            toast.error(getErrorMessage(err));
         }
     });
 
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('paypal') === 'return') {
-            const token = params.get('token');
-            if (token) {
-                setMethod('PAYPAL');
-                setProcessing(true);
-                capturePaypal.mutate(token);
-            }
-        }
-    }, [orderNumber]);
+    if (orderLoading) {
+        return <PageLoader />;
+    }
 
-    const bankDetails = {
-        bankName: 'NCBA Bank',
-        accountName: 'Movec Store Ltd',
-        accountNumber: '1234567890',
-        branch: 'Nairobi CBD',
-    };
+    if (verifying) {
+        return (
+            <div className="min-h-screen flex items-center justify-center px-4">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin mx-auto mb-6" />
+                    <h1 className="text-xl font-semibold text-gray-900 mb-2">Confirming your payment...</h1>
+                    <p className="text-gray-500 text-sm">This will only take a moment.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (verifyFailed) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-3xl mx-auto px-4 py-16">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center"
+                    >
+                        <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiClock className="text-amber-500" size={40} />
+                        </div>
+                        <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Still confirming your payment</h1>
+                        <p className="text-gray-600 mb-8 max-w-lg mx-auto">
+                            We couldn't confirm your payment automatically just now. If you completed the payment,
+                            your order will update on its own within a few minutes — this page just couldn't verify
+                            it right away. Please don't pay again until you've checked your order status below.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button
+                                onClick={() => paystackReference && verifyPayment(paystackReference)}
+                                className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition font-medium"
+                            >
+                                Check Again
+                            </button>
+                            <Link
+                                to={`/orders/${orderNumber}`}
+                                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-medium text-center flex items-center justify-center gap-2"
+                            >
+                                View Order Status
+                                <FiArrowRight size={16} />
+                            </Link>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-8">
+                            Still not updated after a few minutes? <Link to="/contact" className="text-primary-500 hover:underline">Contact support</Link> and we'll look into it.
+                        </p>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
 
     if (completed) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+            <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
                 <div className="max-w-3xl mx-auto px-4 py-16">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -130,20 +186,20 @@ export default function PaymentPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="text-3xl font-bold text-center mb-2 text-gray-900"
+                            className="text-3xl md:text-4xl font-section-title text-center mb-2 text-gray-900"
                         >
-                            {method === 'BANK_TRANSFER' ? 'Payment Instructions' : 'Payment Initiated!'}
+                            {payingCodDeposit ? 'Deposit Paid!' : 'Paystack Payment Initiated!'}
                         </motion.h1>
-                        
+
                         <motion.p
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
                             className="text-gray-600 text-center mb-8"
                         >
-                            {method === 'BANK_TRANSFER'
-                                ? 'Please complete the transfer using the details below. Your order will be confirmed once payment is received.'
-                                : 'Your payment is being processed. You will receive a confirmation shortly.'}
+                            {payingCodDeposit
+                                ? `Your deposit is being processed. The remaining KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} is due in cash when your order is delivered.`
+                                : 'Your Paystack payment is being processed. You will receive confirmation shortly.'}
                         </motion.p>
 
                         {/* What Happens Next */}
@@ -156,8 +212,8 @@ export default function PaymentPage() {
                             <h3 className="font-semibold text-gray-900 mb-4">What happens next?</h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <FiMail className="text-blue-600" size={16} />
+                                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiMail className="text-primary-500" size={16} />
                                     </div>
                                     <div>
                                         <p className="font-medium text-gray-900">Confirmation Email</p>
@@ -165,17 +221,21 @@ export default function PaymentPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <FiTruck className="text-green-600" size={16} />
+                                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiTruck className="text-primary-500" size={16} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">Order Processing</p>
-                                        <p className="text-sm text-gray-600">Your order will be processed within 1-2 business days.</p>
+                                        <p className="font-medium text-gray-900">{payingCodDeposit ? 'Balance on Delivery' : 'Order Processing'}</p>
+                                        <p className="text-sm text-gray-600">
+                                            {payingCodDeposit
+                                                ? `Have KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} ready in cash for the courier when your order arrives.`
+                                                : 'Your order will be processed within 1-2 business days.'}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <FiCalendar className="text-purple-600" size={16} />
+                                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiCalendar className="text-primary-500" size={16} />
                                     </div>
                                     <div>
                                         <p className="font-medium text-gray-900">Installation Scheduling</p>
@@ -193,7 +253,7 @@ export default function PaymentPage() {
                         >
                             <Link
                                 to={`/orders/${orderNumber}`}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium text-center flex items-center justify-center gap-2"
+                                className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition font-medium text-center flex items-center justify-center gap-2"
                             >
                                 View Order
                                 <FiArrowRight size={18} />
@@ -211,194 +271,180 @@ export default function PaymentPage() {
         );
     }
 
+    if (codConfirmed) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+                <div className="max-w-3xl mx-auto px-4 py-16">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center"
+                    >
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiCheckCircle className="text-green-500" size={40} />
+                        </div>
+                        <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Order Confirmed!</h1>
+                        <p className="text-gray-600 mb-8 max-w-lg mx-auto">
+                            Pay KES {order?.total?.toLocaleString() ?? ''} in cash when your order is delivered. We'll email you as it's processed and shipped.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link
+                                to={`/orders/${orderNumber}`}
+                                className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition font-medium text-center flex items-center justify-center gap-2"
+                            >
+                                View Order
+                                <FiArrowRight size={18} />
+                            </Link>
+                            <Link
+                                to="/products"
+                                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-medium text-center"
+                            >
+                                Continue Shopping
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-2 text-white">Complete Payment</h1>
-            <p className="text-gray-300 mb-8">Order #{orderNumber}</p>
+        <div className="min-h-screen">
+            <CheckoutSteps currentStep={2} />
+            <div className="max-w-4xl mx-auto px-4 py-8">
+            <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Complete Payment</h1>
+            <p className="text-gray-600 mb-8">Order #{orderNumber}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Payment Methods */}
                 <div className="md:col-span-2 space-y-4">
-                    <h2 className="text-xl font-semibold text-white mb-4">Select Payment Method</h2>
+                    <h2 className="text-xl font-section-title text-gray-900 mb-4">Choose your payment method</h2>
 
-                    {/* M-Pesa */}
-                    <button
-                        onClick={() => setMethod('MPESA')}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'MPESA' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white backdrop-blur-sm hover:border-green-300'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 flex items-center justify-center">
-                                <img src="/image.png" alt="M-Pesa" className="w-full h-full object-contain mix-blend-multiply" />
-                            </div>
+                    <div className="w-full rounded-2xl border border-primary-500/40 bg-primary-50 p-6">
+                        <div className="flex flex-col gap-4">
                             <div>
-                                <p className="font-semibold text-lg text-gray-900">M-Pesa</p>
-                                <p className="text-sm text-gray-600">Pay via STK Push</p>
+                                <p className="text-lg font-semibold text-gray-900">Supported payment methods</p>
+                                <p className="text-sm text-gray-600 mt-1">You'll choose one of the options below in the secure payment window that opens next.</p>
                             </div>
-                        </div>
-                    </button>
-
-                    {/* Paystack */}
-                    <button
-                        onClick={() => setMethod('PAYSTACK')}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'PAYSTACK' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-purple-300'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 flex items-center justify-center">
-                                <img src="/visa-gold-800x450.png" alt="Visa/Mastercard" className="w-full h-full object-contain mix-blend-multiply" />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-lg">Credit/Debit Card</p>
-                                <p className="text-sm text-gray-500">Pay securely via Paystack</p>
-                            </div>
-                        </div>
-                    </button>
-
-                    {/* PayPal */}
-                    <button
-                        onClick={() => setMethod('PAYPAL')}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'PAYPAL' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-blue-300'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 flex items-center justify-center">
-                                <img src="/paypal_PNG22.png" alt="PayPal" className="w-full h-full object-contain" />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-lg">PayPal</p>
-                                <p className="text-sm text-gray-500">Pay with your PayPal account</p>
-                            </div>
-                        </div>
-                    </button>
-
-                    {/* Bank Transfer */}
-                    <button
-                        onClick={() => setMethod('BANK_TRANSFER')}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition ${method === 'BANK_TRANSFER' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-orange-300'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                                <FiDollarSign className="text-orange-600" size={24} />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-lg">Bank Transfer</p>
-                                <p className="text-sm text-gray-500">Transfer directly to our bank account</p>
-                            </div>
-                        </div>
-                    </button>
-
-                    {/* Method-specific actions */}
-                    {method && (
-                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 mt-4">
-                            {method === 'MPESA' && (
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">M-Pesa Phone Number</label>
-                                    <input
-                                        type="text"
-                                        value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
-                                        placeholder="+254712345678"
-                                        className="border rounded-lg px-4 py-3 w-full text-lg"
-                                    />
-                                    <button
-                                        onClick={() => { setProcessing(true); initiateMpesa.mutate(); }}
-                                        disabled={processing}
-                                        className="mt-4 w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition disabled:opacity-50 font-semibold"
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { key: 'MPESA', icon: FiPhone, label: 'M-PESA', subtitle: 'Mobile payment' },
+                                    { key: 'CARD', icon: FiCreditCard, label: 'Card', subtitle: 'Visa, Mastercard, other cards' },
+                                ].map(({ key, icon: Icon, label, subtitle }) => (
+                                    <div
+                                        key={key}
+                                        className="rounded-2xl p-4 border border-gray-200 bg-white text-left flex items-start gap-3"
                                     >
-                                        {processing ? 'Sending STK Push...' : 'Pay with M-Pesa'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {method === 'PAYSTACK' && (
-                                <div>
-                                    <p className="text-gray-600 mb-4">Pay securely with your credit or debit card.</p>
-                                    <button
-                                        onClick={() => { setProcessing(true); initiatePaystack.mutate(); }}
-                                        disabled={initiatePaystack.isPending || processing}
-                                        className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-semibold disabled:opacity-50"
-                                    >
-                                        {(initiatePaystack.isPending || (processing && method === 'PAYSTACK')) ? 'Loading secure payment...' : 'Proceed to Card Payment'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {method === 'PAYPAL' && (
-                                <div>
-                                    <p className="text-gray-600 mb-4">You'll be redirected to PayPal to complete payment.</p>
-                                    <button
-                                        onClick={() => { setProcessing(true); initiatePaypal.mutate(); }}
-                                        disabled={initiatePaypal.isPending || processing}
-                                        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold disabled:opacity-50"
-                                    >
-                                        {(initiatePaypal.isPending || (processing && method === 'PAYPAL')) ? 'Processing PayPal...' : 'Pay with PayPal'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {method === 'BANK_TRANSFER' && (
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-4">Transfer the exact amount to the account below and use your order number as reference.</p>
-                                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-500">Bank:</span>
-                                            <span className="font-semibold">{bankDetails.bankName}</span>
+                                        <div className="p-2 rounded-full bg-primary-50 text-primary-500">
+                                            <Icon size={18} />
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-500">Account Name:</span>
-                                            <span className="font-semibold">{bankDetails.accountName}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-500">Account Number:</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-semibold">{bankDetails.accountNumber}</span>
-                                                <button
-                                                    onClick={() => { navigator.clipboard.writeText(bankDetails.accountNumber); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                                                    className="text-blue-600 hover:text-blue-800"
-                                                >
-                                                    <FiCopy size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-500">Branch:</span>
-                                            <span className="font-semibold">{bankDetails.branch}</span>
-                                        </div>
-                                        <div className="flex justify-between border-t pt-2 mt-2">
-                                            <span className="text-gray-500">Reference:</span>
-                                            <span className="font-semibold text-blue-600">{orderNumber}</span>
+                                        <div>
+                                            <p className="font-semibold text-sm text-gray-900">{label}</p>
+                                            <p className="text-xs text-gray-500">{subtitle}</p>
                                         </div>
                                     </div>
-                                    {copied && <p className="text-green-600 text-sm mt-2">Account number copied!</p>}
-                                    <button
-                                        onClick={() => { setProcessing(true); initiateBankTransfer.mutate(); }}
-                                        disabled={processing}
-                                        className="mt-4 w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition disabled:opacity-50 font-semibold"
-                                    >
-                                        {processing ? 'Processing...' : 'I\'ve Made the Transfer'}
-                                    </button>
-                                    <p className="text-xs text-gray-500 mt-2">Your order will be confirmed once the payment reflects in our account.</p>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mt-4">
+                        <p className="text-gray-700 mb-4">Continue to the secure checkout to complete payment using your preferred method.</p>
+                        <button
+                            onClick={() => { setProcessing(true); initiatePaystack.mutate(false); }}
+                            disabled={initiatePaystack.isPending || processing || confirmCod.isPending}
+                            className="w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition font-semibold disabled:opacity-50"
+                        >
+                            {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : 'Continue to Secure Payment'}
+                        </button>
+                    </div>
+
+                    {codTerms?.codEnabled && (
+                        <div className="w-full rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6 mt-4">
+                            <div className="flex items-start gap-3 mb-4">
+                                <div className="p-2 rounded-full bg-primary-50 text-primary-500">
+                                    <FiDollarSign size={18} />
                                 </div>
+                                <div>
+                                    <p className="text-lg font-semibold text-gray-900">Pay on Delivery</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {codTerms.requiresDeposit
+                                            ? `Orders over KES ${codTerms.depositThreshold.toLocaleString()} need a deposit upfront — the rest is paid in cash when it arrives.`
+                                            : 'Pay the full amount in cash when your order arrives.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {codTerms.requiresDeposit ? (
+                                <>
+                                    <div className="bg-gray-50 rounded-xl p-4 mb-4 text-sm space-y-1">
+                                        <div className="flex justify-between text-gray-700">
+                                            <span>Deposit due now</span>
+                                            <span className="font-semibold text-gray-900">KES {codTerms.depositAmount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-700">
+                                            <span>Balance on delivery</span>
+                                            <span className="font-semibold text-gray-900">KES {codTerms.balanceDue.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => { setProcessing(true); initiatePaystack.mutate(true); }}
+                                        disabled={initiatePaystack.isPending || processing || confirmCod.isPending}
+                                        className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50"
+                                    >
+                                        {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : `Pay Deposit (KES ${codTerms.depositAmount.toLocaleString()})`}
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => confirmCod.mutate()}
+                                    disabled={confirmCod.isPending || initiatePaystack.isPending || processing}
+                                    className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50"
+                                >
+                                    {confirmCod.isPending ? 'Confirming order...' : 'Confirm Cash on Delivery'}
+                                </button>
                             )}
                         </div>
                     )}
                 </div>
 
                 {/* Order Summary */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow p-6 h-fit sticky top-24">
-                    <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-                    {order?.items?.map((item: any, i: number) => (
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-6 h-fit sticky top-24">
+                    <h2 className="text-xl font-section-title mb-4">Order Summary</h2>
+                    {order?.items?.map((item: OrderItem, i: number) => (
                         <div key={i} className="flex justify-between py-2 border-b border-gray-200/30 text-sm">
                             <span>{item.productName} x {item.quantity}</span>
-                            <span>KES {item.price.toLocaleString()}</span>
+                            <span>KES {(item.price * item.quantity).toLocaleString()}</span>
                         </div>
                     ))}
+                    <div className="flex justify-between text-gray-600 py-2">
+                        <span>Subtotal</span>
+                        <span>KES {order?.subtotal?.toLocaleString() ?? '0'}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600 py-2">
+                        <span>Shipping</span>
+                        <span>{order?.shippingCost > 0 ? `KES ${order.shippingCost.toLocaleString()}` : 'Free'}</span>
+                    </div>
+                    {order?.taxAmount > 0 && (
+                        <div className="flex justify-between text-gray-600 py-2">
+                            <span>Tax (VAT)</span>
+                            <span>KES {order.taxAmount.toLocaleString()}</span>
+                        </div>
+                    )}
+                    {order?.discountAmount > 0 && (
+                        <div className="flex justify-between text-emerald-600 font-medium py-2">
+                            <span>Discount</span>
+                            <span>-KES {order.discountAmount.toLocaleString()}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between font-bold text-lg mt-4 pt-4 border-t border-gray-300/40">
                         <span>Total</span>
-                        <span>KES {order?.total?.toLocaleString()}</span>
+                        <span>KES {order?.total?.toLocaleString() ?? '0'}</span>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200/30">
-                        <p className="text-sm text-gray-500">Status: <span className="font-semibold text-blue-600">{order?.status}</span></p>
+                        <p className="text-sm text-gray-500">Status: <span className="font-semibold text-primary-500">{order?.status}</span></p>
                     </div>
-                    <Link to={`/orders/${orderNumber}`} className="block text-center text-blue-600 text-sm mt-4 hover:underline">
+                    <Link to={`/orders/${orderNumber}`} className="block text-center text-primary-500 text-sm mt-4 hover:text-primary-600 hover:underline">
                         View Order Details
                     </Link>
 
@@ -406,22 +452,20 @@ export default function PaymentPage() {
                     <div className="mt-6 pt-6 border-t border-gray-200/30">
                         <p className="text-xs text-gray-500 mb-3 text-center">Secure Payment</p>
                         <div className="flex items-center justify-center gap-3">
-                            <div className="bg-green-50 px-3 py-2 rounded-lg border border-green-200">
-                                <span className="text-xs font-medium text-green-700">M-Pesa</span>
+                            <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                                <span className="text-xs font-medium text-slate-700">Paystack</span>
                             </div>
-                            <div className="bg-purple-50 px-3 py-2 rounded-lg border border-purple-200">
-                                <span className="text-xs font-medium text-purple-700">Paystack</span>
-                            </div>
-                            <div className="bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
-                                <span className="text-xs font-medium text-blue-700">PayPal</span>
+                            <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                                <span className="text-xs font-medium text-slate-700">Card & Mobile Money</span>
                             </div>
                         </div>
                         <div className="flex items-center justify-center gap-2 mt-3">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
                             <span className="text-xs text-gray-500">256-bit SSL Encrypted</span>
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

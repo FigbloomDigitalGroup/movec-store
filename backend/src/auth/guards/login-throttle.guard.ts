@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { Request } from 'express';
 
 @Injectable()
 export class LoginThrottleGuard extends ThrottlerGuard {
-  protected async getTracker(req: Record<string, any>): Promise<string> {
-    return req.ip;
+  protected getTracker(req: Request): Promise<string> {
+    return Promise.resolve(req.ip ?? 'unknown');
   }
 }

@@ -1,36 +1,85 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../lib/api';
+import api, { getErrorMessage } from '../lib/api';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
-import type { Cart, Address } from '../types';
-import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock } from 'react-icons/fi';
+import { useCart } from '../hooks/useCart';
+import type { Address, CartDisplayItem } from '../types';
+import { FiMapPin, FiTag, FiFileText, FiShoppingBag, FiPlus, FiX, FiLock, FiCrosshair } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
 import Input from '../components/ui/Input';
+import PageLoader from '../components/PageLoader';
+import CheckoutSteps from '../components/CheckoutSteps';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const guestCart = useCartStore();
-  const [shippingId, setShippingId] = useState('');
+  const isSyncing = useCartStore((s) => s.isSyncing);
+  const [selectedShippingId, setSelectedShippingId] = useState('');
   const [billingId] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [notes, setNotes] = useState('');
-  const [syncing, setSyncing] = useState(false);
 
   const [showAddAddress, setShowAddAddress] = useState(false);
   const [line1, setLine1] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Kenya');
+  const [isLocating, setIsLocating] = useState(false);
 
-  const { data: cart, isLoading: cartLoading, error: cartError } = useQuery<Cart>({
-    queryKey: ['cart'],
-    queryFn: () => api.get('/cart').then(r => r.data),
-    enabled: isAuthenticated,
-  });
+  // Reverse-geocodes the browser's current position into address fields via
+  // OpenStreetMap's Nominatim (free, no API key) — the user still reviews and
+  // confirms before saving, since reverse geocoding is approximate.
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            { headers: { 'Accept-Language': 'en' } },
+          );
+          if (!res.ok) throw new Error('Reverse geocoding failed');
+          const data = await res.json();
+          const addr = data.address || {};
+
+          const street = [addr.house_number, addr.road].filter(Boolean).join(' ');
+          setLine1(street || addr.suburb || addr.neighbourhood || '');
+          setCity(addr.city || addr.town || addr.village || addr.county || '');
+          setPostalCode(addr.postcode || '');
+          setCountry(addr.country || 'Kenya');
+          toast.success('Address detected — please review before saving');
+        } catch {
+          toast.error("Couldn't determine your address. Please enter it manually.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location permission denied. Please allow location access or enter your address manually.');
+        } else if (error.code === error.TIMEOUT) {
+          toast.error('Location request timed out. Please try again or enter your address manually.');
+        } else {
+          toast.error('Could not access your location. Please enter your address manually.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
+  const { data: cart, isLoading: cartLoading, error: cartError } = useCart();
 
   const { data: addresses, refetch: refetchAddresses, isLoading: addressesLoading, error: addressesError } = useQuery<Address[]>({
     queryKey: ['addresses'],
@@ -38,11 +87,11 @@ export default function CheckoutPage() {
     enabled: isAuthenticated,
   });
 
-  useEffect(() => {
-    if (addresses && addresses.length > 0 && !shippingId) {
-      setShippingId(addresses[0].id);
-    }
-  }, [addresses, shippingId]);
+  // No address has been explicitly picked yet — fall back to the first one on
+  // file as soon as the list loads. Deriving this during render (rather than
+  // syncing it via an effect) means there's no extra render pass and no
+  // window where `shippingId` is stale.
+  const shippingId = selectedShippingId || addresses?.[0]?.id || '';
 
   const addAddress = useMutation({
     mutationFn: () => api.post('/users/me/addresses', {
@@ -55,36 +104,18 @@ export default function CheckoutPage() {
     }),
     onSuccess: (res) => {
       refetchAddresses().then(() => {
-        setShippingId(res.data.id);
+        setSelectedShippingId(res.data.id);
         setShowAddAddress(false);
         setLine1('');
         setCity('');
         setPostalCode('');
       });
     },
-    onError: (err: any) => {
-      alert(err.response?.data?.message || 'Failed to add address');
+    onError: (err) => {
+      toast.error(getErrorMessage(err) || 'Failed to add address');
     }
   });
 
-  useEffect(() => {
-    if (isAuthenticated && guestCart.items.length > 0) {
-      setSyncing(true);
-      const syncCart = async () => {
-        try {
-          for (const item of guestCart.items) {
-            await api.post('/cart/items', { productId: item.productId, quantity: item.quantity });
-          }
-          guestCart.clearCart();
-        } catch (err) {
-          console.error('Failed to sync cart:', err);
-        } finally {
-          setSyncing(false);
-        }
-      };
-      syncCart();
-    }
-  }, [isAuthenticated, guestCart.items]);
 
   const placeOrder = useMutation({
     mutationFn: async () => {
@@ -99,19 +130,18 @@ export default function CheckoutPage() {
     onSuccess: (data) => {
       navigate(`/payment/${data.orderNumber}`);
     },
-    onError: (err: any) => {
-      const msg =
-        err.response?.data?.error?.message ||
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to place order';
-      alert(msg);
+    onError: (err) => {
+      toast.error(getErrorMessage(err) || 'Failed to place order');
     },
   });
 
-  const items = isAuthenticated ? (cart?.items || []) : guestCart.items;
+  const items: CartDisplayItem[] = isAuthenticated ? (cart?.items || []) : guestCart.items;
   const total = isAuthenticated ? (cart?.total || 0) : guestCart.getTotal();
   const cartEmpty = isAuthenticated ? items.length === 0 && cart !== undefined : items.length === 0;
+
+  if (!isHydrated) {
+    return <PageLoader />;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -119,8 +149,8 @@ export default function CheckoutPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <Card>
             <CardBody className="text-center py-16">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiLock className="text-blue-600" size={32} />
+              <div className="w-16 h-16 bg-primary-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiLock className="text-primary-500" size={32} />
               </div>
               <h1 className="text-2xl font-section-title text-gray-900 mb-4">Sign in to Checkout</h1>
               <p className="text-gray-600 mb-6">You need an account to complete your order. Your cart will be saved.</p>
@@ -129,7 +159,7 @@ export default function CheckoutPage() {
               </Link>
               <p className="mt-4 text-sm text-gray-500">
                 Don't have an account?{' '}
-                <Link to="/register?redirect=checkout" className="text-blue-600 hover:underline font-medium">
+                <Link to="/register?redirect=checkout" className="text-primary-500 hover:text-primary-600 hover:underline font-medium">
                   Register
                 </Link>
               </p>
@@ -140,10 +170,10 @@ export default function CheckoutPage() {
     );
   }
 
-  if (syncing) return <div className="min-h-screen flex items-center justify-center text-gray-600">Syncing your cart...</div>;
+  if (isSyncing) return <div className="min-h-screen flex items-center justify-center text-gray-600">Syncing your cart...</div>;
 
   if (cartLoading || addressesLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-600">Loading checkout...</div>;
+    return <PageLoader />;
   }
 
   if (cartError || addressesError) {
@@ -162,47 +192,18 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-section-title text-gray-900 mb-2">Checkout</h1>
+        <div className="w-full px-4 py-8">
+          <h1 className="text-3xl md:text-4xl font-section-title text-gray-900 mb-2">Checkout</h1>
           <p className="text-gray-700">Complete your order</p>
         </div>
       </div>
 
-      {/* Progress Stepper */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">1</div>
-              <div>
-                <p className="font-medium text-gray-900">Shipping</p>
-                <p className="text-xs text-gray-500">Enter delivery address</p>
-              </div>
-            </div>
-            <div className="flex-1 h-px bg-gray-200 mx-4" />
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">2</div>
-              <div>
-                <p className="font-medium text-gray-500">Payment</p>
-                <p className="text-xs text-gray-400">Select payment method</p>
-              </div>
-            </div>
-            <div className="flex-1 h-px bg-gray-200 mx-4" />
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm">3</div>
-              <div>
-                <p className="font-medium text-gray-500">Confirmation</p>
-                <p className="text-xs text-gray-400">Review and complete</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CheckoutSteps currentStep={1} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Form */}
           <div className="lg:col-span-2 space-y-6">
@@ -210,8 +211,8 @@ export default function CheckoutPage() {
             <Card>
               <CardBody>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FiMapPin className="text-blue-600" size={20} />
+                  <div className="w-10 h-10 bg-primary-500/10 rounded-lg flex items-center justify-center">
+                    <FiMapPin className="text-primary-500" size={20} />
                   </div>
                   <h2 className="text-xl font-section-title text-gray-900">Shipping Address</h2>
                 </div>
@@ -227,8 +228,8 @@ export default function CheckoutPage() {
                     key={addr.id}
                     className={`block p-4 border-2 rounded-lg mb-3 cursor-pointer transition ${
                       shippingId === addr.id
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        ? 'border-primary-500 bg-primary-50'
+                        : 'border-gray-200 hover:border-primary-500/50 bg-white'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -237,7 +238,7 @@ export default function CheckoutPage() {
                         name="shipping"
                         value={addr.id}
                         checked={shippingId === addr.id}
-                        onChange={(e) => setShippingId(e.target.value)}
+                        onChange={(e) => setSelectedShippingId(e.target.value)}
                         className="mt-1"
                       />
                       <div>
@@ -267,6 +268,17 @@ export default function CheckoutPage() {
                       </Button>
                     </div>
                     <div className="space-y-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleUseCurrentLocation}
+                        disabled={isLocating}
+                        className="w-full"
+                      >
+                        <FiCrosshair className="mr-2" size={16} />
+                        {isLocating ? 'Detecting your location...' : 'Use my current location'}
+                      </Button>
                       <Input
                         label="Street Address"
                         value={line1}
@@ -313,8 +325,8 @@ export default function CheckoutPage() {
             <Card>
               <CardBody>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <FiTag className="text-green-600" size={20} />
+                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <FiTag className="text-primary-500" size={20} />
                   </div>
                   <h2 className="text-xl font-section-title text-gray-900">Coupon Code</h2>
                 </div>
@@ -330,8 +342,8 @@ export default function CheckoutPage() {
             <Card>
               <CardBody>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <FiFileText className="text-purple-600" size={20} />
+                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <FiFileText className="text-primary-500" size={20} />
                   </div>
                   <h2 className="text-xl font-section-title text-gray-900">Order Notes</h2>
                 </div>
@@ -339,7 +351,7 @@ export default function CheckoutPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add any special instructions for your order..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                   rows={4}
                 />
               </CardBody>
@@ -363,13 +375,13 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <div className="space-y-3 mb-6">
-                      {items.map((item: any) => (
+                      {items.map((item) => (
                         <div key={item.productId || item.id} className="flex justify-between text-sm">
                           <span className="text-gray-600">
-                            {item.productNameSnapshot || item.name} x {item.quantity}
+                            {item.name} x {item.quantity}
                           </span>
                           <span className="font-medium text-gray-900">
-                            KES {(Number(item.priceSnapshot ?? item.price) * item.quantity).toLocaleString()}
+                            KES {(item.price * item.quantity).toLocaleString()}
                           </span>
                         </div>
                       ))}

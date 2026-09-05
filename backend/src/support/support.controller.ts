@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { SupportService } from './support.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import type { Request } from 'express';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 @Controller('support')
 export class SupportController {
@@ -22,28 +25,32 @@ export class SupportController {
 
   @Get('tickets')
   @UseGuards(JwtAuthGuard)
-  getMyTickets(@Req() req: Request) {
-    const user = req.user as any;
+  getMyTickets(@CurrentUser() user: AuthenticatedUser) {
     return this.supportService.getMyTickets(user.id);
   }
 
   @Post('tickets')
   @UseGuards(JwtAuthGuard)
-  createTicket(@Req() req: Request, @Body() dto: CreateTicketDto) {
-    const user = req.user as any;
+  createTicket(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateTicketDto,
+  ) {
     return this.supportService.createTicket(user.id, dto);
   }
 
   @Get('tickets/:id')
   @UseGuards(JwtAuthGuard)
-  getTicket(@Param('id') id: string) {
-    return this.supportService.getTicket(id);
+  getTicket(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.supportService.getTicket(id, user.id);
   }
 
   @Post('tickets/:id/messages')
   @UseGuards(JwtAuthGuard)
-  addMessage(@Req() req: Request, @Param('id') id: string, @Body() dto: CreateMessageDto) {
-    const user = req.user as any;
+  addMessage(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: CreateMessageDto,
+  ) {
     return this.supportService.addMessage(id, user.id, false, dto);
   }
 }

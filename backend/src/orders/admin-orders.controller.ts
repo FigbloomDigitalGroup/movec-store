@@ -13,6 +13,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName, OrderStatus } from '@prisma/client';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 @Controller('admin/orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -25,8 +29,9 @@ export class AdminOrdersController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @Query('status') status?: OrderStatus,
+    @Query('search') search?: string,
   ) {
-    return this.ordersService.findAll(+page, +limit, status);
+    return this.ordersService.findAll(+page, +limit, status, search);
   }
 
   @Get(':orderNumber')
@@ -35,7 +40,17 @@ export class AdminOrdersController {
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
-    return this.ordersService.updateStatus(id, dto.status, dto.trackingNumber, dto.carrier);
+  updateStatus(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
+    return this.ordersService.updateStatus(
+      id,
+      dto.status,
+      dto.trackingNumber,
+      dto.carrier,
+      admin.id,
+    );
   }
 }

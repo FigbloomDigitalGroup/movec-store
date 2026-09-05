@@ -17,6 +17,9 @@ export interface Product {
   compareAtPrice: number | null;
   isActive: boolean;
   isFeatured: boolean;
+  isBestSeller?: boolean;
+  avgRating: number | null;
+  reviewCount: number;
   images: ProductImage[];
   brand: Brand | null;
   categories: Category[];
@@ -43,11 +46,17 @@ export interface Category {
   description: string | null;
 }
 
+export interface Warehouse {
+  id: string;
+  name: string;
+  location: string | null;
+}
+
 export interface Inventory {
   id: string;
   quantity: number;
   lowStockThreshold: number;
-  warehouse: { name: string };
+  warehouse: Warehouse;
 }
 
 export interface CartItem {
@@ -68,6 +77,48 @@ export interface Cart {
   total: number;
 }
 
+// Shape actually needed when rendering a cart-like row — satisfied by both the
+// authenticated CartItem (from the server cart) and the guest GuestCartItem
+// (from cartStore), which has no persisted `id` since it never reached the
+// server.
+export interface CartDisplayItem {
+  id?: string;
+  productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string | null;
+  quantity: number;
+}
+
+export interface OrderItem {
+  id?: string;
+  productId: string;
+  productName: string;
+  slug: string;
+  quantity: number;
+  price: number;
+  image: string | null;
+}
+
+export interface OrderPayment {
+  method: string;
+  status: string;
+  amount?: number;
+}
+
+export interface OrderShipping {
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
+}
+
+export interface OrderStatusHistoryEntry {
+  status: string;
+  changedAt: string;
+}
+
 export interface Order {
   orderNumber: string;
   status: string;
@@ -76,9 +127,12 @@ export interface Order {
   taxAmount: number;
   discountAmount: number;
   total: number;
-  items: any[];
-  payment: any;
-  shipping: any;
+  items: OrderItem[];
+  payments?: OrderPayment[];
+  shipping?: OrderShipping | null;
+  shippingAddress?: Address | null;
+  statusHistory?: OrderStatusHistoryEntry[];
+  coupon?: { code: string } | null;
   createdAt: string;
 }
 
@@ -92,4 +146,32 @@ export interface Address {
   postalCode: string;
   country: string;
   isDefault: boolean;
+}
+
+export interface WishlistItem {
+  id: string;
+  productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string | null;
+  addedAt: string;
+}
+
+export interface ReviewUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface Review {
+  id: string;
+  userId: string;
+  productId: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  isApproved: boolean;
+  createdAt: string;
+  user: ReviewUser;
 }
