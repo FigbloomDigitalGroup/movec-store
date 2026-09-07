@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
 import { InitiateMpesaDto } from './dto/initiate-mpesa.dto';
 import { InitiatePaystackDto } from './dto/initiate-paystack.dto';
@@ -17,6 +18,10 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('mpesa/initiate')
+  // Each call sends a real STK Push prompt to a phone number (a per-attempt cost
+  // against the merchant's Safaricom account) — cap it well below the global default
+  // so it can't be turned into a phone-harassment or cost-abuse vector.
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   initiateMpesa(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: InitiateMpesaDto,

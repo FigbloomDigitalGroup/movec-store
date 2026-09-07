@@ -154,12 +154,13 @@ export class PaymentsService {
     // Unlike Paystack, Safaricom's STK callback carries no signature — the callback
     // URL is supplied fresh on every request, so we stamp our own shared secret onto
     // it here and the webhook checks it, rather than trusting the caller on identity
-    // alone. If MPESA_CALLBACK_SECRET isn't set yet, this is a no-op (see the webhook
-    // handler's matching fallback) so existing deployments keep working uninterrupted.
-    const finalCallbackUrl =
-      callbackUrl && callbackSecret
-        ? `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}secret=${encodeURIComponent(callbackSecret)}`
-        : callbackUrl;
+    // alone. The webhook now rejects every callback when this isn't set, so refuse to
+    // even start a payment here — otherwise a customer could pay via M-Pesa and the
+    // confirmation would never be able to land.
+    if (!callbackUrl || !callbackSecret) {
+      throw new BadRequestException('M-Pesa is not configured');
+    }
+    const finalCallbackUrl = `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}secret=${encodeURIComponent(callbackSecret)}`;
 
     const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
       'base64',
@@ -188,7 +189,7 @@ export class PaymentsService {
         PartyA: phoneNumber.replace(/^\+254/, '254').replace(/^0/, '254'),
         PartyB: shortcode,
         PhoneNumber: phoneNumber.replace(/^\+254/, '254').replace(/^0/, '254'),
-        CallBackURL: finalCallbackUrl || 'https://example.com/callback',
+        CallBackURL: finalCallbackUrl,
         AccountReference: orderNumber,
         TransactionDesc: `Payment for ${orderNumber}`,
       };
@@ -769,11 +770,19 @@ export class PaymentsService {
 
   verifyPaystackSignature(rawBody: string, signature: string): boolean {
     const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
-    if (!secretKey) return false;
+    if (!secretKey || !signature) return false;
     const hash = crypto
       .createHmac('sha512', secretKey)
       .update(rawBody)
       .digest('hex');
-    return hash === signature;
+    // A plain === comparison short-circuits on the first mismatched byte, leaking
+    // timing information an attacker could use to recover a valid signature one byte
+    // at a time. timingSafeEqual takes constant time regardless of where they differ.
+    const expected = Buffer.from(hash, 'hex');
+    const actual = Buffer.from(signature, 'hex');
+    return (
+      expected.length === actual.length &&
+      crypto.timingSafeEqual(expected, actual)
+    );
   }
 }

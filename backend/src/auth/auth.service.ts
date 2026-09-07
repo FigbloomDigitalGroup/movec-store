@@ -136,6 +136,12 @@ export class AuthService {
       );
     }
     this.resendTimestamps[email] = now;
+    // This map otherwise only grows — every distinct email that ever requests a
+    // resend leaves a permanent entry. Sweep out anything past the 60s window on
+    // the way in so it stays bounded to recently-active emails.
+    for (const [key, ts] of Object.entries(this.resendTimestamps)) {
+      if (now - ts >= 60 * 1000) delete this.resendTimestamps[key];
+    }
 
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);

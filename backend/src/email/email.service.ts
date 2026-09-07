@@ -4,6 +4,24 @@ import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 import * as nodemailer from 'nodemailer';
 import { getPrimaryFrontendUrl } from '../common/frontend-url';
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+// Every value below comes from a user-controlled source at some point (a name typed
+// at registration, a contact-form message, a shipping address) and gets interpolated
+// straight into an HTML email body — without this, a value like
+// `<a href="https://evil.example">...</a>` renders as a live, styled link inside an
+// otherwise-legitimate company email, e.g. in the staff inbox that receives contact
+// form / installation request notifications.
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+}
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
@@ -67,7 +85,7 @@ export class EmailService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Welcome to Movec Store!</h2>
-        <p>Hi ${toName},</p>
+        <p>Hi ${escapeHtml(toName)},</p>
         <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
         <a href="${verificationLink}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
           Verify Email
@@ -84,7 +102,11 @@ export class EmailService {
       try {
         await this.transporter.sendMail({
           from: this.smtpFrom,
-          to: `"${toName}" <${toEmail}>`,
+          // A hand-built `"name" <email>` string gets re-parsed by nodemailer as an
+          // address list — a display name containing a stray quote/comma/angle-bracket
+          // (e.g. from a user's registered first name) could inject an extra recipient.
+          // The structured form is encoded as a single address instead of re-parsed.
+          to: { name: toName, address: toEmail },
           subject,
           html: htmlContent,
         });
@@ -124,7 +146,7 @@ export class EmailService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Password Reset</h2>
-        <p>Hi ${toName},</p>
+        <p>Hi ${escapeHtml(toName)},</p>
         <p>We received a request to reset your password. Click the button below to set a new password:</p>
         <a href="${resetLink}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
           Reset Password
@@ -142,7 +164,11 @@ export class EmailService {
       try {
         await this.transporter.sendMail({
           from: this.smtpFrom,
-          to: `"${toName}" <${toEmail}>`,
+          // A hand-built `"name" <email>` string gets re-parsed by nodemailer as an
+          // address list — a display name containing a stray quote/comma/angle-bracket
+          // (e.g. from a user's registered first name) could inject an extra recipient.
+          // The structured form is encoded as a single address instead of re-parsed.
+          to: { name: toName, address: toEmail },
           subject,
           html: htmlContent,
         });
@@ -240,8 +266,8 @@ export class EmailService {
         (item) => `
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #eef0ee;">
-              <div style="font-weight: 600; color: #1a1f1b;">${item.name}</div>
-              ${item.sku ? `<div style="font-size: 12px; color: #717a73;">SKU: ${item.sku}</div>` : ''}
+              <div style="font-weight: 600; color: #1a1f1b;">${escapeHtml(item.name)}</div>
+              ${item.sku ? `<div style="font-size: 12px; color: #717a73;">SKU: ${escapeHtml(item.sku)}</div>` : ''}
             </td>
             <td style="padding: 12px 0; border-bottom: 1px solid #eef0ee; text-align: center; color: #4b534d;">${item.quantity}</td>
             <td style="padding: 12px 0; border-bottom: 1px solid #eef0ee; text-align: right; color: #1a1f1b;">${formatMoney(item.price * item.quantity)}</td>
@@ -268,7 +294,7 @@ export class EmailService {
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background-color: #ecfdf5; line-height: 56px; font-size: 28px; color: #10b982;">&#10003;</div>
             <h1 style="font-size: 20px; color: #1a1f1b; margin: 16px 0 4px;">Payment received &mdash; thank you!</h1>
-            <p style="color: #717a73; margin: 0;">Hi ${toName}, here's your receipt for order <strong>${orderNumber}</strong>.</p>
+            <p style="color: #717a73; margin: 0;">Hi ${escapeHtml(toName)}, here's your receipt for order <strong>${escapeHtml(orderNumber)}</strong>.</p>
           </div>
 
           <table width="100%" style="border-collapse: collapse; margin-bottom: 24px; background-color: #f7f7f5; border-radius: 8px;" cellpadding="0" cellspacing="0">
@@ -317,9 +343,9 @@ export class EmailService {
               ? `<div style="background-color: #f7f7f5; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
                   <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #4b534d; margin-bottom: 8px;">Shipping to</div>
                   <div style="font-size: 13px; color: #1a1f1b; line-height: 1.5;">
-                    ${shippingAddress.line1}${shippingAddress.line2 ? `, ${shippingAddress.line2}` : ''}<br />
-                    ${shippingAddress.city}${shippingAddress.state ? `, ${shippingAddress.state}` : ''} ${shippingAddress.postalCode}<br />
-                    ${shippingAddress.country}
+                    ${escapeHtml(shippingAddress.line1)}${shippingAddress.line2 ? `, ${escapeHtml(shippingAddress.line2)}` : ''}<br />
+                    ${escapeHtml(shippingAddress.city)}${shippingAddress.state ? `, ${escapeHtml(shippingAddress.state)}` : ''} ${escapeHtml(shippingAddress.postalCode)}<br />
+                    ${escapeHtml(shippingAddress.country)}
                   </div>
                 </div>`
               : ''
@@ -344,7 +370,11 @@ export class EmailService {
       try {
         await this.transporter.sendMail({
           from: this.smtpFrom,
-          to: `"${toName}" <${toEmail}>`,
+          // A hand-built `"name" <email>` string gets re-parsed by nodemailer as an
+          // address list — a display name containing a stray quote/comma/angle-bracket
+          // (e.g. from a user's registered first name) could inject an extra recipient.
+          // The structured form is encoded as a single address instead of re-parsed.
+          to: { name: toName, address: toEmail },
           subject,
           html: htmlContent,
         });
@@ -392,12 +422,12 @@ export class EmailService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">New Contact Request</h2>
-        <p><strong>Name:</strong> ${contactData.name}</p>
-        <p><strong>Email:</strong> ${contactData.email}</p>
-        <p><strong>Phone:</strong> ${contactData.phone || 'N/A'}</p>
-        <p><strong>Subject:</strong> ${contactData.subject}</p>
+        <p><strong>Name:</strong> ${escapeHtml(contactData.name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(contactData.email)}</p>
+        <p><strong>Phone:</strong> ${contactData.phone ? escapeHtml(contactData.phone) : 'N/A'}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(contactData.subject)}</p>
         <div style="margin-top: 16px; padding: 16px; background-color: #f3f4f6; border-radius: 8px;">
-          <p style="white-space: pre-wrap; margin: 0;">${contactData.message}</p>
+          <p style="white-space: pre-wrap; margin: 0;">${escapeHtml(contactData.message)}</p>
         </div>
       </div>
     `;
@@ -442,7 +472,7 @@ export class EmailService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">Thanks for reaching out!</h2>
-        <p>Hi ${toName},</p>
+        <p>Hi ${escapeHtml(toName)},</p>
         <p>We've successfully received your message and our team will get back to you as soon as possible.</p>
         <p>For urgent inquiries, you can also reach us via WhatsApp at +254 796285718.</p>
         <hr style="border: 1px solid #e5e7eb; margin: 24px 0;" />
@@ -454,7 +484,11 @@ export class EmailService {
       try {
         await this.transporter.sendMail({
           from: this.smtpFrom,
-          to: `"${toName}" <${toEmail}>`,
+          // A hand-built `"name" <email>` string gets re-parsed by nodemailer as an
+          // address list — a display name containing a stray quote/comma/angle-bracket
+          // (e.g. from a user's registered first name) could inject an extra recipient.
+          // The structured form is encoded as a single address instead of re-parsed.
+          to: { name: toName, address: toEmail },
           subject,
           html: htmlContent,
         });
@@ -535,7 +569,7 @@ export class EmailService {
           <div style="text-align: center; margin-bottom: 24px;">
             <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background-color: #ecfdf5; line-height: 56px; font-size: 28px; color: #10b982;">&#10003;</div>
             <h1 style="font-size: 20px; color: #1a1f1b; margin: 16px 0 4px;">Installation request received</h1>
-            <p style="color: #717a73; margin: 0;">Hi ${toName}, we've received your request for <strong>${serviceName}</strong>. Our team will reach out shortly to confirm scheduling.</p>
+            <p style="color: #717a73; margin: 0;">Hi ${escapeHtml(toName)}, we've received your request for <strong>${escapeHtml(serviceName)}</strong>. Our team will reach out shortly to confirm scheduling.</p>
           </div>
 
           <table width="100%" style="border-collapse: collapse; margin-bottom: 24px; background-color: #f7f7f5; border-radius: 8px;" cellpadding="0" cellspacing="0">
@@ -564,9 +598,9 @@ export class EmailService {
           <div style="background-color: #f7f7f5; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
             <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #4b534d; margin-bottom: 8px;">Installation address</div>
             <div style="font-size: 13px; color: #1a1f1b; line-height: 1.5;">
-              ${address.line1}${address.line2 ? `, ${address.line2}` : ''}<br />
-              ${address.city}${address.state ? `, ${address.state}` : ''} ${address.postalCode}<br />
-              ${address.country}
+              ${escapeHtml(address.line1)}${address.line2 ? `, ${escapeHtml(address.line2)}` : ''}<br />
+              ${escapeHtml(address.city)}${address.state ? `, ${escapeHtml(address.state)}` : ''} ${escapeHtml(address.postalCode)}<br />
+              ${escapeHtml(address.country)}
             </div>
           </div>
 
@@ -574,7 +608,7 @@ export class EmailService {
             notes
               ? `<div style="margin-bottom: 8px;">
                   <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #4b534d; margin-bottom: 8px;">Your notes</div>
-                  <p style="font-size: 13px; color: #1a1f1b; white-space: pre-wrap; margin: 0;">${notes}</p>
+                  <p style="font-size: 13px; color: #1a1f1b; white-space: pre-wrap; margin: 0;">${escapeHtml(notes)}</p>
                 </div>`
               : ''
           }
@@ -592,7 +626,11 @@ export class EmailService {
       try {
         await this.transporter.sendMail({
           from: this.smtpFrom,
-          to: `"${toName}" <${toEmail}>`,
+          // A hand-built `"name" <email>` string gets re-parsed by nodemailer as an
+          // address list — a display name containing a stray quote/comma/angle-bracket
+          // (e.g. from a user's registered first name) could inject an extra recipient.
+          // The structured form is encoded as a single address instead of re-parsed.
+          to: { name: toName, address: toEmail },
           subject,
           html: htmlContent,
         });
@@ -684,17 +722,17 @@ export class EmailService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1e40af;">New Installation Request</h2>
-        <p><strong>Customer:</strong> ${customerName}</p>
-        <p><strong>Email:</strong> ${customerEmail}</p>
-        <p><strong>Phone:</strong> ${customerPhone || 'N/A'}</p>
-        <p><strong>Service:</strong> ${serviceName}</p>
-        <p><strong>Preferred date:</strong> ${formattedDate}${timeSlotLabel ? ` &mdash; ${timeSlotLabel}` : ''}</p>
+        <p><strong>Customer:</strong> ${escapeHtml(customerName)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(customerEmail)}</p>
+        <p><strong>Phone:</strong> ${customerPhone ? escapeHtml(customerPhone) : 'N/A'}</p>
+        <p><strong>Service:</strong> ${escapeHtml(serviceName)}</p>
+        <p><strong>Preferred date:</strong> ${formattedDate}${timeSlotLabel ? ` &mdash; ${escapeHtml(timeSlotLabel)}` : ''}</p>
         <p><strong>Estimated price:</strong> ${formatMoney(price)}</p>
-        <p><strong>Address:</strong> ${address.line1}${address.line2 ? `, ${address.line2}` : ''}, ${address.city}${address.state ? `, ${address.state}` : ''} ${address.postalCode}, ${address.country}</p>
+        <p><strong>Address:</strong> ${escapeHtml(address.line1)}${address.line2 ? `, ${escapeHtml(address.line2)}` : ''}, ${escapeHtml(address.city)}${address.state ? `, ${escapeHtml(address.state)}` : ''} ${escapeHtml(address.postalCode)}, ${escapeHtml(address.country)}</p>
         ${
           notes
             ? `<div style="margin-top: 16px; padding: 16px; background-color: #f3f4f6; border-radius: 8px;">
-                <p style="white-space: pre-wrap; margin: 0;">${notes}</p>
+                <p style="white-space: pre-wrap; margin: 0;">${escapeHtml(notes)}</p>
               </div>`
             : ''
         }

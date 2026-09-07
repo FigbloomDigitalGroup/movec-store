@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SecurityMiddleware } from './common/middleware/security.middleware';
 import { PrismaModule } from './prisma/prisma.module';
@@ -28,7 +29,14 @@ import { AppService } from './app.service';
 
 @Module({
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Applies the ThrottlerModule config below to every route by default. Individual
+    // controllers/routes can still layer a stricter guard (e.g. LoginThrottleGuard) or
+    // override limits with @Throttle(); without this binding, @Throttle() decorators do
+    // nothing on their own — no guard was ever enforcing them.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

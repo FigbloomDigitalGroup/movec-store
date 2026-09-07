@@ -1,11 +1,31 @@
 import { PrismaClient, RoleName, AddressType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
+// Seeding a database that already has a real admin account is a no-op for that
+// account (upsert's `update: {}` below never touches an existing password) — but
+// running this against a *fresh* production database with no override still used
+// to plant a hardcoded, publicly-known password. Require an explicit opt-in for
+// prod, and default to a freshly generated password instead of a fixed string.
+if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_PROD_SEED) {
+  console.error(
+    '❌ Refusing to run prisma/seed.ts with NODE_ENV=production. ' +
+      'Set ALLOW_PROD_SEED=true if you really intend to seed this database.',
+  );
+  process.exit(1);
+}
+
 async function main() {
-  const passwordHashAdmin = await bcrypt.hash('Admin123!', 12);
-  const passwordHashCustomer = await bcrypt.hash('Customer123!', 12);
+  const adminPassword =
+    process.env.SEED_ADMIN_PASSWORD ??
+    crypto.randomBytes(12).toString('base64url');
+  const customerPassword =
+    process.env.SEED_CUSTOMER_PASSWORD ??
+    crypto.randomBytes(12).toString('base64url');
+  const passwordHashAdmin = await bcrypt.hash(adminPassword, 12);
+  const passwordHashCustomer = await bcrypt.hash(customerPassword, 12);
 
   // ─── Warehouses ────────────────────────────────────────────────
   const mainWarehouse = await prisma.warehouse.upsert({
@@ -459,6 +479,18 @@ async function main() {
     update: {},
     create: { productId: prod8.id, warehouseId: mainWarehouse.id, quantity: 45, lowStockThreshold: 10 },
   });
+
+  if (!process.env.SEED_ADMIN_PASSWORD || !process.env.SEED_CUSTOMER_PASSWORD) {
+    console.log(
+      '🔑 Generated credentials (only shown for accounts newly created this run; save these now):',
+    );
+    if (!process.env.SEED_ADMIN_PASSWORD) {
+      console.log(`   Admin:    ${adminUser.email} / ${adminPassword}`);
+    }
+    if (!process.env.SEED_CUSTOMER_PASSWORD) {
+      console.log(`   Customer: ${customerUser.email} / ${customerPassword}`);
+    }
+  }
 
   console.log('✅ Seed data inserted successfully.');
   console.log(`   Modules: Starlink, CCTV`);

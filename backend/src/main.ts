@@ -21,6 +21,13 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   const logger = new Logger('Bootstrap');
 
+  // Render (and most PaaS hosts) terminate TLS at a reverse proxy in front of this
+  // app, so without this, req.ip is the proxy's address for every request — not the
+  // real client. That breaks IP-based rate limiting (all clients share one bucket)
+  // and mislabels every audit/security log entry with the wrong IP. `1` trusts
+  // exactly one hop (the platform's own edge), not an arbitrary client-supplied chain.
+  app.set('trust proxy', 1);
+
   const frontendUrl = configService.get<string>(
     'FRONTEND_URL',
     'http://localhost:5173',

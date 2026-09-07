@@ -9,6 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -21,6 +22,7 @@ import {
 } from '../auth/decorators/current-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { isAllowedImageBuffer } from '../common/file-signature';
 
 const AVATAR_ALLOWED_MIMES = [
   'image/jpeg',
@@ -71,6 +73,14 @@ export class MeController {
     @CurrentUser() user: AuthenticatedUser,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    if (!isAllowedImageBuffer(file.buffer)) {
+      throw new BadRequestException(
+        'File content does not match an allowed image format',
+      );
+    }
     return this.usersService.uploadAvatar(user.id, file);
   }
 

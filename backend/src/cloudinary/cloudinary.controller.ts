@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
+import { isAllowedImageBuffer } from '../common/file-signature';
 
 @Controller('cloudinary')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -51,6 +52,11 @@ export class CloudinaryController {
   async uploadImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No file provided');
+    }
+    if (!isAllowedImageBuffer(file.buffer)) {
+      throw new BadRequestException(
+        'File content does not match an allowed image format',
+      );
     }
 
     const result = await this.cloudinaryService.uploadImage(file);

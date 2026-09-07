@@ -61,19 +61,20 @@ export class PaymentsWebhookController {
     // Safaricom's STK callback has no signature of its own, so the shared secret
     // stamped onto the callback URL at initiation time (see PaymentsService.initiateMpesa)
     // is what stands in for authentication here. Without it, anyone who finds this
-    // URL could forge a "payment succeeded" callback for any order.
+    // URL could forge a "payment succeeded" callback for any order — so an unset
+    // secret must reject every callback, not silently accept them.
     const expectedSecret = this.configService.get<string>(
       'MPESA_CALLBACK_SECRET',
     );
-    if (expectedSecret) {
-      if (secret !== expectedSecret) {
-        this.logger.warn('Rejected M-Pesa callback: missing or invalid secret');
-        return { ResultCode: 1, ResultDesc: 'Rejected' };
-      }
-    } else {
-      this.logger.warn(
-        'MPESA_CALLBACK_SECRET is not set — the M-Pesa callback endpoint is currently unauthenticated. Set MPESA_CALLBACK_SECRET to secure it.',
+    if (!expectedSecret) {
+      this.logger.error(
+        'MPESA_CALLBACK_SECRET is not set — rejecting all M-Pesa callbacks. Set MPESA_CALLBACK_SECRET to accept payments.',
       );
+      return { ResultCode: 1, ResultDesc: 'Rejected' };
+    }
+    if (secret !== expectedSecret) {
+      this.logger.warn('Rejected M-Pesa callback: invalid secret');
+      return { ResultCode: 1, ResultDesc: 'Rejected' };
     }
 
     if (body.Body?.stkCallback) {
