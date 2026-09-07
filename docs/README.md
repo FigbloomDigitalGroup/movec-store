@@ -15,6 +15,7 @@ Complete documentation for the Movec e-commerce platform.
 
 ### Development
 - [Database & Seed Data](./06-DATABASE.md) - Prisma schema, migrations, and seeding
+- [Supabase Migration](./07-SUPABASE-MIGRATION.md) - Moving the database from Render to Supabase
 - [API Reference](./07-API-REFERENCE.md) - Backend endpoints and usage
 
 ---
