@@ -1,4 +1,12 @@
-import { IsBoolean, IsNumber, IsOptional, Min, Max } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  Max,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdatePaymentSettingsDto {
   @IsOptional()
@@ -15,4 +23,22 @@ export class UpdatePaymentSettingsDto {
   @Min(0)
   @Max(100)
   codDepositPercentage?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  paybillEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  paybillNumber?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  tillEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  tillNumber?: string;
 }

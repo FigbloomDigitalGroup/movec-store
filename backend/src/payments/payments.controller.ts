@@ -1,10 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
-import { InitiateMpesaDto } from './dto/initiate-mpesa.dto';
-import { InitiatePaystackDto } from './dto/initiate-paystack.dto';
-import { InitiatePaypalDto } from './dto/initiate-paypal.dto';
-import { ConfirmBankTransferDto } from './dto/confirm-bank-transfer.dto';
+import { InitiatePaybillTillDto } from './dto/initiate-paybill-till.dto';
+import { SubmitPaymentReferenceDto } from './dto/submit-payment-reference.dto';
 import { InitiateCashOnDeliveryDto } from './dto/initiate-cash-on-delivery.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
@@ -17,66 +14,60 @@ import {
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Post('mpesa/initiate')
-  // Each call sends a real STK Push prompt to a phone number (a per-attempt cost
-  // against the merchant's Safaricom account) — cap it well below the global default
-  // so it can't be turned into a phone-harassment or cost-abuse vector.
-  @Throttle({ default: { limit: 3, ttl: 60_000 } })
-  initiateMpesa(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: InitiateMpesaDto,
-  ) {
-    return this.paymentsService.initiateMpesa(
-      dto.orderNumber,
-      dto.phoneNumber,
-      user.id,
-    );
+  // Public (to any authenticated customer) view of which manual M-Pesa channels
+  // are switched on and what number to pay — there's nothing secret about a
+  // Paybill/Till number, the customer needs it to actually pay.
+  @Get('methods')
+  async getPaymentMethods() {
+    const settings = await this.paymentsService.getPaymentSettings();
+    return {
+      paybill: {
+        enabled: settings.paybillEnabled,
+        number: settings.paybillNumber,
+      },
+      till: {
+        enabled: settings.tillEnabled,
+        number: settings.tillNumber,
+      },
+    };
   }
 
-  @Post('paystack/initialize')
-  initiatePaystack(
+  @Post('paybill/initiate')
+  initiatePaybill(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: InitiatePaystackDto,
+    @Body() dto: InitiatePaybillTillDto,
   ) {
-    return this.paymentsService.initiatePaystack(
+    return this.paymentsService.initiatePaybillTill(
       dto.orderNumber,
-      dto.email,
       user.id,
+      'PAYBILL',
       dto.codDeposit,
     );
   }
 
-  @Post('paystack/verify')
-  verifyPaystack(@Body() dto: { reference: string }) {
-    return this.paymentsService.verifyPaystack(dto.reference);
-  }
-
-  @Post('paypal/create-order')
-  initiatePaypal(
+  @Post('till/initiate')
+  initiateTill(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: InitiatePaypalDto,
+    @Body() dto: InitiatePaybillTillDto,
   ) {
-    return this.paymentsService.initiatePaypal(dto.orderNumber, user.id);
-  }
-
-  @Post('paypal/capture')
-  capturePaypal(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: { orderNumber: string; token: string },
-  ) {
-    return this.paymentsService.capturePaypal(
+    return this.paymentsService.initiatePaybillTill(
       dto.orderNumber,
-      dto.token,
       user.id,
+      'TILL',
+      dto.codDeposit,
     );
   }
 
-  @Post('bank-transfer/initiate')
-  initiateBankTransfer(
+  @Post('paybill-till/reference')
+  submitPaymentReference(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: ConfirmBankTransferDto,
+    @Body() dto: SubmitPaymentReferenceDto,
   ) {
-    return this.paymentsService.initiateBankTransfer(dto.orderNumber, user.id);
+    return this.paymentsService.submitPaymentReference(
+      dto.orderNumber,
+      user.id,
+      dto.reference,
+    );
   }
 
   @Get('cash-on-delivery/terms/:orderNumber')

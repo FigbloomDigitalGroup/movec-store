@@ -51,12 +51,18 @@ interface AdminOrderListItem {
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   CASH_ON_DELIVERY: 'Cash on Delivery',
+  PAYBILL: 'M-Pesa Paybill',
+  TILL: 'M-Pesa Till',
+  // Historical values from before the switch to Paybill/Till — kept only so old
+  // orders still render a friendly label instead of the raw enum string.
   BANK_TRANSFER: 'Bank Transfer',
   MPESA: 'M-Pesa',
   PAYSTACK: 'Paystack',
   PAYPAL: 'PayPal',
   STRIPE: 'Stripe',
 };
+
+const CONFIRMABLE_METHODS = new Set(['PAYBILL', 'TILL']);
 
 interface AdminOrdersResponse {
   data: AdminOrderListItem[];
@@ -121,6 +127,23 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
+  // Paybill/Till has no processor callback — this is the only place a pending
+  // M-Pesa payment actually gets marked paid, once staff have checked it landed
+  // on the real M-Pesa statement.
+  const confirmPaymentMutation = useMutation({
+    mutationFn: () =>
+      api.post('/admin/payments/paybill-till/confirm', { orderNumber: order.orderNumber }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast.success(`Payment confirmed for order #${order.orderNumber}`);
+      onClose();
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+
+  const canConfirmPayment =
+    CONFIRMABLE_METHODS.has(order.paymentMethod || '') && order.paymentStatus === 'PENDING';
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <motion.div
@@ -174,6 +197,24 @@ function UpdateStatusModal({ order, onClose }: UpdateModalProps) {
               <p>{orderDetail.shippingAddress.city}{orderDetail.shippingAddress.state ? `, ${orderDetail.shippingAddress.state}` : ''}</p>
               {orderDetail.shippingAddress.phone && <p className="text-gray-500 mt-1">📞 {orderDetail.shippingAddress.phone}</p>}
             </div>
+          </div>
+        )}
+
+        {canConfirmPayment && (
+          <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-xs font-bold text-amber-800 mb-1">
+              Awaiting {PAYMENT_METHOD_LABELS[order.paymentMethod || ''] || order.paymentMethod} confirmation
+            </p>
+            <p className="text-xs text-amber-700 mb-3">
+              Check your M-Pesa statement for this payment, then confirm it here — this is what marks the order as paid.
+            </p>
+            <button
+              onClick={() => confirmPaymentMutation.mutate()}
+              disabled={confirmPaymentMutation.isPending}
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-semibold text-xs rounded-xl transition"
+            >
+              {confirmPaymentMutation.isPending ? 'Confirming...' : "Confirm Payment Received"}
+            </button>
           </div>
         )}
 

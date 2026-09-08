@@ -37,6 +37,11 @@ enum PaymentMethod {
   PAYPAL
   BANK_TRANSFER
   CASH_ON_DELIVERY
+  // M-Pesa paid manually via a Lipa na M-Pesa Paybill number (business number +
+  // account number) or a Buy Goods Till number — an admin confirms these after
+  // checking the M-Pesa statement, there is no live processor callback for either.
+  PAYBILL
+  TILL
 }
 
 enum PaymentStatus {
@@ -431,6 +436,13 @@ model PaymentSettings {
   codEnabled           Boolean  @default(true)
   codDepositThreshold  Decimal  @default(0) @db.Decimal(10, 2)
   codDepositPercentage Decimal  @default(0) @db.Decimal(5, 2)
+  // Business (Paybill) / Till numbers customers pay to manually — null until an
+  // admin fills them in, in which case that channel is unavailable at checkout
+  // regardless of its enabled flag (see PaymentsService.initiatePaybillTill).
+  paybillEnabled       Boolean  @default(true)
+  paybillNumber        String?
+  tillEnabled          Boolean  @default(true)
+  tillNumber           String?
   updatedAt            DateTime @updatedAt
 }
 

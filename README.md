@@ -60,7 +60,7 @@ Complete documentation is in the [`docs/`](./docs) folder:
 
 - 🛍️ Product catalog with categories
 - 🛒 Shopping cart & wishlist
-- 💳 Multiple payment methods (M-Pesa, Paystack, PayPal)
+- 💳 M-Pesa payments (Paybill and Till Number) plus cash on delivery
 - 📦 Order tracking
 - 👤 User authentication
 - 🎨 Admin dashboard

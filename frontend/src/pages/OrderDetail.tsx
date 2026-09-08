@@ -20,6 +20,18 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useState } from 'react';
 import type { OrderStatusHistoryEntry, OrderItem } from '../types';
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  CASH_ON_DELIVERY: 'Cash on Delivery',
+  PAYBILL: 'M-Pesa Paybill',
+  TILL: 'M-Pesa Till',
+  // Historical values from before the switch to Paybill/Till.
+  BANK_TRANSFER: 'Bank Transfer',
+  MPESA: 'M-Pesa',
+  PAYSTACK: 'Paystack',
+  PAYPAL: 'PayPal',
+  STRIPE: 'Stripe',
+};
+
 /* ─── Order Timeline ─────────────────────────────────────────── */
 const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
 
@@ -260,7 +272,9 @@ export default function OrderDetailPage() {
                 </h2>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Method</span>
-                  <span className="font-semibold text-gray-900">{order.payments[0].method}</span>
+                  <span className="font-semibold text-gray-900">
+                    {PAYMENT_METHOD_LABELS[order.payments[0].method] || order.payments[0].method}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-2">
                   <span className="text-gray-600">Status</span>

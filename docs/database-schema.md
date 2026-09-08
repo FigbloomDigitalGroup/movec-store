@@ -36,7 +36,7 @@ Order 1──* Shipping
 Order 1──1 Invoice
 Order 1──* OrderStatusHistory
 
-Payment 1──* Transaction (M-Pesa/Stripe/PayPal logs)
+Payment 1──* Transaction (Paybill/Till confirmation logs)
 Coupon 1──* Order
 
 Inventory 1──* InventoryHistory
@@ -107,7 +107,7 @@ text
 - id, orderId, productId, productNameSnapshot, productSkuSnapshot, priceSnapshot, quantity
 
 ### Payment
-- id, orderId, method (MPESA, STRIPE, PAYPAL, BANK_TRANSFER), status (PENDING, COMPLETED, FAILED, REFUNDED), amount, currency, transactionReference, paidAt
+- id, orderId, method (PAYBILL, TILL, CASH_ON_DELIVERY — plus legacy MPESA/STRIPE/PAYSTACK/PAYPAL/BANK_TRANSFER values kept for historical orders), status (PENDING, COMPLETED, FAILED, REFUNDED), amount, currency, transactionReference, paidAt
 
 ### Transaction
 - id, paymentId, provider, requestPayload, responsePayload, status, createdAt

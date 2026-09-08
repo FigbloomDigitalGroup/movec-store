@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class ConfirmBankTransferDto {
+export class ConfirmPaybillTillDto {
   @IsString()
   orderNumber: string;
 }

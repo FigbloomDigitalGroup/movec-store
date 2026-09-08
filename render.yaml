@@ -24,14 +24,7 @@ services:
       # CLOUDINARY_CLOUD_NAME
       # CLOUDINARY_API_KEY
       # CLOUDINARY_API_SECRET
-      # PAYSTACK_SECRET_KEY
-      # PAYSTACK_PUBLIC_KEY
-      # MPESA_CONSUMER_KEY
-      # MPESA_CONSUMER_SECRET
-      # MPESA_PASSKEY
-      # MPESA_SHORTCODE
-      # MPESA_CALLBACK_URL      (update to https://movec-api.onrender.com/payments/mpesa/callback)
-      # MPESA_CALLBACK_SECRET   (required — M-Pesa callbacks are rejected without it)
+      # Paybill/Till numbers are set from the admin panel (Payment Settings), not env vars.
       # BREVO_API_KEY
       # BREVO_FROM_EMAIL
       # BREVO_FROM_NAME

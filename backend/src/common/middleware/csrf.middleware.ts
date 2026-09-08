@@ -5,10 +5,10 @@ import type { ConfigService } from '@nestjs/config';
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'x-xsrf-token';
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-const EXEMPT_PATHS = new Set([
-  '/payments/mpesa/callback',
-  '/payments/paystack/webhook',
-]);
+// No routes are currently exempt. Only add a server-to-server webhook path here
+// if it authenticates itself some other way (e.g. a signature or shared secret)
+// since it can't carry this cookie.
+const EXEMPT_PATHS = new Set<string>();
 
 export type RequestWithCsrf = Request & { csrfToken?: string };
 

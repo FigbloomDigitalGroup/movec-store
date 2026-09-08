@@ -4,13 +4,10 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import api, { getErrorMessage } from '../lib/api';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiTruck, FiCalendar, FiMail, FiArrowRight, FiCreditCard, FiPhone, FiClock, FiDollarSign } from 'react-icons/fi';
+import { FiCheckCircle, FiTruck, FiMail, FiArrowRight, FiClock, FiDollarSign, FiSmartphone, FiArrowLeft } from 'react-icons/fi';
 import CheckoutSteps from '../components/CheckoutSteps';
 import PageLoader from '../components/PageLoader';
 import type { OrderItem } from '../types';
-
-const VERIFY_MAX_ATTEMPTS = 3;
-const VERIFY_RETRY_DELAY_MS = 2000;
 
 interface CodTerms {
     codEnabled: boolean;
@@ -21,15 +18,27 @@ interface CodTerms {
     total: number;
 }
 
+interface PaymentMethods {
+    paybill: { enabled: boolean; number: string | null };
+    till: { enabled: boolean; number: string | null };
+}
+
+type Channel = 'PAYBILL' | 'TILL';
+
+interface ChannelInstructions {
+    message: string;
+    channel: Channel;
+    businessNumber: string;
+    accountNumber?: string;
+    amount: number;
+}
+
 export default function PaymentPage() {
     const { orderNumber } = useParams();
-    const [processing, setProcessing] = useState(false);
-    const [completed, setCompleted] = useState(false);
-    const [verifying, setVerifying] = useState(false);
-    const [verifyFailed, setVerifyFailed] = useState(false);
-    const [paystackReference, setPaystackReference] = useState<string | null>(null);
-    const [codConfirmed, setCodConfirmed] = useState(false);
+    const [view, setView] = useState<'select' | 'instructions' | 'awaiting' | 'codConfirmed'>('select');
+    const [instructions, setInstructions] = useState<ChannelInstructions | null>(null);
     const [payingCodDeposit, setPayingCodDeposit] = useState(false);
+    const [referenceCode, setReferenceCode] = useState('');
 
     const { data: order, isLoading: orderLoading } = useQuery({
         queryKey: ['order', orderNumber],
@@ -42,128 +51,57 @@ export default function PaymentPage() {
         enabled: !!orderNumber,
     });
 
-    // Paystack's own verify endpoint is a thin check on top of the payment — the
-    // order is only ever actually confirmed by Paystack's webhook hitting our
-    // backend directly (HMAC-verified, server-to-server). A single failed verify
-    // call here is far more likely to be a transient network hiccup than a real
-    // failed payment, so we retry a few times before telling the user anything
-    // is wrong — and even then we say "still confirming," not "failed," since
-    // the webhook may complete independently moments later.
-    const verifyPayment = (reference: string, attempt = 1) => {
-        setVerifying(true);
-        setVerifyFailed(false);
-        api.post('/payments/paystack/verify', { reference })
-            .then(() => {
-                setVerifying(false);
-                setCompleted(true);
-            })
-            .catch(() => {
-                if (attempt < VERIFY_MAX_ATTEMPTS) {
-                    setTimeout(() => verifyPayment(reference, attempt + 1), VERIFY_RETRY_DELAY_MS);
-                } else {
-                    setVerifying(false);
-                    setVerifyFailed(true);
-                    setProcessing(false);
-                }
-            });
-    };
+    const { data: methods } = useQuery<PaymentMethods>({
+        queryKey: ['payment-methods'],
+        queryFn: () => api.get('/payments/methods').then(r => r.data),
+    });
 
-    const initiatePaystack = useMutation({
-        mutationFn: (codDeposit: boolean) => api.post('/payments/paystack/initialize', { orderNumber, email: order?.user?.email || 'customer@example.com', codDeposit }).then(r => ({ data: r.data, codDeposit })),
+    // There's no processor callback for Paybill/Till — an admin confirms these
+    // manually against the M-Pesa statement (see AdminOrders' "Confirm Payment"
+    // action), so initiating one just returns the numbers to pay, it never
+    // completes the order by itself.
+    const initiateChannel = useMutation({
+        mutationFn: ({ channel, codDeposit }: { channel: Channel; codDeposit: boolean }) =>
+            api.post(`/payments/${channel.toLowerCase()}/initiate`, { orderNumber, codDeposit })
+                .then(r => ({ data: r.data as ChannelInstructions, codDeposit })),
         onSuccess: ({ data, codDeposit }) => {
-            const amount = codDeposit ? Number(codTerms?.depositAmount) : Number(order?.total);
-            const paystack = new window.PaystackPop();
-            paystack.newTransaction({
-                key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-                email: order?.user?.email || 'customer@example.com',
-                amount: Math.round(amount * 100),
-                ref: data.reference,
-                onSuccess: (transaction) => {
-                    setPaystackReference(transaction.reference);
-                    setPayingCodDeposit(codDeposit);
-                    verifyPayment(transaction.reference);
-                },
-                onCancel: () => {
-                    setProcessing(false);
-                }
-            });
+            setInstructions(data);
+            setPayingCodDeposit(codDeposit);
+            setView('instructions');
         },
-        onError: (err) => {
-            toast.error(getErrorMessage(err));
-            setProcessing(false);
-        }
+        onError: (err) => toast.error(getErrorMessage(err)),
+    });
+
+    const submitReference = useMutation({
+        mutationFn: () => api.post('/payments/paybill-till/reference', { orderNumber, reference: referenceCode.trim() }).then(r => r.data),
     });
 
     const confirmCod = useMutation({
         mutationFn: () => api.post('/payments/cash-on-delivery/initiate', { orderNumber }).then(r => r.data),
-        onSuccess: () => {
-            setCodConfirmed(true);
-        },
-        onError: (err) => {
-            toast.error(getErrorMessage(err));
-        }
+        onSuccess: () => setView('codConfirmed'),
+        onError: (err) => toast.error(getErrorMessage(err)),
     });
+
+    const handleConfirmSent = async () => {
+        if (referenceCode.trim()) {
+            try {
+                await submitReference.mutateAsync();
+            } catch (err) {
+                toast.error(getErrorMessage(err));
+                return;
+            }
+        }
+        setView('awaiting');
+    };
 
     if (orderLoading) {
         return <PageLoader />;
     }
 
-    if (verifying) {
-        return (
-            <div className="min-h-screen flex items-center justify-center px-4">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin mx-auto mb-6" />
-                    <h1 className="text-xl font-semibold text-gray-900 mb-2">Confirming your payment...</h1>
-                    <p className="text-gray-500 text-sm">This will only take a moment.</p>
-                </div>
-            </div>
-        );
-    }
+    const paybillAvailable = !!(methods?.paybill?.enabled && methods.paybill.number);
+    const tillAvailable = !!(methods?.till?.enabled && methods.till.number);
 
-    if (verifyFailed) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <div className="max-w-3xl mx-auto px-4 py-16">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center"
-                    >
-                        <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <FiClock className="text-amber-500" size={40} />
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-section-title mb-2 text-gray-900">Still confirming your payment</h1>
-                        <p className="text-gray-600 mb-8 max-w-lg mx-auto">
-                            We couldn't confirm your payment automatically just now. If you completed the payment,
-                            your order will update on its own within a few minutes — this page just couldn't verify
-                            it right away. Please don't pay again until you've checked your order status below.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button
-                                onClick={() => paystackReference && verifyPayment(paystackReference)}
-                                className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition font-medium"
-                            >
-                                Check Again
-                            </button>
-                            <Link
-                                to={`/orders/${orderNumber}`}
-                                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-medium text-center flex items-center justify-center gap-2"
-                            >
-                                View Order Status
-                                <FiArrowRight size={16} />
-                            </Link>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-8">
-                            Still not updated after a few minutes? <Link to="/contact" className="text-primary-500 hover:underline">Contact support</Link> and we'll look into it.
-                        </p>
-                    </motion.div>
-                </div>
-            </div>
-        );
-    }
-
-    if (completed) {
+    if (view === 'awaiting') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
                 <div className="max-w-3xl mx-auto px-4 py-16">
@@ -177,18 +115,18 @@ export default function PaymentPage() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", duration: 0.5, delay: 0.2 }}
-                            className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+                            className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6"
                         >
-                            <FiCheckCircle className="text-green-500" size={40} />
+                            <FiClock className="text-amber-500" size={40} />
                         </motion.div>
-                        
+
                         <motion.h1
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
                             className="text-3xl md:text-4xl font-section-title text-center mb-2 text-gray-900"
                         >
-                            {payingCodDeposit ? 'Deposit Paid!' : 'Paystack Payment Initiated!'}
+                            {payingCodDeposit ? 'Deposit Submitted!' : 'Payment Submitted!'}
                         </motion.h1>
 
                         <motion.p
@@ -198,11 +136,10 @@ export default function PaymentPage() {
                             className="text-gray-600 text-center mb-8"
                         >
                             {payingCodDeposit
-                                ? `Your deposit is being processed. The remaining KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} is due in cash when your order is delivered.`
-                                : 'Your Paystack payment is being processed. You will receive confirmation shortly.'}
+                                ? `We're confirming your M-Pesa deposit against our statement. The remaining KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} is due in cash when your order is delivered.`
+                                : "We're confirming your M-Pesa payment against our statement. You'll get an email as soon as it's confirmed."}
                         </motion.p>
 
-                        {/* What Happens Next */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -213,11 +150,20 @@ export default function PaymentPage() {
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
                                     <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                        <FiCheckCircle className="text-primary-500" size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">We verify your payment</p>
+                                        <p className="text-sm text-gray-600">Our team checks the M-Pesa statement and confirms your order — usually within a few hours.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                                         <FiMail className="text-primary-500" size={16} />
                                     </div>
                                     <div>
                                         <p className="font-medium text-gray-900">Confirmation Email</p>
-                                        <p className="text-sm text-gray-600">You'll receive an email with your order details and payment confirmation.</p>
+                                        <p className="text-sm text-gray-600">You'll receive an email with your order details once we've confirmed payment.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
@@ -231,15 +177,6 @@ export default function PaymentPage() {
                                                 ? `Have KES ${codTerms?.balanceDue?.toLocaleString() ?? ''} ready in cash for the courier when your order arrives.`
                                                 : 'Your order will be processed within 1-2 business days.'}
                                         </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <FiCalendar className="text-primary-500" size={16} />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900">Installation Scheduling</p>
-                                        <p className="text-sm text-gray-600">For installation orders, our team will contact you to schedule a convenient time.</p>
                                     </div>
                                 </div>
                             </div>
@@ -271,7 +208,7 @@ export default function PaymentPage() {
         );
     }
 
-    if (codConfirmed) {
+    if (view === 'codConfirmed') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
                 <div className="max-w-3xl mx-auto px-4 py-16">
@@ -309,6 +246,88 @@ export default function PaymentPage() {
         );
     }
 
+    if (view === 'instructions' && instructions) {
+        const isPaybill = instructions.channel === 'PAYBILL';
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-2xl mx-auto px-4 py-12">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-white rounded-2xl shadow-xl p-8"
+                    >
+                        <button
+                            onClick={() => setView('select')}
+                            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition"
+                        >
+                            <FiArrowLeft size={14} /> Back to payment options
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center flex-shrink-0">
+                                <FiSmartphone className="text-primary-500" size={22} />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-section-title text-gray-900">
+                                    Pay via M-Pesa {isPaybill ? 'Paybill' : 'Buy Goods (Till Number)'}
+                                </h1>
+                                <p className="text-sm text-gray-500">Order #{orderNumber}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 rounded-xl p-5 mb-6 space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">{isPaybill ? 'Business Number' : 'Till Number'}</span>
+                                <span className="font-mono font-bold text-lg text-gray-900">{instructions.businessNumber}</span>
+                            </div>
+                            {isPaybill && instructions.accountNumber && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Account Number</span>
+                                    <span className="font-mono font-bold text-lg text-gray-900">{instructions.accountNumber}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                                <span className="text-sm text-gray-600">{payingCodDeposit ? 'Deposit due now' : 'Amount to pay'}</span>
+                                <span className="font-mono font-bold text-lg text-primary-600">KES {instructions.amount.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <h3 className="text-sm font-semibold text-gray-900 mb-2">How to pay</h3>
+                            <ol className="text-sm text-gray-600 space-y-1.5 list-decimal pl-5">
+                                <li>On your phone, go to M-Pesa and select {isPaybill ? 'Lipa na M-Pesa > Pay Bill' : 'Lipa na M-Pesa > Buy Goods and Services'}.</li>
+                                <li>Enter the {isPaybill ? 'Business Number' : 'Till Number'} above{isPaybill ? ', then the Account Number' : ''}.</li>
+                                <li>Enter the amount (KES {instructions.amount.toLocaleString()}) and your M-Pesa PIN.</li>
+                                <li>You'll get an SMS confirmation from Safaricom once it goes through.</li>
+                            </ol>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">M-Pesa confirmation code (optional)</label>
+                            <input
+                                type="text"
+                                value={referenceCode}
+                                onChange={(e) => setReferenceCode(e.target.value)}
+                                placeholder="e.g. QGH7XXXXX1"
+                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-primary-500 transition"
+                            />
+                            <p className="text-xs text-gray-500 mt-1.5">Adding this helps us confirm your payment faster, but it isn't required.</p>
+                        </div>
+
+                        <button
+                            onClick={handleConfirmSent}
+                            disabled={submitReference.isPending}
+                            className="w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition font-semibold disabled:opacity-50"
+                        >
+                            {submitReference.isPending ? 'Submitting...' : "I've Made This Payment"}
+                        </button>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen">
             <CheckoutSteps currentStep={2} />
@@ -320,47 +339,46 @@ export default function PaymentPage() {
                 <div className="md:col-span-2 space-y-4">
                     <h2 className="text-xl font-section-title text-gray-900 mb-4">Choose your payment method</h2>
 
-                    <div className="w-full rounded-2xl border border-primary-500/40 bg-primary-50 p-6">
-                        <div className="flex flex-col gap-4">
-                            <div>
-                                <p className="text-lg font-semibold text-gray-900">Supported payment methods</p>
-                                <p className="text-sm text-gray-600 mt-1">You'll choose one of the options below in the secure payment window that opens next.</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                {[
-                                    { key: 'MPESA', icon: FiPhone, label: 'M-PESA', subtitle: 'Mobile payment' },
-                                    { key: 'CARD', icon: FiCreditCard, label: 'Card', subtitle: 'Visa, Mastercard, other cards' },
-                                ].map(({ key, icon: Icon, label, subtitle }) => (
-                                    <div
-                                        key={key}
-                                        className="rounded-2xl p-4 border border-gray-200 bg-white text-left flex items-start gap-3"
+                    {(paybillAvailable || tillAvailable) && (
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6">
+                            <p className="text-gray-700 mb-4">Pay the full amount now via M-Pesa.</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {paybillAvailable && (
+                                    <button
+                                        onClick={() => initiateChannel.mutate({ channel: 'PAYBILL', codDeposit: false })}
+                                        disabled={initiateChannel.isPending}
+                                        className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition text-left disabled:opacity-50"
                                     >
-                                        <div className="p-2 rounded-full bg-primary-50 text-primary-500">
-                                            <Icon size={18} />
+                                        <div className="p-2 rounded-full bg-primary-50 text-primary-500 flex-shrink-0">
+                                            <FiSmartphone size={18} />
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-sm text-gray-900">{label}</p>
-                                            <p className="text-xs text-gray-500">{subtitle}</p>
+                                            <p className="font-semibold text-sm text-gray-900">Pay via Paybill</p>
+                                            <p className="text-xs text-gray-500">M-Pesa Pay Bill</p>
                                         </div>
-                                    </div>
-                                ))}
+                                    </button>
+                                )}
+                                {tillAvailable && (
+                                    <button
+                                        onClick={() => initiateChannel.mutate({ channel: 'TILL', codDeposit: false })}
+                                        disabled={initiateChannel.isPending}
+                                        className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition text-left disabled:opacity-50"
+                                    >
+                                        <div className="p-2 rounded-full bg-primary-50 text-primary-500 flex-shrink-0">
+                                            <FiSmartphone size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm text-gray-900">Pay via Till Number</p>
+                                            <p className="text-xs text-gray-500">M-Pesa Buy Goods</p>
+                                        </div>
+                                    </button>
+                                )}
                             </div>
                         </div>
-                    </div>
-
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mt-4">
-                        <p className="text-gray-700 mb-4">Continue to the secure checkout to complete payment using your preferred method.</p>
-                        <button
-                            onClick={() => { setProcessing(true); initiatePaystack.mutate(false); }}
-                            disabled={initiatePaystack.isPending || processing || confirmCod.isPending}
-                            className="w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition font-semibold disabled:opacity-50"
-                        >
-                            {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : 'Continue to Secure Payment'}
-                        </button>
-                    </div>
+                    )}
 
                     {codTerms?.codEnabled && (
-                        <div className="w-full rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6 mt-4">
+                        <div className="w-full rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6">
                             <div className="flex items-start gap-3 mb-4">
                                 <div className="p-2 rounded-full bg-primary-50 text-primary-500">
                                     <FiDollarSign size={18} />
@@ -387,23 +405,48 @@ export default function PaymentPage() {
                                             <span className="font-semibold text-gray-900">KES {codTerms.balanceDue.toLocaleString()}</span>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => { setProcessing(true); initiatePaystack.mutate(true); }}
-                                        disabled={initiatePaystack.isPending || processing || confirmCod.isPending}
-                                        className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50"
-                                    >
-                                        {(initiatePaystack.isPending || processing) ? 'Loading secure payment...' : `Pay Deposit (KES ${codTerms.depositAmount.toLocaleString()})`}
-                                    </button>
+                                    {(paybillAvailable || tillAvailable) ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {paybillAvailable && (
+                                                <button
+                                                    onClick={() => initiateChannel.mutate({ channel: 'PAYBILL', codDeposit: true })}
+                                                    disabled={initiateChannel.isPending}
+                                                    className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50 text-sm"
+                                                >
+                                                    Pay Deposit via Paybill
+                                                </button>
+                                            )}
+                                            {tillAvailable && (
+                                                <button
+                                                    onClick={() => initiateChannel.mutate({ channel: 'TILL', codDeposit: true })}
+                                                    disabled={initiateChannel.isPending}
+                                                    className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50 text-sm"
+                                                >
+                                                    Pay Deposit via Till
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                            No deposit payment method is available right now — please contact support.
+                                        </p>
+                                    )}
                                 </>
                             ) : (
                                 <button
                                     onClick={() => confirmCod.mutate()}
-                                    disabled={confirmCod.isPending || initiatePaystack.isPending || processing}
+                                    disabled={confirmCod.isPending || initiateChannel.isPending}
                                     className="w-full border border-primary-500 text-primary-600 py-3 rounded-lg hover:bg-primary-50 transition font-semibold disabled:opacity-50"
                                 >
                                     {confirmCod.isPending ? 'Confirming order...' : 'Confirm Cash on Delivery'}
                                 </button>
                             )}
+                        </div>
+                    )}
+
+                    {!paybillAvailable && !tillAvailable && !codTerms?.codEnabled && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-sm text-amber-800">
+                            No payment methods are currently available. Please contact support to complete this order.
                         </div>
                     )}
                 </div>
@@ -450,18 +493,18 @@ export default function PaymentPage() {
 
                     {/* Trust Badges */}
                     <div className="mt-6 pt-6 border-t border-gray-200/30">
-                        <p className="text-xs text-gray-500 mb-3 text-center">Secure Payment</p>
+                        <p className="text-xs text-gray-500 mb-3 text-center">Payment Options</p>
                         <div className="flex items-center justify-center gap-3">
                             <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                                <span className="text-xs font-medium text-slate-700">Paystack</span>
+                                <span className="text-xs font-medium text-slate-700">M-Pesa Paybill</span>
                             </div>
                             <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                                <span className="text-xs font-medium text-slate-700">Card & Mobile Money</span>
+                                <span className="text-xs font-medium text-slate-700">Till Number</span>
                             </div>
                         </div>
                         <div className="flex items-center justify-center gap-2 mt-3">
                             <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
-                            <span className="text-xs text-gray-500">256-bit SSL Encrypted</span>
+                            <span className="text-xs text-gray-500">Every payment verified by our team</span>
                         </div>
                     </div>
                 </div>

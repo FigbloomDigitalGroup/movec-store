@@ -21,11 +21,10 @@
 
 ### Checkout Flow
 1. **Checkout step 1:** Select/enter shipping address.
-2. **Step 2:** Choose payment method (M-Pesa, Stripe, PayPal, Bank Transfer).
+2. **Step 2:** Choose payment method (M-Pesa Paybill, M-Pesa Till Number, or Cash on Delivery).
 3. **Step 3:** Review order summary (items, shipping, tax, discount, total).
-4. **Step 4 (for M-Pesa):** Enter phone number → STK push sent to phone → enter PIN → confirmation.
-5. **Step 4 (Stripe/PayPal):** Redirect to payment provider → complete → redirect back.
-6. **Step 4 (Bank Transfer):** Instructions shown, order placed as "awaiting payment" until admin confirms.
+4. **Step 4 (Paybill/Till):** Paybill/Till number and amount shown → customer pays manually from their phone → optionally enters the M-Pesa confirmation code → order placed as "awaiting payment" until admin confirms it against the M-Pesa statement.
+5. **Step 4 (Cash on Delivery):** If the order total is under the deposit threshold, order confirms immediately; otherwise the deposit portion must be paid via Paybill/Till first.
 7. On success: order created, inventory decreased (reserved released), confirmation email sent, success page shown with order number.
 
 ### Post‑Purchase
@@ -74,11 +73,11 @@
 - View all orders, filter by status, date, customer.
 - Update order status (Confirm → Process → Ship with tracking).
 - Cancel orders, initiate refunds.
-- Confirm manual bank transfer payments.
+- Confirm manual Paybill/Till payments once seen on the M-Pesa statement.
 
 ### Payment & Transactions
-- View all transactions per provider.
-- Reconcile M‑Pesa callbacks, Stripe webhooks.
+- View all transactions.
+- Reconcile Paybill/Till payments against the M-Pesa statement.
 - Handle disputes/chargebacks.
 
 ### Installation Management
@@ -123,29 +122,14 @@
 
 ## 4. Payment Flow Details
 
-### M‑Pesa STK Push
-1. Customer selects M‑Pesa, enters phone number.
-2. Backend sends STK Push request to Daraja API.
-3. Customer receives pop‑up on phone, enters PIN.
-4. Safaricom processes payment, sends callback to backend.
-5. Backend verifies callback, marks payment completed, creates order.
+### M‑Pesa Paybill / Till (manual, admin-confirmed)
+1. Customer selects Paybill or Till Number at checkout.
+2. Backend returns the business/till number (and, for Paybill, an account number equal to the order number) plus the amount due.
+3. Customer pays manually from their phone via Lipa na M-Pesa.
+4. Customer optionally submits the M-Pesa confirmation code they received, purely to help reconciliation.
+5. Order stays PENDING until an admin checks the actual M-Pesa statement and clicks "Confirm Payment Received" on the order, which moves it to CONFIRMED.
 
-### Stripe
-1. Backend creates PaymentIntent with amount, returns client_secret.
-2. Frontend uses Stripe Elements to collect card details.
-3. On successful confirmation, webhook hits backend → order confirmed.
-
-### PayPal
-1. Backend creates PayPal order (v2 API).
-2. Customer approves payment on PayPal site.
-3. On return, frontend triggers capture.
-4. Backend captures payment, order confirmed.
-
-### Bank Transfer
-1. Order created with status "AWAITING_PAYMENT".
-2. Customer sees bank details (configured in admin).
-3. Customer uploads proof of payment (future) or admin manually confirms upon receiving funds.
-4. Admin clicks "Confirm Payment" → order moves to CONFIRMED.
+There is no processor callback for either channel — nothing here is trusted until an admin confirms it.
 
 ## 5. Notification Triggers
 

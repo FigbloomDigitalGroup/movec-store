@@ -102,14 +102,13 @@ Base URL: `/api/v1`
 ## Payments
 | Method | Endpoint                              | Description                        | Access      |
 |--------|---------------------------------------|------------------------------------|-------------|
-| POST   | /payments/mpesa/initiate              | Initiate M-Pesa STK Push          | Auth        |
-| POST   | /payments/mpesa/callback              | M-Pesa result callback             | Public      |
-| POST   | /payments/stripe/create-intent        | Create Stripe PaymentIntent        | Auth        |
-| POST   | /payments/stripe/webhook              | Stripe webhook                     | Public      |
-| POST   | /payments/paypal/create-order         | Create PayPal order                | Auth        |
-| POST   | /payments/paypal/capture/:orderId     | Capture PayPal payment             | Auth        |
-| POST   | /payments/bank-transfer/confirm       | Manual bank transfer confirmation  | Admin       |
-| GET    | /admin/transactions                   | All transactions                   | Admin       |
+| GET    | /payments/methods                     | Which Paybill/Till channels are on | Auth        |
+| POST   | /payments/paybill/initiate            | Get Paybill number to pay          | Auth        |
+| POST   | /payments/till/initiate               | Get Till number to pay             | Auth        |
+| POST   | /payments/paybill-till/reference      | Customer records M-Pesa code       | Auth        |
+| POST   | /payments/cash-on-delivery/initiate   | Confirm cash-on-delivery order     | Auth        |
+| POST   | /admin/payments/paybill-till/confirm  | Admin confirms Paybill/Till payment| Admin       |
+| GET    | /admin/payments/transactions          | All transactions                   | Admin       |
 
 ## Installation
 | Method | Endpoint                              | Description                     | Access      |

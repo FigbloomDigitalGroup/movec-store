@@ -12,11 +12,7 @@ Backend (NestJS on Render) → PostgreSQL (Render managed)
 ↓
 External APIs:
 
-M‑Pesa Daraja API
-
-Stripe
-
-PayPal
+M‑Pesa (Paybill/Till, confirmed manually by an admin — no Daraja API)
 
 SMS gateway
 
@@ -35,7 +31,7 @@ text
 | ORM           | Prisma              | Type‑safe database access, easy migrations, great DX.              |
 | Database      | PostgreSQL          | ACID compliant, JSON support, full‑text search, reliable.          |
 | Auth          | JWT (access + refresh) | Stateless auth, RBAC, refresh rotation.                          |
-| Payments      | M‑Pesa, Stripe, PayPal | Local (Kenya) and global payment methods.                        |
+| Payments      | M‑Pesa (Paybill/Till, admin-confirmed), Cash on Delivery | Manual local payment methods, no processor integration.          |
 | Media         | Cloudinary          | On‑the‑fly transformations, secure delivery.                       |
 | Deployment    | Vercel (frontend), Render (backend) | Zero‑config, auto‑deploy, free tier to start.       |
 

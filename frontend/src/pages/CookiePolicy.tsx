@@ -59,7 +59,7 @@ export default function CookiePolicy() {
               <section>
                 <h2 className="text-2xl font-section-title text-gray-900 mb-4">4. Third-Party Cookies</h2>
                 <p className="text-gray-700">
-                  Our payment providers (M-Pesa, Paystack, PayPal) may set their own cookies while you complete a payment, governed by their own privacy and cookie policies. We do not control these cookies.
+                  We do not use any third-party payment checkout embedded in our site — M-Pesa Paybill and Till payments are made directly from your phone, so no payment-provider cookies are set on this site.
                 </p>
               </section>
 
