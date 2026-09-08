@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { Subject } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { QueryNotificationDto } from './dto/query-notification.dto';
 import { buildPagination, paginated } from '../common/pagination';
@@ -7,6 +8,13 @@ import { buildPagination, paginated } from '../common/pagination';
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
+
+  // Pushes the userId of whoever just got a new admin notification, so the SSE
+  // stream in NotificationsController can nudge that admin's open tab to refetch
+  // instead of waiting for its 30s poll. Not wired into sendNotification/sendToAll
+  // — there's no live customer-facing inbox yet, only the admin bell.
+  private readonly adminNotificationEvents = new Subject<string>();
+  readonly adminNotificationEvents$ = this.adminNotificationEvents.asObservable();
 
   constructor(private prisma: PrismaService) {}
 
@@ -63,6 +71,33 @@ export class NotificationsService {
     this.logger.log(`Notification sent to ${users.length} users: ${title}`);
 
     return { sent: users.length };
+  }
+
+  async notifyAdmins(type: string, title: string, message: string) {
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: {
+          isActive: true,
+          userRoles: { some: { role: { name: 'ADMIN' } } },
+        },
+        select: { id: true },
+      });
+
+      if (!admins.length) return { sent: 0 };
+
+      await this.prisma.notification.createMany({
+        data: admins.map((admin) => ({ userId: admin.id, type, title, message })),
+      });
+
+      admins.forEach((admin) => this.adminNotificationEvents.next(admin.id));
+
+      this.logger.log(`Admin notification sent to ${admins.length} admins: ${title}`);
+
+      return { sent: admins.length };
+    } catch (error) {
+      this.logger.error('Failed to notify admins:', error);
+      return { sent: 0 };
+    }
   }
 
   async getAllNotifications(query: QueryNotificationDto) {

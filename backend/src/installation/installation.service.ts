@@ -6,6 +6,7 @@ import {
 import { Prisma, InstallationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateInstallationRequestDto } from './dto/create-installation-request.dto';
 import { UpdateInstallationRequestDto } from './dto/update-installation-request.dto';
 import { QueryInstallationRequestDto } from './dto/query-installation-request.dto';
@@ -24,6 +25,7 @@ export class InstallationService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async getServices() {
@@ -120,6 +122,11 @@ export class InstallationService {
         notes: dto.notes,
         price: service.basePrice.toNumber(),
       }),
+      this.notificationsService.notifyAdmins(
+        'INSTALLATION',
+        'New installation booking',
+        `${customerName} booked ${service.name} for ${request.preferredDate.toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}${timeSlotLabel ? ` (${timeSlotLabel})` : ''}.`,
+      ),
     ]);
 
     return request;

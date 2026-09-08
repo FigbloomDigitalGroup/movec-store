@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { AuditService } from '../audit/audit.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { OrderStatus, Prisma } from '@prisma/client';
 import {
   buildPagination,
@@ -19,6 +20,7 @@ export class OrdersService {
     private prisma: PrismaService,
     private inventoryService: InventoryService,
     private auditService: AuditService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async findByCustomer(userId: string, query: PaginationQuery) {
@@ -175,6 +177,12 @@ export class OrdersService {
         wasFulfilled,
       );
     });
+
+    await this.notificationsService.notifyAdmins(
+      'ORDER',
+      'Order cancelled',
+      `Order ${order.orderNumber} was cancelled by the customer.`,
+    );
 
     return { message: 'Order cancelled successfully' };
   }

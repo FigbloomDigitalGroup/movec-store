@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { InventoryService } from '../inventory/inventory.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CheckoutDto } from './dto/checkout.dto';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class CheckoutService {
     private prisma: PrismaService,
     private cartService: CartService,
     private inventoryService: InventoryService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async checkout(userId: string, dto: CheckoutDto) {
@@ -165,6 +167,12 @@ export class CheckoutService {
 
       return created;
     });
+
+    await this.notificationsService.notifyAdmins(
+      'ORDER',
+      'New order received',
+      `Order ${order.orderNumber} placed — total KES ${total.toLocaleString()}.`,
+    );
 
     return {
       orderNumber: order.orderNumber,

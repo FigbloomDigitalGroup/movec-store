@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import axios from 'axios';
 import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
@@ -48,6 +49,7 @@ export class PaymentsService {
     private configService: ConfigService,
     private inventoryService: InventoryService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   // Fired from every path that transitions an order to CONFIRMED (M-Pesa/Paystack
@@ -105,6 +107,12 @@ export class PaymentsService {
         error,
       );
     }
+
+    await this.notificationsService.notifyAdmins(
+      'ORDER',
+      'Payment received',
+      `Payment received for order ${order.orderNumber} — KES ${Number(order.total).toLocaleString()} via ${payment?.method ?? 'unknown method'}.`,
+    );
   }
 
   // Scoping every lookup to the requesting user prevents one authenticated

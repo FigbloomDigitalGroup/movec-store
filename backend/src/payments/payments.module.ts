@@ -5,9 +5,10 @@ import { AdminPaymentsController } from './admin-payments.controller';
 import { PaymentsWebhookController } from './payments.webhook.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { InventoryModule } from '../inventory/inventory.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, InventoryModule],
+  imports: [PrismaModule, InventoryModule, NotificationsModule],
   controllers: [
     PaymentsController,
     AdminPaymentsController,

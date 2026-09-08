@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import AdminNotificationBell from './admin/AdminNotificationBell';
 import {
   FiGrid, FiBox, FiShoppingCart, FiUsers, FiPackage,
   FiTool, FiMessageSquare, FiBarChart2, FiStar,
@@ -127,6 +128,7 @@ export default function AdminLayout() {
 
             {/* Right: clock + View Site */}
             <div className="flex items-center gap-3 ml-auto">
+              <AdminNotificationBell />
               <span className="text-sm text-gray-500 font-medium hidden sm:block">{time}</span>
               <Link
                 to="/"
