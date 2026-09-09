@@ -23,6 +23,7 @@ import Badge from '../components/ui/Badge';
 import SectionHero from '../components/ui/SectionHero';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import type { Review, Inventory, ProductImage, Category } from '../types';
+import { cloudinaryTransform } from '../utils/cloudinaryUrl';
 
 /* ─── Star Picker Component ─────────────────────────────────── */
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -445,7 +446,7 @@ export default function ProductDetail() {
             <div className="relative bg-white rounded-2xl h-96 flex items-center justify-center overflow-hidden border border-gray-200 group">
               {images.length > 0 ? (
                 <img
-                  src={images[currentImage]?.url}
+                  src={cloudinaryTransform(images[currentImage]?.url, 800)}
                   alt={product.name}
                   className="h-full w-full object-contain"
                   loading="lazy"
@@ -493,7 +494,7 @@ export default function ProductDetail() {
                         : 'border-gray-200 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={cloudinaryTransform(img.url, 120)} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>

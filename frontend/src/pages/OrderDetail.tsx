@@ -19,6 +19,7 @@ import OrderStatusBadge from '../components/OrderStatusBadge';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { useState } from 'react';
 import type { OrderStatusHistoryEntry, OrderItem } from '../types';
+import { cloudinaryTransform } from '../utils/cloudinaryUrl';
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   CASH_ON_DELIVERY: 'Cash on Delivery',
@@ -194,7 +195,7 @@ export default function OrderDetailPage() {
                   <div key={i} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition">
                     <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {item.image ? (
-                        <img src={item.image} alt={item.productName} className="w-full h-full object-contain p-1" />
+                        <img src={cloudinaryTransform(item.image, 100)} alt={item.productName} className="w-full h-full object-contain p-1" />
                       ) : (
                         <FiPackage className="text-gray-300" size={22} />
                       )}

@@ -6,6 +6,7 @@ import { useWishlistStore } from '../store/wishlistStore';
 import { FiTrash2 } from 'react-icons/fi';
 import Skeleton from '../components/ui/Skeleton';
 import type { WishlistItem } from '../types';
+import { cloudinaryTransform } from '../utils/cloudinaryUrl';
 
 // Shape actually used when rendering a row, satisfied by both the authenticated
 // API response (WishlistItem) and the guest GuestWishlistItem from wishlistStore
@@ -67,7 +68,7 @@ export default function WishlistPage() {
           {items.map((item: WishlistDisplayItem) => (
             <div key={item.productId || item.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-4 flex items-center gap-4">
               <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <span className="text-gray-500 text-xs">No img</span>}
+                {item.image ? <img src={cloudinaryTransform(item.image, 100)} alt="" className="w-full h-full object-cover" /> : <span className="text-gray-500 text-xs">No img</span>}
               </div>
               <div className="flex-1">
                 <Link to={`/products/${item.slug}`} className="font-semibold hover:text-primary-500">{item.name}</Link>

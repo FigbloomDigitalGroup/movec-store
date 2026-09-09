@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Product } from '../types';
 import { FiShoppingCart, FiHeart, FiChevronLeft, FiChevronRight, FiStar } from 'react-icons/fi';
 import { useProductActions } from '../hooks/useProductActions';
+import { cloudinaryTransform } from '../utils/cloudinaryUrl';
 
 interface ProductCardProps {
   product: Product;
@@ -66,7 +67,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="w-full h-full flex items-center justify-center">
           {images.length > 0 ? (
             <img
-              src={images[currentIndex]?.url}
+              src={cloudinaryTransform(images[currentIndex]?.url, 300)}
               alt={product.name}
               loading="lazy"
               className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105"
