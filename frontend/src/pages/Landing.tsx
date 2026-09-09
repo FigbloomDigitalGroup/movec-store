@@ -22,6 +22,7 @@ import ProductCarousel from '../components/ProductCarousel';
 import ProductCarouselSkeleton from '../components/ProductCarouselSkeleton';
 import { useSeo } from '../hooks/useSeo';
 import type { Product } from '../types';
+import { cloudinaryTransform } from '../utils/cloudinaryUrl';
 
 interface PromoBanner {
   id: string;
@@ -327,7 +328,7 @@ export default function Landing() {
               <div className="absolute -right-16 top-10 h-36 w-36 rounded-full bg-secondary-500/20 blur-3xl" />
               <div className="relative flex min-h-[360px] items-center justify-center">
                 {activeSlide.imageUrl ? (
-                  <img src={activeSlide.imageUrl} alt={activeSlide.title} className="h-[360px] w-full max-w-full object-contain" />
+                  <img src={cloudinaryTransform(activeSlide.imageUrl, 700)} alt={activeSlide.title} className="h-[360px] w-full max-w-full object-contain" />
                 ) : (
                   <div className="flex h-[360px] items-center justify-center rounded-[32px] border border-dashed border-slate-200 bg-neutral-50 text-center text-slate-500">
                     <div>

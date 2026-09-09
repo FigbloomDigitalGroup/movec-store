@@ -8,6 +8,7 @@ import Pagination from '../../components/ui/Pagination';
 import PageHeader from '../../components/ui/PageHeader';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Input from '../../components/ui/Input';
+import { cloudinaryTransform } from '../../utils/cloudinaryUrl';
 
 const PAGE_SIZE = 20;
 
@@ -370,7 +371,7 @@ export default function AdminProducts() {
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                   {editing.images.map((img, i) => (
                     <div key={img.id} className="relative rounded-lg overflow-hidden border-2 border-gray-200 hover:border-primary-500 group/img aspect-square transition">
-                      <img src={img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={cloudinaryTransform(img.url, 160)} alt="" className="w-full h-full object-cover" loading="lazy" />
                       <button type="button" onClick={(e) => { e.preventDefault(); setPendingDeleteImageId(img.id); }} className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-all shadow-lg"><FiTrash2 size={12} /></button>
                       {i === 0 && <span className="absolute bottom-1 left-1 bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded font-semibold shadow">Main</span>}
                       <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">{i + 1}</span>
@@ -454,7 +455,7 @@ export default function AdminProducts() {
                       <div className="w-20 h-20 rounded-xl border border-gray-200 bg-gray-100 flex items-center justify-center"><FiImage className="text-gray-500" size={24} /></div>
                     ) : (
                       <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
-                        <img src={p.images[0].url} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={cloudinaryTransform(p.images[0].url, 160)} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
                         {p.images.length > 1 && <span className="absolute bottom-1 right-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">+{p.images.length - 1}</span>}
                       </div>
                     )}
@@ -566,7 +567,7 @@ export default function AdminProducts() {
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                           {p.images.map((img, idx) => (
                             <div key={img.id} className="relative rounded-lg overflow-hidden border-2 border-gray-200 hover:border-primary-500 group/img aspect-square transition">
-                              <img src={img.url} alt={`${p.name} - ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                              <img src={cloudinaryTransform(img.url, 160)} alt={`${p.name} - ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
                               <button onClick={(e) => { e.stopPropagation(); setPendingDeleteImageId(img.id); }} className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-all shadow-lg z-10"><FiTrash2 size={12} /></button>
                               {idx === 0 && <span className="absolute bottom-1 left-1 bg-yellow-500 text-white text-[10px] px-1.5 py-0.5 rounded font-semibold shadow">Main</span>}
                               <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">{idx + 1}</span>
