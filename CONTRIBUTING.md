@@ -1,6 +1,6 @@
 # Branch protection: no direct pushes, anywhere
 
-No one can `git push` directly to *any* branch on this repo anymore — not `main`/`dev-staging`/`dev-stable`/`production`/`development`, and not your own personal branch (`dev-yourname`, etc.) either. Everything lands via a pull request.
+No one can `git push` directly to *any* branch on this repo anymore — not `main`/`dev-staging`/`dev-stable`/`production`/`development`, and not your own personal branch (`dev-yourname`, etc.) either. Everything lands via a pull request, including changes to your own branch.
 
 ## Why
 
@@ -17,16 +17,34 @@ winget install --id GitHub.cli   # or your OS's equivalent
 gh auth login
 ```
 
-## Working on your own branch
+## Walkthrough: Francis working on `dev-francis`
 
-Push to a fresh topic branch, then PR it into your own branch and self-merge — no one else needs to approve:
-
+Francis **cannot** do this anymore — it will be rejected, even though it's his own branch:
 ```bash
-git checkout -b dev-yourname-whatever-youre-doing
-git push -u origin dev-yourname-whatever-youre-doing
-gh pr create --base dev-yourname --title "..." --body "..."
-gh pr merge --auto --squash
+git checkout dev-francis
+git commit -am "some change"
+git push                          # ❌ rejected: "Changes must be made through a pull request"
 ```
+
+Instead, he works on a throwaway topic branch, and PRs *that* into `dev-francis`:
+```bash
+git checkout dev-francis
+git pull
+git checkout -b dev-francis-topic     # 1. new branch, off dev-francis
+git commit -am "some change"          # 2. commit here — can be multiple commits over time,
+git commit -am "another change"       #    keep working on this branch as long as you're mid-task
+git push -u origin dev-francis-topic  # 3. push THIS branch — allowed, it has no protection rule
+
+gh pr create --base dev-francis --title "..." --body "..."   # 4. PR: dev-francis-topic → dev-francis
+gh pr merge --auto --squash                                   # 5. merges automatically, no approval needed
+                                                               #    (it's his own branch)
+
+git checkout dev-francis && git pull   # 6. sync back up
+git branch -d dev-francis-topic         #    delete your LOCAL copy of the topic branch
+# no need to delete it on GitHub -- it's auto-deleted the moment the PR merges
+```
+
+You don't need a new topic branch per commit — just per chunk of work you're ready to land on your branch. Keep committing to the same topic branch while you're mid-task, open the PR when it's ready, then start a fresh topic branch for the next chunk.
 
 ## Landing something on a shared branch
 
@@ -40,3 +58,11 @@ gh pr merge --auto --squash
 ```
 
 It sits until someone runs `gh pr review <number> --approve` (or approves from the GitHub web UI), then merges automatically.
+
+## Common mistake: "No commits between X and Y"
+
+If you commit directly to your own branch out of habit (before making the topic branch), then create the topic branch *afterward*, it starts out identical to your branch — there's nothing to diff, so `gh pr create` fails with something like:
+```
+pull request create failed: GraphQL: No commits between dev-francis and dev-francis-topic
+```
+The fix: create the topic branch **first**, then make your changes and commit **on the topic branch** — never commit directly to your own named branch (`dev-francis`, `dev-mike`, etc.), even though old habit makes that tempting. If you've already hit this, just make an actual change on the topic branch (edit a file, commit again) before opening the PR.
