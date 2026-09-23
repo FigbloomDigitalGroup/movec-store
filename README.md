@@ -25,10 +25,10 @@ npm run dev
 
 Visit:
 - **Frontend:** http://localhost:5173
-- **Backend:** http://localhost:3000
+- **Backend:** http://localhost:4000
 - **Admin:** http://localhost:5173/admin
 
-Default admin: `admin@movec.co.ke` / `admin123`
+Default admin: `admin@example.com`, password is printed to the console the first time `npx prisma db seed` runs (set `SEED_ADMIN_PASSWORD` beforehand to choose it yourself). The seed script refuses to run against `NODE_ENV=production` unless `ALLOW_PROD_SEED=true`.
 
 ## 📚 Documentation
 

@@ -7,7 +7,7 @@ This document outlines the architecture of the Starlink & CCTV E-Commerce System
 Client (React + Vite) → CDN/Edge (Vercel)
 |
 ↓ HTTPS
-Backend (NestJS on Render) → PostgreSQL (Render managed)
+Backend (NestJS on Render) → PostgreSQL (Supabase managed)
 | → Cloudinary (media storage)
 ↓
 External APIs:
@@ -16,7 +16,7 @@ M‑Pesa (Paybill/Till, confirmed manually by an admin — no Daraja API)
 
 SMS gateway
 
-Email service (SendGrid/Mailgun)
+Email service (Brevo, with SMTP as a fallback)
 
 text
 
@@ -26,7 +26,7 @@ text
 |---------------|---------------------|---------------------------------------------------------------------|
 | Frontend      | React, Vite, Tailwind | Fast dev, CSS utility‑first, component‑based UI.                   |
 | State         | Zustand + TanStack Query | Lightweight global state; server‑state caching & sync.           |
-| Forms         | React Hook Form + Zod | Performant forms with schema validation.                         |
+| Forms         | Plain controlled React state | No form/schema library in use; validation is enforced by the backend's class-validator DTOs. |
 | Backend       | NestJS              | Modular, TypeScript‑native, decorator‑based, enterprise patterns. |
 | ORM           | Prisma              | Type‑safe database access, easy migrations, great DX.              |
 | Database      | PostgreSQL          | ACID compliant, JSON support, full‑text search, reliable.          |
@@ -43,7 +43,7 @@ Infrastructure → Repositories, external APIs, DB
 
 text
 
-- **Controllers** handle HTTP, validation via Zod/Pipes.
+- **Controllers** handle HTTP, validation via class-validator DTOs + Nest Pipes.
 - **Services** contain business logic, orchestrate use cases.
 - **Repositories** abstract Prisma queries.
 - **Guards & Decorators** enforce RBAC.
@@ -52,7 +52,7 @@ text
 - Helmet for secure headers.
 - CORS configured for frontend domain.
 - Rate limiting (ThrottlerModule).
-- Input validation & sanitisation (class‑validator + Zod).
+- Input validation & sanitisation (class‑validator only — no Zod in this codebase).
 - JWT with short‑lived access tokens (15 min) and long‑lived refresh tokens (7 days).
 - Password hashing with bcrypt (12 rounds).
 - SQL injection prevention via Prisma’s parameterised queries.
@@ -62,7 +62,7 @@ text
 ## Deployment Topology
 - **Frontend**: Vercel, connected to GitHub repo, auto‑deploys on push to main.
 - **Backend**: Render Web Service, Dockerfile or Node runtime, auto‑deploy.
-- **Database**: Render PostgreSQL (or external), firewall rules restrict access.
+- **Database**: Supabase PostgreSQL (pooled connection for the app, direct connection for migrations/backups), not Render.
 - **Media**: Cloudinary cloud storage, accessed via signed URLs.
 
 ## Key Design Decisions

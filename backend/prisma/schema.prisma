@@ -104,6 +104,24 @@ model User {
   resetToken               String?
   resetTokenExpires        DateTime?
 
+  // Per-account brute-force lockout — separate from the per-IP throttle guard,
+  // which an attacker rotating source IPs (or spoofing X-Forwarded-For) can
+  // bypass entirely. This is keyed to the account itself, so it holds even
+  // when the IP-based defense doesn't.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  // TOTP-based MFA. mfaSecret is set as soon as setup begins but mfaEnabled
+  // stays false until the user proves they can generate a valid code with it
+  // (confirmMfaSetup) — otherwise a half-finished enrollment could lock the
+  // account out, or worse, look "protected" in the UI while not actually
+  // requiring anything at login. Backup codes are hashed the same way
+  // refresh/reset tokens already are in this codebase (see hashToken in
+  // auth.service.ts) — a DB-only leak shouldn't hand out usable codes.
+  mfaSecret      String?
+  mfaEnabled     Boolean  @default(false)
+  mfaBackupCodes String[] @default([])
+
   addresses            Address[]
   orders               Order[]
   reviews              Review[]

@@ -19,6 +19,15 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // Without this, Vitest's default include glob also picks up
+    // e2e/*.spec.ts (Playwright tests) and tries to run them with the wrong
+    // runner -- Playwright's own `test`/`test.describe` isn't Vitest's.
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/e2e/**',
+      '**/.{idea,git,cache,output,temp}/**',
+    ],
   },
   build: {
     rollupOptions: {

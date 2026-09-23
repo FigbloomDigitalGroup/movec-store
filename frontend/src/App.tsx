@@ -48,6 +48,7 @@ const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
 const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'));
 const AdminPaymentSettings = lazy(() => import('./pages/admin/AdminPaymentSettings'));
 const AdminBanners = lazy(() => import('./pages/admin/AdminBanners'));
+const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
@@ -177,6 +178,7 @@ export default function App() {
                 <Route path="/admin/notifications" element={<AdminNotifications />} />
                 <Route path="/admin/homepage" element={<AdminBanners />} />
                 <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
+                <Route path="/admin/coupons" element={<AdminCoupons />} />
               </Route>
             </Route>
           </Routes>

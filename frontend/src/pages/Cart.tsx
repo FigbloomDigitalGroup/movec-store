@@ -8,6 +8,7 @@ import { useCart } from '../hooks/useCart';
 import { FiShoppingBag, FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi';
 import Button from '../components/ui/Button';
 import Card, { CardBody } from '../components/ui/Card';
+import { cloudinaryTransform } from '../utils/cloudinaryUrl';
 import Skeleton from '../components/ui/Skeleton';
 import type { CartDisplayItem } from '../types';
 
@@ -130,7 +131,7 @@ export default function CartPage() {
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                           {item.image ? (
-                            <img src={item.image} alt="" className="w-full h-full object-cover" />
+                            <img src={cloudinaryTransform(item.image, 150)} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <FiShoppingBag className="text-gray-500" size={32} />
                           )}

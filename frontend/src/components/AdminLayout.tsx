@@ -5,7 +5,7 @@ import AdminNotificationBell from './admin/AdminNotificationBell';
 import {
   FiGrid, FiBox, FiShoppingCart, FiUsers, FiPackage,
   FiTool, FiMessageSquare, FiBarChart2, FiStar,
-  FiBell, FiMenu, FiX, FiLogOut, FiExternalLink, FiLayers, FiHome, FiCreditCard
+  FiBell, FiMenu, FiX, FiLogOut, FiExternalLink, FiLayers, FiHome, FiCreditCard, FiTag
 } from 'react-icons/fi';
 
 const sidebarLinks = [
@@ -13,6 +13,7 @@ const sidebarLinks = [
   { to: '/admin/homepage', icon: FiHome, label: 'Edit Homepage' },
   { to: '/admin/modules', icon: FiLayers, label: 'Modules' },
   { to: '/admin/products', icon: FiBox, label: 'Products' },
+  { to: '/admin/coupons', icon: FiTag, label: 'Coupons' },
   { to: '/admin/orders', icon: FiShoppingCart, label: 'Orders' },
   { to: '/admin/users', icon: FiUsers, label: 'Users' },
   { to: '/admin/inventory', icon: FiPackage, label: 'Inventory' },

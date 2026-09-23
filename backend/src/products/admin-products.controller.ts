@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -21,6 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
+import { isAllowedImageBuffer } from '../common/file-signature';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -81,6 +83,13 @@ export class AdminProductsController {
     @Param('id') id: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    for (const file of files) {
+      if (!isAllowedImageBuffer(file.buffer)) {
+        throw new BadRequestException(
+          `File content of "${file.originalname}" does not match an allowed image format`,
+        );
+      }
+    }
     return this.productsService.uploadImages(id, files);
   }
 

@@ -28,3 +28,9 @@ dist-ssr
 
 # Regenerated at build time by scripts/generate-sitemap.mjs
 public/sitemap.xml
+
+# Playwright
+test-results
+playwright-report
+blob-report
+playwright/.cache

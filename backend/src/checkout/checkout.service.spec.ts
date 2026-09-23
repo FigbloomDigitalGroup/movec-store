@@ -23,6 +23,9 @@ describe('CheckoutService.checkout', () => {
     const inventoryService = {
       reserveStock: jest.fn().mockResolvedValue(undefined),
     } as any;
+    const notificationsService = {
+      notifyAdmins: jest.fn().mockResolvedValue(undefined),
+    } as any;
 
     const tx = {
       coupon: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
@@ -53,7 +56,12 @@ describe('CheckoutService.checkout', () => {
     } as any;
 
     return {
-      service: new CheckoutService(prisma, cartService, inventoryService),
+      service: new CheckoutService(
+        prisma,
+        cartService,
+        inventoryService,
+        notificationsService,
+      ),
       prisma,
       tx,
       inventoryService,

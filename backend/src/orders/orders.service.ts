@@ -187,12 +187,7 @@ export class OrdersService {
     return { message: 'Order cancelled successfully' };
   }
 
-  async findAll(
-    page = 1,
-    limit = 20,
-    status?: OrderStatus,
-    search?: string,
-  ) {
+  async findAll(page = 1, limit = 20, status?: OrderStatus, search?: string) {
     const skip = (page - 1) * limit;
     const where: Prisma.OrderWhereInput = {};
     if (status) where.status = status;
@@ -249,6 +244,7 @@ export class OrdersService {
   ) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
+      include: { items: true },
     });
     if (!order) throw new NotFoundException('Order not found');
 
@@ -260,6 +256,52 @@ export class OrdersService {
       oldValues: { status: order.status },
       newValues: { status },
     });
+
+    // Moving to CANCELLED/REFUNDED from here must reconcile inventory and
+    // payment the same way the customer-facing cancelOrder() does — otherwise
+    // an admin using this generic endpoint silently leaves stock decremented
+    // and completed payments marked COMPLETED even though the order is dead.
+    // Anything past PENDING already had fulfillOrder() run against it (stock
+    // genuinely decremented, not just reserved), so it needs restocking
+    // rather than a reservation release.
+    if (status === 'CANCELLED' || status === 'REFUNDED') {
+      const wasFulfilled = order.status !== 'PENDING';
+
+      await this.prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            status,
+            statusHistory: { create: { status, changedBy: 'admin' } },
+          },
+        });
+
+        await tx.payment.updateMany({
+          where: { orderId, status: 'COMPLETED' },
+          data: { status: 'REFUNDED' },
+        });
+
+        await this.inventoryService.returnOrderStock(
+          tx,
+          order.items.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+          })),
+          order.orderNumber,
+          wasFulfilled,
+        );
+      });
+
+      return this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          payments: true,
+          shipping: true,
+          statusHistory: { orderBy: { changedAt: 'asc' } },
+        },
+      });
+    }
 
     const data: Prisma.OrderUpdateInput = {
       status,
