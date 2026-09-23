@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ForbiddenException, ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -59,7 +59,12 @@ async function bootstrap() {
       ) {
         return callback(null, true);
       }
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      // A ForbiddenException (not a plain Error) so AllExceptionsFilter maps
+      // this to a clean 403 instead of falling through to a generic 500 —
+      // browsers already enforce CORS off the missing header regardless of
+      // status code, but a raw 500 here would drown out real server errors
+      // in logs/monitoring every time a scanner or bot probes with a bad origin.
+      callback(new ForbiddenException(`Origin ${origin} is not allowed`));
     },
     credentials: true,
   });

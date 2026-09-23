@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import PDFDocument from 'pdfkit';
@@ -356,7 +356,7 @@ export class ReportsService {
         break;
       }
       default:
-        throw new Error('Invalid report type');
+        throw new BadRequestException('Invalid report type');
     }
 
     return { title, rows: exportRows };

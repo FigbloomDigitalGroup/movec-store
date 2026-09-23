@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class PaymentsService {
     private inventoryService: InventoryService,
     private emailService: EmailService,
     private notificationsService: NotificationsService,
+    private auditService: AuditService,
   ) {}
 
   // Fired from every path that transitions an order to CONFIRMED (admin confirming
@@ -127,6 +129,22 @@ export class PaymentsService {
       throw new BadRequestException('Order is not pending payment');
     }
 
+    // Without this, a customer initiating both Paybill and Till (or retrying
+    // the same channel) piles up multiple PENDING payments on one order —
+    // and an admin confirming each of them in turn re-runs the full
+    // confirm/fulfill/email flow every time, double-counting the amount
+    // received and double-consuming shared stock reservations.
+    const hasPendingPayment = order.payments.some(
+      (p) =>
+        (p.method === 'PAYBILL' || p.method === 'TILL') &&
+        p.status === 'PENDING',
+    );
+    if (hasPendingPayment) {
+      throw new BadRequestException(
+        'A Paybill/Till payment is already pending for this order — wait for it to be confirmed, or contact support.',
+      );
+    }
+
     const settings = await this.getPaymentSettings();
     const enabled =
       channel === 'PAYBILL' ? settings.paybillEnabled : settings.tillEnabled;
@@ -220,12 +238,24 @@ export class PaymentsService {
   // statement and seen the money land, so it deliberately does not go through
   // findOrder()'s customer-ownership check — an admin confirms any customer's
   // payment, not just orders that happen to be "theirs".
-  async confirmPaybillTill(orderNumber: string) {
+  async confirmPaybillTill(orderNumber: string, actorId?: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber },
       include: { payments: true },
     });
     if (!order) throw new NotFoundException('Order not found');
+
+    // Guards against re-running this whole flow (and re-fulfilling/re-emailing)
+    // on an order that's already past PENDING — otherwise confirming a second
+    // still-PENDING payment left over on an already-confirmed order (see the
+    // duplicate-initiate guard above) would double-count the amount received
+    // and double-consume shared stock reservations.
+    if (order.status !== 'PENDING') {
+      throw new BadRequestException(
+        `Order is already ${order.status.toLowerCase()} — nothing to confirm`,
+      );
+    }
+
     const payment = order.payments.find(
       (p) =>
         (p.method === 'PAYBILL' || p.method === 'TILL') &&
@@ -237,6 +267,19 @@ export class PaymentsService {
         'No pending Paybill/Till payment found for this order',
       );
     }
+
+    // This is the action that turns "customer says they paid" into money the
+    // business treats as received — it needs a forensic trail as much as any
+    // order-status or role change does, so it's logged before the mutations
+    // below the same way those are.
+    await this.auditService.log({
+      userId: actorId,
+      action: 'PAYMENT_CONFIRMED',
+      entityType: 'Payment',
+      entityId: payment.id,
+      oldValues: { orderStatus: order.status, paymentStatus: payment.status },
+      newValues: { orderStatus: 'CONFIRMED', paymentStatus: 'COMPLETED' },
+    });
 
     await this.prisma.payment.update({
       where: { id: payment.id },
@@ -275,15 +318,41 @@ export class PaymentsService {
     });
   }
 
-  async updatePaymentSettings(dto: {
-    codEnabled?: boolean;
-    codDepositThreshold?: number;
-    codDepositPercentage?: number;
-    paybillEnabled?: boolean;
-    paybillNumber?: string;
-    tillEnabled?: boolean;
-    tillNumber?: string;
-  }) {
+  async updatePaymentSettings(
+    dto: {
+      codEnabled?: boolean;
+      codDepositThreshold?: number;
+      codDepositPercentage?: number;
+      paybillEnabled?: boolean;
+      paybillNumber?: string;
+      tillEnabled?: boolean;
+      tillNumber?: string;
+    },
+    actorId?: string,
+  ) {
+    // Paybill/Till numbers are where a customer's money actually goes —
+    // changing them with no record of who did it or what the old number was
+    // is exactly how a compromised admin account could redirect payments
+    // undetected, so this is logged with the full before/after state.
+    const before = await this.getPaymentSettings();
+
+    await this.auditService.log({
+      userId: actorId,
+      action: 'PAYMENT_SETTINGS_UPDATED',
+      entityType: 'PaymentSettings',
+      entityId: this.paymentSettingsId,
+      oldValues: {
+        codEnabled: before.codEnabled,
+        codDepositThreshold: before.codDepositThreshold.toNumber(),
+        codDepositPercentage: before.codDepositPercentage.toNumber(),
+        paybillEnabled: before.paybillEnabled,
+        paybillNumber: before.paybillNumber,
+        tillEnabled: before.tillEnabled,
+        tillNumber: before.tillNumber,
+      },
+      newValues: dto,
+    });
+
     return this.prisma.paymentSettings.upsert({
       where: { id: this.paymentSettingsId },
       create: { id: this.paymentSettingsId, ...dto },

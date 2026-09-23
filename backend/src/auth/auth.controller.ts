@@ -20,6 +20,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { MfaVerifyLoginDto } from './dto/mfa-verify-login.dto';
+import { ConfirmMfaSetupDto } from './dto/confirm-mfa-setup.dto';
+import { DisableMfaDto } from './dto/disable-mfa.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginThrottleGuard } from './guards/login-throttle.guard';
 import {
@@ -67,6 +70,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.login(dto);
+    if ('mfaRequired' in result) {
+      return { mfaRequired: true, mfaTicket: result.mfaTicket };
+    }
     res.cookie(
       ACCESS_TOKEN_COOKIE,
       result.accessToken,
@@ -78,6 +84,61 @@ export class AuthController {
       refreshTokenCookieOptions(this.isProd),
     );
     return { user: result.user };
+  }
+
+  // Second step of login when the account has MFA enabled — takes the
+  // short-lived ticket from the first step plus a TOTP or backup code, and on
+  // success issues the exact same cookies a non-MFA login would.
+  @Post('mfa/login')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(LoginThrottleGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async mfaLogin(
+    @Body() dto: MfaVerifyLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verifyMfaLogin(
+      dto.mfaTicket,
+      dto.code,
+    );
+    res.cookie(
+      ACCESS_TOKEN_COOKIE,
+      result.accessToken,
+      accessTokenCookieOptions(this.isProd),
+    );
+    res.cookie(
+      REFRESH_TOKEN_COOKIE,
+      result.refreshToken,
+      refreshTokenCookieOptions(this.isProd),
+    );
+    return { user: result.user };
+  }
+
+  @Post('mfa/setup')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  setupMfa(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.setupMfa(user.id);
+  }
+
+  @Post('mfa/setup/confirm')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  confirmMfaSetup(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ConfirmMfaSetupDto,
+  ) {
+    return this.authService.confirmMfaSetup(user.id, dto.code);
+  }
+
+  @Post('mfa/disable')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  disableMfa(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: DisableMfaDto,
+  ) {
+    return this.authService.disableMfa(user.id, dto.code);
   }
 
   @Post('refresh')

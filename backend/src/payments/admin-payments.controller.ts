@@ -6,6 +6,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
 
 // Paybill/Till payments can't be verified automatically — confirming one means
 // staff have checked the actual M-Pesa statement. Keeping this admin-only
@@ -18,8 +22,11 @@ export class AdminPaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('paybill-till/confirm')
-  confirmPaybillTill(@Body() dto: ConfirmPaybillTillDto) {
-    return this.paymentsService.confirmPaybillTill(dto.orderNumber);
+  confirmPaybillTill(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: ConfirmPaybillTillDto,
+  ) {
+    return this.paymentsService.confirmPaybillTill(dto.orderNumber, admin.id);
   }
 
   @Get('transactions')
@@ -42,8 +49,14 @@ export class AdminPaymentsController {
   }
 
   @Put('settings')
-  async updateSettings(@Body() dto: UpdatePaymentSettingsDto) {
-    const settings = await this.paymentsService.updatePaymentSettings(dto);
+  async updateSettings(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: UpdatePaymentSettingsDto,
+  ) {
+    const settings = await this.paymentsService.updatePaymentSettings(
+      dto,
+      admin.id,
+    );
     return {
       codEnabled: settings.codEnabled,
       codDepositThreshold: settings.codDepositThreshold.toNumber(),

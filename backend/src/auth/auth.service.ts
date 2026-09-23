@@ -9,12 +9,28 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { authenticator } from 'otplib';
+import * as QRCode from 'qrcode';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RoleName } from '@prisma/client';
+import { RoleName, type User } from '@prisma/client';
 import type { StringValue } from 'ms';
+
+// Locking after this many wrong passwords (per account, regardless of source
+// IP) closes the gap the IP-only LoginThrottleGuard leaves open — an attacker
+// rotating IPs, or spoofing X-Forwarded-For, never has to slow down otherwise.
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+
+// Short-lived and single-purpose: this token only proves "password already
+// checked out, waiting on the second factor." It's never accepted by
+// JwtAuthGuard/JwtStrategy for anything else — verifyMfaLogin below is the
+// only place that ever calls jwtService.verify() on one.
+const MFA_CHALLENGE_TTL = '5m';
+const MFA_CHALLENGE_PURPOSE = 'mfa-challenge';
+const BACKUP_CODE_COUNT = 8;
 
 // Standing credentials (refresh tokens, reset/verification tokens) are hashed before
 // being persisted — a database-only compromise (backup leak, misconfigured replica)
@@ -175,9 +191,26 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.ceil(
+        (user.lockedUntil.getTime() - Date.now()) / 60_000,
+      );
+      throw new UnauthorizedException(
+        `Too many failed login attempts. Try again in ${minutesLeft} minute(s).`,
+      );
+    }
+
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordValid) {
+      await this.recordFailedLogin(user.id, user.failedLoginAttempts);
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: 0, lockedUntil: null },
+      });
     }
 
     if (!user.isEmailVerified) {
@@ -190,6 +223,40 @@ export class AuthService {
       throw new UnauthorizedException('Account is not active');
     }
 
+    if (user.mfaEnabled) {
+      const mfaTicket = this.jwtService.sign(
+        { sub: user.id, purpose: MFA_CHALLENGE_PURPOSE },
+        { expiresIn: MFA_CHALLENGE_TTL },
+      );
+      return { mfaRequired: true as const, mfaTicket };
+    }
+
+    return this.issueSession(user);
+  }
+
+  private async recordFailedLogin(
+    userId: string,
+    currentAttempts: number,
+  ): Promise<void> {
+    const attempts = currentAttempts + 1;
+    const lockingNow = attempts >= MAX_FAILED_LOGIN_ATTEMPTS;
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        failedLoginAttempts: lockingNow ? 0 : attempts,
+        lockedUntil: lockingNow
+          ? new Date(Date.now() + LOCKOUT_DURATION_MS)
+          : undefined,
+      },
+    });
+  }
+
+  // Shared by the no-MFA login path and the post-MFA-verification path so
+  // both mint a session the exact same way — the only difference is what
+  // gated getting here.
+  private async issueSession(
+    user: User & { userRoles: { role: { name: RoleName } }[] },
+  ) {
     const payload = { sub: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
@@ -219,6 +286,124 @@ export class AuthService {
         roles: user.userRoles.map((ur) => ur.role.name),
       },
     };
+  }
+
+  // ─── MFA (TOTP) ──────────────────────────────────────────────────────────
+  //
+  // mfaSecret is written as soon as setup starts, but mfaEnabled stays false
+  // until confirmMfaSetup proves the user can actually generate a valid code
+  // with it — otherwise a half-finished enrollment could either lock someone
+  // out or silently do nothing while looking "protected."
+
+  async setupMfa(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const secret = authenticator.generateSecret();
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { mfaSecret: secret, mfaEnabled: false, mfaBackupCodes: [] },
+    });
+
+    const otpauthUrl = authenticator.keyuri(user.email, 'Movec Store', secret);
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+    return { secret, otpauthUrl, qrCodeDataUrl };
+  }
+
+  async confirmMfaSetup(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.mfaSecret) {
+      throw new BadRequestException(
+        'Start MFA setup first before confirming it',
+      );
+    }
+    if (!authenticator.verify({ token: code, secret: user.mfaSecret })) {
+      throw new BadRequestException('Invalid code');
+    }
+
+    const backupCodes = Array.from({ length: BACKUP_CODE_COUNT }, () =>
+      crypto.randomBytes(5).toString('hex'),
+    );
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        mfaEnabled: true,
+        mfaBackupCodes: backupCodes.map(hashToken),
+      },
+    });
+
+    return {
+      message:
+        'MFA is now enabled. Save these backup codes somewhere safe — each one can be used once if you lose access to your authenticator app. They will not be shown again.',
+      backupCodes,
+    };
+  }
+
+  async verifyMfaLogin(mfaTicket: string, code: string) {
+    let payload: { sub: string; purpose: string };
+    try {
+      payload = this.jwtService.verify(mfaTicket);
+    } catch {
+      throw new UnauthorizedException(
+        'MFA challenge expired or invalid — please log in again',
+      );
+    }
+    if (payload.purpose !== MFA_CHALLENGE_PURPOSE) {
+      throw new UnauthorizedException('Invalid MFA challenge');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      include: { userRoles: { include: { role: true } } },
+    });
+    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+      throw new UnauthorizedException(
+        'MFA challenge expired or invalid — please log in again',
+      );
+    }
+
+    if (authenticator.verify({ token: code, secret: user.mfaSecret })) {
+      return this.issueSession(user);
+    }
+
+    // Fall back to a one-time backup code — removed from the list the moment
+    // it's used so it can never be replayed.
+    const hashedInput = hashToken(code);
+    const matchIndex = user.mfaBackupCodes.indexOf(hashedInput);
+    if (matchIndex === -1) {
+      throw new UnauthorizedException('Invalid code');
+    }
+    const remainingCodes = [...user.mfaBackupCodes];
+    remainingCodes.splice(matchIndex, 1);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { mfaBackupCodes: remainingCodes },
+    });
+
+    return this.issueSession(user);
+  }
+
+  async disableMfa(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.mfaEnabled || !user.mfaSecret) {
+      throw new BadRequestException('MFA is not enabled on this account');
+    }
+
+    const validTotp = authenticator.verify({
+      token: code,
+      secret: user.mfaSecret,
+    });
+    const validBackup =
+      !validTotp && user.mfaBackupCodes.includes(hashToken(code));
+    if (!validTotp && !validBackup) {
+      throw new BadRequestException('Invalid code');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { mfaEnabled: false, mfaSecret: null, mfaBackupCodes: [] },
+    });
+    return { message: 'MFA has been disabled on this account' };
   }
 
   async refreshToken(refreshToken: string) {

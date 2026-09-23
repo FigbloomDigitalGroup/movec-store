@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
             </div>
             <h1 className="text-3xl md:text-4xl font-section-title text-gray-900">Privacy Policy</h1>
           </div>
-          <p className="text-gray-600">Last updated: July 21, 2026</p>
+          <p className="text-gray-600">Last updated: September 22, 2026</p>
         </div>
       </div>
 
@@ -36,6 +36,7 @@ export default function PrivacyPolicy() {
                 <li><strong>Installation information:</strong> preferred dates, installation address, and notes you provide when booking a Starlink or CCTV installation.</li>
                 <li><strong>Support information:</strong> messages, attachments, and details you share when you raise a support ticket or contact us.</li>
                 <li><strong>Technical information:</strong> IP address, browser type, device information, and usage data collected automatically via cookies and similar technologies.</li>
+                <li><strong>Location information:</strong> if you choose to use the "use my current location" option at checkout, your browser's GPS coordinates are collected and used to pre-fill your delivery address.</li>
               </ul>
             </section>
 
@@ -60,6 +61,7 @@ export default function PrivacyPolicy() {
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 <li><strong>Payment verification:</strong> Safaricom M-Pesa, since Paybill/Till payments are made directly through their network and we confirm them against our M-Pesa statement.</li>
                 <li><strong>Cloudinary:</strong> to store and deliver product images and other media.</li>
+                <li><strong>OpenStreetMap (Nominatim):</strong> if you use the "use my current location" option at checkout, your GPS coordinates are sent directly from your browser to OpenStreetMap's Nominatim service to convert them into a readable address.</li>
                 <li><strong>Delivery and logistics partners:</strong> to fulfil and track shipments.</li>
                 <li><strong>Installation technicians:</strong> your installation address, contact details, and job notes, solely to carry out a booked installation.</li>
                 <li><strong>Email and SMS providers:</strong> to deliver transactional notifications.</li>

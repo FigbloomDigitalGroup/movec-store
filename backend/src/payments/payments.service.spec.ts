@@ -25,12 +25,14 @@ describe('PaymentsService order ownership', () => {
     const inventoryService = {} as any;
     const emailService = {} as any;
     const notificationsService = {} as any;
+    const auditService = { log: jest.fn().mockResolvedValue(undefined) } as any;
     return new PaymentsService(
       prisma,
       configService,
       inventoryService,
       emailService,
       notificationsService,
+      auditService,
     );
   }
 
