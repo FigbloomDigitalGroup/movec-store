@@ -29,7 +29,7 @@ test.describe('Guest cart merge-on-login (FIG-474)', () => {
     await expect(page.locator('body')).not.toContainText('Your cart is empty');
   });
 
-  test('known bug: a mid-sync failure can double an earlier item\'s quantity on the next login (see FIG-474)', async ({ page }) => {
+  test('fixed: a mid-sync failure no longer doubles an earlier item\'s quantity on the next login (see FIG-474)', async ({ page }) => {
     const { api, token } = await adminApi();
 
     // Two distinct in-stock products to add as a guest.
@@ -72,15 +72,15 @@ test.describe('Guest cart merge-on-login (FIG-474)', () => {
     });
 
     try {
-      // First login triggers AuthBootstrap's syncCart: product A succeeds,
-      // product B fails (inactive) and throws -- caught and only logged,
-      // so localStorage keeps BOTH guest items per cartStore.ts's catch block.
+      // First login triggers AuthBootstrap's syncCart: product A succeeds and is
+      // removed from localStorage individually; product B fails (inactive) and
+      // stays in localStorage on its own per cartStore.ts's per-item handling.
       await loginAs(page, CUSTOMER_EMAIL, CUSTOMER_PASSWORD);
       await page.waitForTimeout(1000); // let the sync's fire-and-forget requests land
 
-      // Reloading remounts AuthBootstrap, re-triggering syncCart with the
-      // SAME still-populated guestCart -- product A gets re-POSTed on top of
-      // its already-synced quantity.
+      // Reloading remounts AuthBootstrap, re-triggering syncCart with only the
+      // still-failing product B left in guestCart -- product A must NOT be
+      // re-POSTed since it was already cleared after its successful sync.
       await page.reload();
       await page.waitForTimeout(1000);
 
@@ -88,11 +88,14 @@ test.describe('Guest cart merge-on-login (FIG-474)', () => {
       const lineA = cartAfter.items?.find(
         (i: { productId: string; quantity: number }) => i.productId === productA.id,
       );
+      const lineB = cartAfter.items?.find(
+        (i: { productId: string; quantity: number }) => i.productId === productB.id,
+      );
 
-      console.log(`FIG-474 repro: product A quantity after two logins = ${lineA?.quantity} (bug present if > 1)`);
-      // Documenting current behavior rather than asserting a fix that doesn't exist yet:
-      // this is expected to be 2 (bug reproduced) until FIG-474 is actually fixed.
-      expect(lineA?.quantity).toBe(2);
+      // Product A synced once and must not have been doubled by the retry.
+      expect(lineA?.quantity).toBe(1);
+      // Product B never synced (its product was inactive), so it's absent.
+      expect(lineB).toBeUndefined();
     } finally {
       await adminOnlyApi.patch(`${API_BASE}/admin/products/${productB.id}`, {
         headers: { 'x-xsrf-token': adminToken },

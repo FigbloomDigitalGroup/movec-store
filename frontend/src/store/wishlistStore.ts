@@ -77,18 +77,28 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     const items = get().items;
     if (items.length === 0 || get().isSyncing) return;
     set({ isSyncing: true });
-    try {
-      for (const item of items) {
+    const failedItems: GuestWishlistItem[] = [];
+    for (const item of items) {
+      try {
         await api.post('/wishlist', { productId: item.productId });
+      } catch (err) {
+        console.error(`Failed to sync wishlist item ${item.productId}:`, err);
+        failedItems.push(item);
       }
+    }
+    if (failedItems.length > 0) {
+      saveWishlist(failedItems);
+      toast.error(
+        failedItems.length === 1
+          ? `Couldn't add ${failedItems[0].name} to your wishlist`
+          : `${failedItems.length} items couldn't be added to your wishlist`
+      );
+    } else {
       localStorage.removeItem('guestWishlist');
-      set({ items: [], isSyncing: false });
-      if (queryClient) {
-        await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      }
-    } catch (err) {
-      console.error('Failed to sync wishlist:', err);
-      set({ isSyncing: false });
+    }
+    set({ items: failedItems, isSyncing: false });
+    if (queryClient) {
+      await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
     }
   },
 }));

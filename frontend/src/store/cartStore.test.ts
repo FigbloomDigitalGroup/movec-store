@@ -1,5 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCartStore } from './cartStore';
+import api from '../lib/api';
+
+vi.mock('../lib/api', () => ({
+  default: { post: vi.fn() },
+}));
 
 const productA = { productId: 'a', name: 'Product A', slug: 'product-a', price: 100, image: null, quantity: 1 };
 const productB = { productId: 'b', name: 'Product B', slug: 'product-b', price: 250, image: null, quantity: 2 };
@@ -8,6 +13,7 @@ describe('useCartStore', () => {
   beforeEach(() => {
     localStorage.clear();
     useCartStore.setState({ items: [], isSyncing: false });
+    vi.mocked(api.post).mockReset();
   });
 
   it('starts empty', () => {
@@ -73,5 +79,51 @@ describe('useCartStore', () => {
   it('persists items to localStorage on every mutation', () => {
     useCartStore.getState().addItem(productA);
     expect(JSON.parse(localStorage.getItem('guestCart') || '[]')).toEqual([productA]);
+  });
+
+  describe('syncCart', () => {
+    it('clears localStorage and state once every item syncs successfully', async () => {
+      useCartStore.getState().addItem(productA);
+      useCartStore.getState().addItem(productB);
+      vi.mocked(api.post).mockResolvedValue({ data: {} });
+
+      // @ts-expect-error queryClient not needed for this assertion
+      await useCartStore.getState().syncCart(undefined);
+
+      expect(api.post).toHaveBeenCalledTimes(2);
+      expect(useCartStore.getState().items).toEqual([]);
+      expect(localStorage.getItem('guestCart')).toBeNull();
+    });
+
+    // Regression test for FIG-474: a mid-loop failure used to leave the WHOLE
+    // batch in localStorage, so a retry (next login/remount) re-POSTed items
+    // that had already synced, doubling their server-side quantity.
+    it('on a partial failure, only removes the items that actually synced (does not re-POST them on retry)', async () => {
+      useCartStore.getState().addItem(productA);
+      useCartStore.getState().addItem(productB);
+      vi.mocked(api.post).mockImplementation((_, body) => {
+        const { productId } = body as { productId: string };
+        return productId === 'b'
+          ? Promise.reject(new Error('out of stock'))
+          : Promise.resolve({ data: {} });
+      });
+
+      // @ts-expect-error queryClient not needed for this assertion
+      await useCartStore.getState().syncCart(undefined);
+
+      // Product A succeeded and must be gone so a retry can't double it.
+      // Product B failed and stays so it isn't silently dropped from the cart.
+      expect(useCartStore.getState().items).toEqual([productB]);
+      expect(JSON.parse(localStorage.getItem('guestCart') || '[]')).toEqual([productB]);
+
+      vi.mocked(api.post).mockClear();
+      vi.mocked(api.post).mockResolvedValue({ data: {} });
+      // @ts-expect-error queryClient not needed for this assertion
+      await useCartStore.getState().syncCart(undefined);
+
+      // Retry only re-POSTs the item that previously failed, not product A again.
+      expect(api.post).toHaveBeenCalledTimes(1);
+      expect(api.post).toHaveBeenCalledWith('/cart/items', { productId: 'b', quantity: 2 });
+    });
   });
 });

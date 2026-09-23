@@ -98,18 +98,28 @@ export const useCartStore = create<CartState>((set, get) => ({
     const items = get().items;
     if (items.length === 0 || get().isSyncing) return;
     set({ isSyncing: true });
-    try {
-      for (const item of items) {
+    const failedItems: GuestCartItem[] = [];
+    for (const item of items) {
+      try {
         await api.post('/cart/items', { productId: item.productId, quantity: item.quantity });
+      } catch (err) {
+        console.error(`Failed to sync cart item ${item.productId}:`, err);
+        failedItems.push(item);
       }
+    }
+    if (failedItems.length > 0) {
+      saveCart(failedItems);
+      toast.error(
+        failedItems.length === 1
+          ? `Couldn't add ${failedItems[0].name} to your cart — it may be out of stock`
+          : `${failedItems.length} items couldn't be added to your cart`
+      );
+    } else {
       localStorage.removeItem('guestCart');
-      set({ items: [], isSyncing: false });
-      if (queryClient) {
-        await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      }
-    } catch (err) {
-      console.error('Failed to sync cart:', err);
-      set({ isSyncing: false });
+    }
+    set({ items: failedItems, isSyncing: false });
+    if (queryClient) {
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
     }
   },
 }));
