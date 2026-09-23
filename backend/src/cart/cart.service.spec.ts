@@ -77,4 +77,31 @@ describe('CartService.addItem', () => {
     });
     expect(prisma.cartItem.create).not.toHaveBeenCalled();
   });
+
+  // FIG-480: the stock check used to compare only this call's `quantity`
+  // against total stock, ignoring what was already in the cart -- two POSTs
+  // of 6 each against a 10-unit product both passed individually (6 <= 10)
+  // even though the resulting cart line (12) exceeded stock. It now checks
+  // existingItem.quantity + dto.quantity against total stock instead.
+  it('rejects an add that would push the existing cart line past total stock, even though the new amount alone does not', async () => {
+    const { service, prisma } = createService(activeInStockProduct); // stock = 10
+    prisma.cartItem.findUnique.mockResolvedValue({ id: 'item-1', quantity: 6 });
+
+    await expect(
+      service.addItem('u1', { productId: 'p1', quantity: 6 }),
+    ).rejects.toThrow('Insufficient stock');
+    expect(prisma.cartItem.update).not.toHaveBeenCalled();
+  });
+
+  it('allows an add that lands exactly at total stock', async () => {
+    const { service, prisma } = createService(activeInStockProduct); // stock = 10
+    prisma.cartItem.findUnique.mockResolvedValue({ id: 'item-1', quantity: 6 });
+
+    await service.addItem('u1', { productId: 'p1', quantity: 4 });
+
+    expect(prisma.cartItem.update).toHaveBeenCalledWith({
+      where: { id: 'item-1' },
+      data: { quantity: 10 },
+    });
+  });
 });

@@ -85,9 +85,6 @@ export class CartService {
       (sum, inv) => sum + inv.quantity,
       0,
     );
-    if (totalStock < dto.quantity) {
-      throw new BadRequestException('Insufficient stock');
-    }
 
     let cart = await this.prisma.cart.findUnique({ where: { userId } });
     if (!cart) {
@@ -99,6 +96,14 @@ export class CartService {
         cartId_productId: { cartId: cart.id, productId: dto.productId },
       },
     });
+
+    // Checked against the *resulting* quantity, not just this call's dto.quantity —
+    // otherwise repeated small adds can push a cart line past available stock even
+    // though no single call looks over the limit on its own.
+    const resultingQuantity = (existingItem?.quantity ?? 0) + dto.quantity;
+    if (totalStock < resultingQuantity) {
+      throw new BadRequestException('Insufficient stock');
+    }
 
     if (existingItem) {
       await this.prisma.cartItem.update({
