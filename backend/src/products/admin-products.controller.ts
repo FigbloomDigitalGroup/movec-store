@@ -58,6 +58,14 @@ export class AdminProductsController {
         fileSize: 10 * 1024 * 1024, // 10MB per file
         files: 10,
       },
+      // Rejecting via `cb(null, false)` instead of `cb(new Error(...), false)` --
+      // an Error thrown from inside multer's fileFilter isn't caught by Nest's
+      // exception filters the way a MulterError (e.g. the fileSize limit above)
+      // is, so it surfaced as a raw 500 instead of a clean 400. With
+      // FilesInterceptor, a rejected file is just dropped from the array rather
+      // than leaving it undefined, so the handler below now also guards against
+      // an empty array (every file rejected) silently "succeeding" with nothing
+      // uploaded.
       fileFilter: (req, file, cb) => {
         const allowedMimes = [
           'image/jpeg',
@@ -66,16 +74,7 @@ export class AdminProductsController {
           'image/gif',
           'image/webp',
         ];
-        if (allowedMimes.includes(file.mimetype)) {
-          cb(null, true);
-        } else {
-          cb(
-            new Error(
-              `Invalid file type: ${file.mimetype}. Only images are allowed.`,
-            ),
-            false,
-          );
-        }
+        cb(null, allowedMimes.includes(file.mimetype));
       },
     }),
   )
@@ -83,6 +82,9 @@ export class AdminProductsController {
     @Param('id') id: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No valid image files provided');
+    }
     for (const file of files) {
       if (!isAllowedImageBuffer(file.buffer)) {
         throw new BadRequestException(

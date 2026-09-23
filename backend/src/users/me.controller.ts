@@ -55,17 +55,13 @@ export class MeController {
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+      // Rejecting via `cb(null, false)` instead of `cb(new Error(...), false)` --
+      // an Error thrown from inside multer's fileFilter isn't caught by Nest's
+      // exception filters the way a MulterError (e.g. the fileSize limit below)
+      // is, so it surfaced as a raw 500 instead of a clean 400. `file` comes
+      // back undefined to the handler below, which already checks for that.
       fileFilter: (req, file, cb) => {
-        if (AVATAR_ALLOWED_MIMES.includes(file.mimetype)) {
-          cb(null, true);
-        } else {
-          cb(
-            new Error(
-              `Invalid file type: ${file.mimetype}. Only images are allowed.`,
-            ),
-            false,
-          );
-        }
+        cb(null, AVATAR_ALLOWED_MIMES.includes(file.mimetype));
       },
     }),
   )
