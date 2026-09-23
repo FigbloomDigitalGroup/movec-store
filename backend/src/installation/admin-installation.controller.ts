@@ -11,6 +11,7 @@ import {
 import { InstallationService } from './installation.service';
 import { UpdateInstallationRequestDto } from './dto/update-installation-request.dto';
 import { QueryInstallationRequestDto } from './dto/query-installation-request.dto';
+import { CreateTechnicianDto } from './dto/create-technician.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -41,10 +42,10 @@ export class AdminInstallationController {
   }
 
   @Post('technicians')
-  createTechnician(@Body() body: { userId: string; specialization?: string }) {
+  createTechnician(@Body() dto: CreateTechnicianDto) {
     return this.installationService.createTechnician(
-      body.userId,
-      body.specialization,
+      dto.userId,
+      dto.specialization,
     );
   }
 }

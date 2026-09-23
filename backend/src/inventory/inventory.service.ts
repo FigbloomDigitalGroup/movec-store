@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { ProductsService } from '../products/products.service';
 import { StockInDto } from './dto/stock-in.dto';
 import { StockOutDto } from './dto/stock-out.dto';
 
@@ -12,7 +13,10 @@ type Tx = Prisma.TransactionClient;
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private productsService: ProductsService,
+  ) {}
 
   /**
    * Atomically reserves stock for one order line at checkout time: moves `quantity`
@@ -264,6 +268,8 @@ export class InventoryService {
       },
     });
 
+    await this.productsService.invalidateCacheForProductId(dto.productId);
+
     return inventory;
   }
 
@@ -299,6 +305,8 @@ export class InventoryService {
         reference: dto.reference,
       },
     });
+
+    await this.productsService.invalidateCacheForProductId(dto.productId);
 
     return this.prisma.inventory.findUniqueOrThrow({
       where: { id: inventory.id },

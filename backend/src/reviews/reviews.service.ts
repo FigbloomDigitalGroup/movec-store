@@ -9,12 +9,14 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { QueryReviewDto } from './dto/query-review.dto';
 import { buildPagination, paginated } from '../common/pagination';
 import { AuditService } from '../audit/audit.service';
+import { ProductsService } from '../products/products.service';
 
 @Injectable()
 export class ReviewsService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private productsService: ProductsService,
   ) {}
 
   async create(userId: string, dto: CreateReviewDto) {
@@ -29,7 +31,7 @@ export class ReviewsService {
     if (existing)
       throw new BadRequestException('You have already reviewed this product');
 
-    return this.prisma.review.create({
+    const review = await this.prisma.review.create({
       data: {
         userId,
         productId: dto.productId,
@@ -38,6 +40,10 @@ export class ReviewsService {
         body: dto.body,
       },
     });
+
+    await this.productsService.invalidateCacheForProductId(dto.productId);
+
+    return review;
   }
 
   async getProductReviews(productId: string) {
@@ -114,6 +120,9 @@ export class ReviewsService {
           }
         : undefined,
     });
+    if (review) {
+      await this.productsService.invalidateCacheForProductId(review.productId);
+    }
     return { message: 'Review deleted' };
   }
 }

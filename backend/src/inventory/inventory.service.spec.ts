@@ -20,7 +20,12 @@ describe('InventoryService.reserveStock', () => {
     return { tx, updateMany };
   }
 
-  const service = new InventoryService({} as any);
+  const service = new InventoryService(
+    {} as any,
+    {
+      invalidateCacheForProductId: jest.fn(),
+    } as any,
+  );
 
   it('reserves entirely from a single warehouse when it has enough stock', async () => {
     const { tx, updateMany } = createTx([
@@ -94,5 +99,63 @@ describe('InventoryService.reserveStock', () => {
         reservedQuantity: { increment: 10 },
       },
     });
+  });
+});
+
+// FIG-484: a manual stock-in/stock-out adjustment only had a productId, and
+// this service has no cache of its own -- the product detail page's own
+// 10-minute cache (keyed by slug, owned by ProductsService) used to go stale
+// after a manual adjustment because nothing told it to invalidate. Both
+// methods now call ProductsService.invalidateCacheForProductId after writing.
+describe('InventoryService — product cache invalidation', () => {
+  function createService() {
+    const prisma = {
+      inventory: {
+        upsert: jest
+          .fn()
+          .mockResolvedValue({ id: 'inv1', productId: 'p1', quantity: 10 }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: 'inv1', productId: 'p1', quantity: 10 }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        findUniqueOrThrow: jest
+          .fn()
+          .mockResolvedValue({ id: 'inv1', productId: 'p1', quantity: 5 }),
+      },
+      inventoryHistory: { create: jest.fn().mockResolvedValue({}) },
+    } as any;
+    const productsService = {
+      invalidateCacheForProductId: jest.fn().mockResolvedValue(undefined),
+    } as any;
+
+    return {
+      service: new InventoryService(prisma, productsService),
+      productsService,
+    };
+  }
+
+  it('invalidates the product cache after a stock-in adjustment', async () => {
+    const { service, productsService } = createService();
+
+    await service.stockIn({ productId: 'p1', warehouseId: 'w1', quantity: 5 });
+
+    expect(productsService.invalidateCacheForProductId).toHaveBeenCalledWith(
+      'p1',
+    );
+  });
+
+  it('invalidates the product cache after a stock-out adjustment', async () => {
+    const { service, productsService } = createService();
+
+    await service.stockOut({
+      productId: 'p1',
+      warehouseId: 'w1',
+      quantity: 5,
+      reason: 'DAMAGED',
+    });
+
+    expect(productsService.invalidateCacheForProductId).toHaveBeenCalledWith(
+      'p1',
+    );
   });
 });

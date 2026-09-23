@@ -206,6 +206,18 @@ export class ProductsService {
     }
   }
 
+  // Called by InventoryService after a manual stock-in/stock-out adjustment.
+  // Those endpoints only have a productId, not the slug this cache is keyed
+  // by — otherwise a manual adjustment leaves the storefront's product page
+  // showing pre-adjustment stock for up to the 10-minute cache TTL.
+  async invalidateCacheForProductId(productId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { slug: true },
+    });
+    await this.clearProductCache(product?.slug);
+  }
+
   private async fetchProductDetail(slug: string) {
     // Only reachable via the public GET /products/:slug route — must respect
     // isActive the same way findAll() does, or a product an admin has hidden

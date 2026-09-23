@@ -138,7 +138,9 @@ export class InstallationService {
     if (query.status) where.status = query.status as InstallationStatus;
     if (query.search) {
       where.OR = [
-        { user: { firstName: { contains: query.search, mode: 'insensitive' } } },
+        {
+          user: { firstName: { contains: query.search, mode: 'insensitive' } },
+        },
         { user: { lastName: { contains: query.search, mode: 'insensitive' } } },
         { user: { email: { contains: query.search, mode: 'insensitive' } } },
         { service: { name: { contains: query.search, mode: 'insensitive' } } },
@@ -263,6 +265,9 @@ export class InstallationService {
   }
 
   async createTechnician(userId: string, specialization?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+
     const existing = await this.prisma.technician.findUnique({
       where: { userId },
     });
